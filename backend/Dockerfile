@@ -6,8 +6,11 @@ WORKDIR /app
 COPY package.json ./
 COPY prisma ./prisma/
 
-# Install dependencies
+# Install dependencies (including devDependencies for build)
 RUN npm install
+
+# Install TypeScript explicitly for build
+RUN npm install typescript
 
 # Generate Prisma client
 RUN npx prisma generate
