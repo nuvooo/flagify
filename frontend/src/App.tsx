@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import MainLayout from './components/layout/MainLayout';
 import Dashboard from './pages/Dashboard';
+import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -26,14 +27,15 @@ function App() {
   return (
     <Routes>
       {/* Public Routes */}
-      <Route path="/login" element={!token ? <Login /> : <Navigate to="/" />} />
-      <Route path="/register" element={!token ? <Register /> : <Navigate to="/" />} />
-      <Route path="/forgot-password" element={!token ? <ForgotPassword /> : <Navigate to="/" />} />
-      <Route path="/reset-password" element={!token ? <ResetPassword /> : <Navigate to="/" />} />
+      <Route path="/" element={token ? <Navigate to="/dashboard" /> : <LandingPage />} />
+      <Route path="/login" element={!token ? <Login /> : <Navigate to="/dashboard" />} />
+      <Route path="/register" element={!token ? <Register /> : <Navigate to="/dashboard" />} />
+      <Route path="/forgot-password" element={!token ? <ForgotPassword /> : <Navigate to="/dashboard" />} />
+      <Route path="/reset-password" element={!token ? <ResetPassword /> : <Navigate to="/dashboard" />} />
       
       {/* Protected Routes */}
       <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-        <Route index element={<Dashboard />} />
+        <Route path="dashboard" element={<Dashboard />} />
         
         {/* Organizations */}
         <Route path="organizations" element={<OrganizationList />} />
@@ -59,7 +61,7 @@ function App() {
         <Route path="settings" element={<Settings />} />
         
         {/* Catch all - redirect to dashboard */}
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="*" element={<Navigate to="/dashboard" />} />
       </Route>
     </Routes>
   );

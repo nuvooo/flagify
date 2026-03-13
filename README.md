@@ -2,92 +2,92 @@
 
 ![Flagify Dashboard](screenshot.png)
 
-Eine vollständige, selbstgehostete Feature Flag Management Plattform ähnlich wie LaunchDarkly. Verwalten Sie Feature Flags, Organisationen, Projekte und Umgebungen mit einer modernen Web-Oberfläche und einer leistungsstarken API.
+A complete, self-hosted Feature Flag Management Platform similar to LaunchDarkly. Manage feature flags, organizations, projects, and environments with a modern web interface and a powerful API.
 
-Besuchen Sie die Live-Demo: [flagify.examplesart.de](https://flagify.examplesart.de/)
+Visit the live demo: [flagify.examplesart.de](https://flagify.examplesart.de/)
 
 ## ✨ Features
 
-- 🔐 **Benutzer-Authentifizierung & Autorisierung**
-  - JWT-basierte Authentifizierung
-  - Rollenbasierte Zugriffskontrolle (Owner, Admin, Member, Viewer)
-  - Organisation-basierte Multi-Tenant-Architektur
+- 🔐 **User Authentication & Authorization**
+  - JWT-based authentication
+  - Role-based access control (Owner, Admin, Member, Viewer)
+  - Organization-based multi-tenant architecture
 
-- 🏢 **Organisationen & Projekte**
-  - Mehrere Organisationen pro Benutzer
-  - Projekte innerhalb von Organisationen
-  - Team-Management mit Einladungen
+- 🏢 **Organizations & Projects**
+  - Multiple organizations per user
+  - Projects within organizations
+  - Team management with invitations
 
-- 🌍 **Umgebungen**
-  - Entwicklung, Staging, Production
-  - Unabhängige Flag-Zustände pro Umgebung
+- 🌍 **Environments**
+  - Development, Staging, Production
+  - Independent flag states per environment
 
 - 🚦 **Feature Flags**
-  - Verschiedene Typen: Boolean, String, Number, JSON
-  - Targeting-Regeln mit Bedingungen
-  - Echtzeit-Aktualisierungen
+  - Multiple types: Boolean, String, Number, JSON
+  - Targeting rules with conditions
+  - Real-time updates
 
 - 📊 **Audit Logs**
-  - Nachvollziehbarkeit aller Änderungen
-  - Filterung nach Benutzer, Projekt, Entität
+  - Traceability of all changes
+  - Filtering by user, project, entity
 
 - 🔑 **API Keys**
-  - Server, Client und SDK Keys
-  - Ablaufdaten und Widerruf
+  - Server, Client, and SDK Keys
+  - Expiration dates and revocation
 
-- 🚀 **SDK für verschiedene Sprachen**
-  - Offizielles JavaScript/TypeScript SDK
-  - Einfache Integration in Anwendungen
+- 🚀 **SDKs for Various Languages**
+  - Official JavaScript/TypeScript SDK
+  - Easy integration into applications
 
-## 🚀 Schnellstart
+## 🚀 Quick Start
 
-### Voraussetzungen
+### Prerequisites
 
 - Docker 20.10+
 - Docker Compose 2.0+
 
 ### Installation
 
-1. **Repository klonen oder herunterladen**
+1. **Clone or download the repository**
 
 ```bash
 git clone <repository-url>
 cd flagify
 ```
 
-2. **Konfiguration anpassen (optional)**
+2. **Adjust configuration (optional)**
 
 ```bash
-# Kopieren Sie die Beispiel-Konfiguration
+# Copy the example configuration
 cp .env.example .env
 
-# Bearbeiten Sie die Werte in .env
+# Edit the values in .env
 ```
 
-3. **Docker Container starten**
+3. **Start Docker Containers**
 
 ```bash
 docker-compose up -d
 ```
 
-4. **Auf die Anwendung zugreifen**
+4. **Access the application**
 
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:4000
-- API Dokumentation: http://localhost:4000/health
+- API Documentation: http://localhost:4000/health
 
-### Demo-Zugangsdaten
+### Demo Credentials
 
 - **Email**: `demo@flagify.io`
 - **Password**: `demo1234`
 
-## 📁 Projektstruktur
+## 📁 Project Structure
 
 ```
 flagify/
 ├── backend/           # Node.js/Express Backend API
 │   ├── src/
-│   │   ├── controllers/   # API Controller
+│   │   ├── controllers/   # API Controllers
 │   │   ├── middleware/    # Express Middleware
 │   │   ├── routes/        # API Routes
 │   │   ├── services/      # Business Logic
@@ -98,6 +98,13 @@ flagify/
 │       ├── components/    # React Components
 │       ├── pages/         # Page Components
 │       └── store/         # Zustand Stores
+├── sdk/               # Official SDKs
+│   └── javascript/    # JS/TS SDK
+```
+
+## 📄 License
+
+This project is open-source and available under the [MIT License](LICENSE).
 ├── sdk/               # Client SDKs
 │   └── javascript/        # JavaScript/TypeScript SDK
 └── docker-compose.yml # Docker Compose Konfiguration

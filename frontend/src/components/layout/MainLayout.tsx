@@ -34,18 +34,18 @@ export default function MainLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navigation = [
-    { name: t('nav.dashboard'), href: '/', icon: LayoutDashboard },
+    { name: t('nav.dashboard'), href: '/dashboard', icon: LayoutDashboard },
     { name: t('nav.organizations'), href: '/organizations', icon: Building2 },
   ];
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   const isActive = (href: string) => {
-    if (href === '/') {
-      return location.pathname === '/';
+    if (href === '/dashboard' || href === '/') {
+      return location.pathname === href;
     }
     return location.pathname.startsWith(href);
   };
@@ -56,7 +56,7 @@ export default function MainLayout() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 mr-8">
+          <Link to="/dashboard" className="flex items-center gap-2 mr-8">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
               <FlagIcon className="w-5 h-5 text-primary-foreground" />
             </div>

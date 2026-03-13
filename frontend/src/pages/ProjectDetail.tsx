@@ -245,54 +245,14 @@ export default function ProjectDetail() {
       })
     );
 
+    const toggleKey = `${flagId}-${environmentId}-${brandId}`;
+    setTogglingBrandFlags(prev => new Set(prev).add(toggleKey));
+
     try {
       await api.post(`/brands/${brandId}/flags/${flagId}/toggle`, {
         environmentId,
         enabled: !enabled,
       });
-    } catch (error) {
-      console.error('Failed to toggle brand flag:', error);
-      // Rollback on error
-      setFeatureFlags(previousFlags);
-    }
-  };
-
-  const handleToggleBrandFlag = async (flag: FeatureFlag, brand: BrandFlagValue, environmentId: string) => {
-    if (!validProjectId) return;
-    
-    // Optimistic update
-    const previousFlags = [...featureFlags];
-    setFeatureFlags((prev) =>
-      prev.map((f) => {
-        if (f.id === flag.id) {
-          return {
-            ...f,
-            environments: f.environments.map((e) => {
-              if (e.environmentId === environmentId) {
-                return {
-                  ...e,
-                  brandValues: e.brandValues?.map((bv) =>
-                    bv.brandId === brand.brandId ? { ...bv, enabled: !brand.enabled } : bv
-                  ),
-                };
-              }
-              return e;
-            }),
-          };
-        }
-        return f;
-      })
-    );
-
-    const toggleKey = `${flag.id}-${environmentId}-${brand.brandId}`;
-    setTogglingBrandFlags(prev => new Set(prev).add(toggleKey));
-    
-    try {
-      await api.post(`/brands/${brand.brandId}/flags/${flag.id}/toggle`, {
-        environmentId,
-        enabled: !brand.enabled,
-      });
-      // Optionally remove toggling state without a full fetchData call
     } catch (error) {
       console.error('Failed to toggle brand flag:', error);
       // Rollback on error
@@ -305,6 +265,8 @@ export default function ProjectDetail() {
       });
     }
   };
+
+  /* Lines 260-316 omitted */
 
   const openDeleteDialog = (flag: FeatureFlag) => {
     setFlagToDelete(flag);
@@ -581,7 +543,7 @@ export default function ProjectDetail() {
                                   </Badge>
                                 </div>
                                 <button
-                                  onClick={() => handleToggleBrandFlag(flag, brand, env.environmentId)}
+                                  onClick={() => handleToggleBrandFlag(brand.brandId, flag.id, env.environmentId, brand.enabled)}
                                   disabled={isToggling}
                                   className={clsx(
                                     "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",

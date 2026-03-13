@@ -34,13 +34,44 @@ export async function resetDemoData() {
         await prisma.auditLog.deleteMany({ where: { organizationId: { in: orgIds } } });
         // Delete API Keys
         await prisma.apiKey.deleteMany({ where: { organizationId: { in: orgIds } } });
-        // Delete Flag Environments (Targeting Rules delete cascade usually, but manual check for MongoDB)
-        await prisma.targetingRule.deleteMany({ where: { organizationId: { in: orgIds } } });
-        await prisma.flagEnvironment.deleteMany({ where: { organizationId: { in: orgIds } } });
+        
+        // Find all projects to delete brands
+        const projects = await prisma.project.findMany({
+          where: { organizationId: { in: orgIds } },
+          select: { id: true }
+        });
+        const projectIds = projects.map(p => p.id);
+
+        if (projectIds.length > 0) {
+          // Delete Brands (assigned to projects)
+          await prisma.brand.deleteMany({ where: { projectId: { in: projectIds } } });
+        }
+
+        // Delete Flag Environments (cascading cleanup)
+        // Since MongoDB adapter doesn't always handle nested deletes perfectly in deleteMany,
+        // we find flags first or delete them by organizationId
+        const flags = await prisma.featureFlag.findMany({
+          where: { organizationId: { in: orgIds } },
+          select: { id: true }
+        });
+        const flagIds = flags.map(f => f.id);
+
+        if (flagIds.length > 0) {
+          // Delete Targeting Rules associated with these flags
+          const flagEnvs = await prisma.flagEnvironment.findMany({
+            where: { flagId: { in: flagIds } },
+            select: { id: true }
+          });
+          const flagEnvIds = flagEnvs.map(fe => fe.id);
+          
+          if (flagEnvIds.length > 0) {
+             await prisma.targetingRule.deleteMany({ where: { flagEnvId: { in: flagEnvIds } } });
+             await prisma.flagEnvironment.deleteMany({ where: { id: { in: flagEnvIds } } });
+          }
+        }
+
         // Delete Feature Flags
         await prisma.featureFlag.deleteMany({ where: { organizationId: { in: orgIds } } });
-        // Delete Brands
-        await prisma.brand.deleteMany({ where: { organizationId: { in: orgIds } } });
         // Delete Environments
         await prisma.environment.deleteMany({ where: { organizationId: { in: orgIds } } });
         // Delete Projects
@@ -152,14 +183,12 @@ export async function resetDemoData() {
                 {
                   environmentId: devEnv.id,
                   enabled: flagData.devEnabled,
-                  defaultValue: flagData.defaultValue,
-                  organizationId: org.id
+                  defaultValue: flagData.defaultValue
                 },
                 {
                   environmentId: prodEnv.id,
                   enabled: flagData.prodEnabled,
-                  defaultValue: flagData.defaultValue,
-                  organizationId: org.id
+                  defaultValue: flagData.defaultValue
                 }
               ]
             }
