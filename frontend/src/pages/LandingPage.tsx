@@ -62,7 +62,7 @@ export default function LandingPage() {
   return (
     <div className="bg-white">
       {/* Navigation */}
-      <header className="absolute inset-x-0 top-0 z-50">
+      <header className="relative z-50 bg-white border-b border-gray-200">
         <nav className="flex items-center justify-between p-6 lg:px-8" aria-label="Global">
           <div className="flex lg:flex-1">
             <Link to="/" className="-m-1.5 p-1.5 flex items-center gap-2">
@@ -99,7 +99,7 @@ export default function LandingPage() {
 
       <main className="isolate">
         {/* Hero section */}
-        <div className="relative pt-14">
+        <div className="relative">
           <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
             <div
               className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"

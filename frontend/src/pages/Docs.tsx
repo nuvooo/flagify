@@ -153,7 +153,7 @@ export default function Docs() {
         <div className="flex gap-8 py-8">
           {/* Sidebar */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
-            <nav className="space-y-1">
+            <nav className="sticky top-24 space-y-1 max-h-[calc(100vh-8rem)] overflow-y-auto">
               {sidebarNavigation.map((section) => (
                 <div key={section.title} className="mb-4">
                   <button
