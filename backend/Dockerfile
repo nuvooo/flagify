@@ -3,14 +3,11 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copy package files
-COPY package.json ./
+COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install dependencies (including devDependencies for build)
-RUN npm install
-
-# Install TypeScript explicitly for build
-RUN npm install typescript
+# Install ALL dependencies (including devDependencies for build)
+RUN npm ci
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -19,7 +16,7 @@ RUN npx prisma generate
 COPY . .
 
 # Build TypeScript
-RUN npm run build
+RUN ./node_modules/.bin/tsc
 
 # Production stage
 FROM node:20-alpine AS production
@@ -30,11 +27,11 @@ WORKDIR /app
 RUN apk add --no-cache openssl
 
 # Copy package files
-COPY package.json ./
+COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install dependencies
-RUN npm install
+# Install production dependencies only
+RUN npm ci --only=production
 
 # Copy built application
 COPY --from=builder /app/dist ./dist
