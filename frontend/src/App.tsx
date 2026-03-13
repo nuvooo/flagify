@@ -13,6 +13,7 @@ import OrganizationMembers from './pages/organizations/OrganizationMembers';
 import CreateOrganization from './pages/organizations/CreateOrganization';
 import ProjectDetail from './pages/ProjectDetail';
 import ProjectSettings from './pages/projects/ProjectSettings';
+import BrandFlags from './pages/projects/BrandFlags';
 import FeatureFlags from './pages/FeatureFlags';
 import FeatureFlagDetail from './pages/FeatureFlagDetail';
 import ApiKeys from './pages/ApiKeys';
@@ -45,6 +46,7 @@ function App() {
         <Route path="organizations/:orgId/projects/:projectId" element={<ProjectDetail />} />
         <Route path="projects/:projectId" element={<ProjectDetail />} />
         <Route path="projects/:projectId/settings" element={<ProjectSettings />} />
+        <Route path="projects/:projectId/brands/:brandId/flags" element={<BrandFlags />} />
         
         {/* Feature Flags */}
         <Route path="feature-flags" element={<FeatureFlags />} />

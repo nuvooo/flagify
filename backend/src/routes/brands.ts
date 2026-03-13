@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { getBrands, createBrand, updateBrand, deleteBrand } from '../controllers/brands';
+import { getBrands, createBrand, updateBrand, deleteBrand, getBrandFlags, toggleBrandFlag, updateBrandFlagValue } from '../controllers/brands';
 import { authenticate, requireProjectMember } from '../middleware/auth';
 import { validate } from '../middleware/validate';
 
@@ -31,5 +31,10 @@ router.patch(
   updateBrand
 );
 router.delete('/:brandId', requireProjectMember, deleteBrand);
+
+// Brand flag management
+router.get('/:brandId/flags', requireProjectMember, getBrandFlags);
+router.post('/:brandId/flags/:flagId/toggle', requireProjectMember, toggleBrandFlag);
+router.patch('/:brandId/flags/:flagId', requireProjectMember, updateBrandFlagValue);
 
 export { router as brandsRouter };
