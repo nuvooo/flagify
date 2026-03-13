@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 
 import { authRouter } from './routes/auth';
+import { passwordResetRouter } from './routes/passwordReset';
 import { organizationsRouter } from './routes/organizations';
 import { projectsRouter } from './routes/projects';
 import { environmentsRouter } from './routes/environments';
@@ -61,6 +62,7 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRouter);
+app.use('/api/password-reset', passwordResetRouter);
 app.use('/api/organizations', organizationsRouter);
 app.use('/api/projects', projectsRouter);
 app.use('/api/environments', environmentsRouter);

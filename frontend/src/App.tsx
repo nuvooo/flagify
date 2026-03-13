@@ -4,6 +4,8 @@ import MainLayout from './components/layout/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import OrganizationList from './pages/organizations/OrganizationList';
 import OrganizationDetail from './pages/organizations/OrganizationDetail';
 import OrganizationSettings from './pages/organizations/OrganizationSettings';
@@ -23,6 +25,8 @@ function App() {
       {/* Public Routes */}
       <Route path="/login" element={!token ? <Login /> : <Navigate to="/" />} />
       <Route path="/register" element={!token ? <Register /> : <Navigate to="/" />} />
+      <Route path="/forgot-password" element={!token ? <ForgotPassword /> : <Navigate to="/" />} />
+      <Route path="/reset-password" element={!token ? <ResetPassword /> : <Navigate to="/" />} />
       
       {/* Protected Routes */}
       <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
