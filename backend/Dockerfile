@@ -7,7 +7,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install ALL dependencies (including devDependencies for build)
-RUN npm ci
+RUN npm ci --include=dev
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -16,7 +16,7 @@ RUN npx prisma generate
 COPY . .
 
 # Build TypeScript
-RUN ./node_modules/.bin/tsc
+RUN npx tsc
 
 # Production stage
 FROM node:20-alpine AS production
@@ -31,7 +31,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install production dependencies only
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 # Copy built application
 COPY --from=builder /app/dist ./dist
