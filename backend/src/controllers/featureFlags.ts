@@ -89,7 +89,8 @@ export const getFeatureFlags = async (req: AuthenticatedRequest, res: Response, 
               select: {
                 id: true,
                 name: true,
-                key: true
+                key: true,
+                sortOrder: true
               }
             }
           }
@@ -104,14 +105,16 @@ export const getFeatureFlags = async (req: AuthenticatedRequest, res: Response, 
       description: f.description,
       flagType: f.flagType,
       createdBy: f.createdBy,
-      environments: f.flagEnvironments.map(fe => ({
-        id: fe.id,
-        environmentId: fe.environmentId,
-        environmentName: fe.environment.name,
-        environmentKey: fe.environment.key,
-        enabled: fe.enabled,
-        defaultValue: fe.defaultValue
-      })),
+      environments: f.flagEnvironments
+        .sort((a, b) => (a.environment.sortOrder || 0) - (b.environment.sortOrder || 0))
+        .map(fe => ({
+          id: fe.id,
+          environmentId: fe.environmentId,
+          environmentName: fe.environment.name,
+          environmentKey: fe.environment.key,
+          enabled: fe.enabled,
+          defaultValue: fe.defaultValue
+        })),
       createdAt: f.createdAt,
       updatedAt: f.updatedAt
     })));
@@ -144,7 +147,8 @@ export const getFeatureFlag = async (req: AuthenticatedRequest, res: Response, n
               select: {
                 id: true,
                 name: true,
-                key: true
+                key: true,
+                sortOrder: true
               }
             },
             targetingRules: {
@@ -172,23 +176,25 @@ export const getFeatureFlag = async (req: AuthenticatedRequest, res: Response, n
       flagType: flag.flagType,
       projectId: flag.projectId,
       createdBy: flag.createdBy,
-      environments: flag.flagEnvironments.map(fe => ({
-        id: fe.id,
-        environmentId: fe.environmentId,
-        environmentName: fe.environment.name,
-        environmentKey: fe.environment.key,
-        enabled: fe.enabled,
-        defaultValue: fe.defaultValue,
-        targetingRules: fe.targetingRules.map(tr => ({
-          id: tr.id,
-          name: tr.name,
-          operator: tr.operator,
-          serveValue: tr.serveValue,
-          isDefault: tr.isDefault,
-          priority: tr.priority,
-          conditions: tr.conditions
-        }))
-      })),
+      environments: flag.flagEnvironments
+        .sort((a, b) => (a.environment.sortOrder || 0) - (b.environment.sortOrder || 0))
+        .map(fe => ({
+          id: fe.id,
+          environmentId: fe.environmentId,
+          environmentName: fe.environment.name,
+          environmentKey: fe.environment.key,
+          enabled: fe.enabled,
+          defaultValue: fe.defaultValue,
+          targetingRules: fe.targetingRules.map(tr => ({
+            id: tr.id,
+            name: tr.name,
+            operator: tr.operator,
+            serveValue: tr.serveValue,
+            isDefault: tr.isDefault,
+            priority: tr.priority,
+            conditions: tr.conditions
+          }))
+        })),
       createdAt: flag.createdAt,
       updatedAt: flag.updatedAt
     });
@@ -241,7 +247,7 @@ export const createFeatureFlag = async (req: AuthenticatedRequest, res: Response
       });
 
       // Fetch the flag with environments to return
-      return await tx.featureFlag.findUnique({
+      const createdFlag = await tx.featureFlag.findUnique({
         where: { id: flag.id },
         include: {
           createdBy: {
@@ -250,12 +256,28 @@ export const createFeatureFlag = async (req: AuthenticatedRequest, res: Response
           flagEnvironments: {
             include: {
               environment: {
-                select: { id: true, name: true, key: true }
+                select: { id: true, name: true, key: true, sortOrder: true }
               }
             }
           }
         }
       });
+
+      if (!createdFlag) return null;
+
+      return {
+        ...createdFlag,
+        environments: createdFlag.flagEnvironments
+          .sort((a, b) => (a.environment.sortOrder || 0) - (b.environment.sortOrder || 0))
+          .map(fe => ({
+            id: fe.id,
+            environmentId: fe.environmentId,
+            environmentName: fe.environment.name,
+            environmentKey: fe.environment.key,
+            enabled: fe.enabled,
+            defaultValue: fe.defaultValue
+          }))
+      };
     });
 
     await createAuditLog({

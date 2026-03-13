@@ -1,6 +1,10 @@
 # 🚩 Flagify - Feature Flag Management Platform
 
+![Flagify Dashboard](screenshot.png)
+
 Eine vollständige, selbstgehostete Feature Flag Management Plattform ähnlich wie LaunchDarkly. Verwalten Sie Feature Flags, Organisationen, Projekte und Umgebungen mit einer modernen Web-Oberfläche und einer leistungsstarken API.
+
+Besuchen Sie die Live-Demo: [flagify.examplesart.de](https://flagify.examplesart.de/)
 
 ## ✨ Features
 

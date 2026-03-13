@@ -123,6 +123,7 @@ model Environment {
   id             String   @id @default(auto()) @map("_id") @db.ObjectId
   name           String
   key            String
+  sortOrder      Int      @default(0)
   projectId      String   @db.ObjectId
   organizationId String   @db.ObjectId
   createdAt      DateTime @default(now())

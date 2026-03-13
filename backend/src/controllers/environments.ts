@@ -16,6 +16,7 @@ export const getEnvironments = async (req: AuthenticatedRequest, res: Response, 
 
     const environments = await prisma.environment.findMany({
       where: { projectId },
+      orderBy: { sortOrder: 'asc' },
       include: {
         _count: {
           select: {
@@ -29,6 +30,7 @@ export const getEnvironments = async (req: AuthenticatedRequest, res: Response, 
       id: e.id,
       name: e.name,
       key: e.key,
+      sortOrder: e.sortOrder,
       projectId: e.projectId,
       flagCount: e._count.flagEnvironments,
       createdAt: e.createdAt
@@ -186,6 +188,36 @@ export const deleteEnvironment = async (req: AuthenticatedRequest, res: Response
     });
 
     res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Reorder environments
+export const reorderEnvironments = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const { projectId } = req.params;
+    const { environmentIds } = req.body; // Array of environment IDs in new order
+
+    if (!isValidObjectId(projectId)) {
+      return sendInvalidIdError(res, 'Project ID');
+    }
+
+    if (!Array.isArray(environmentIds)) {
+      return res.status(400).json({ error: 'environmentIds must be an array' });
+    }
+
+    // Update sortOrder for each environment
+    await prisma.$transaction(
+      environmentIds.map((id, index) =>
+        prisma.environment.update({
+          where: { id },
+          data: { sortOrder: index }
+        })
+      )
+    );
+
+    res.json({ message: 'Environments reordered successfully' });
   } catch (error) {
     next(error);
   }

@@ -22,7 +22,7 @@ router.post(
 );
 router.patch(
   '/:brandId',
-  requireProjectMember,
+  requireBrandProjectMember,
   [
     body('name').optional().trim().notEmpty(),
     body('description').optional().trim(),
@@ -30,7 +30,7 @@ router.patch(
   ],
   updateBrand
 );
-router.delete('/:brandId', requireProjectMember, deleteBrand);
+router.delete('/:brandId', requireBrandProjectMember, deleteBrand);
 
 // Brand flag management
 router.get('/:brandId/flags', requireBrandProjectMember, getBrandFlags);

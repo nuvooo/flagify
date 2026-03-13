@@ -104,10 +104,12 @@ export const getProject = async (req: AuthenticatedRequest, res: Response, next:
           select: { name: true }
         },
         environments: {
+          orderBy: { sortOrder: 'asc' },
           select: {
             id: true,
             name: true,
-            key: true
+            key: true,
+            sortOrder: true
           }
         },
         _count: {
@@ -356,7 +358,7 @@ export const getProjectFlagsWithBrands = async (req: AuthenticatedRequest, res: 
       where: { id: projectId },
       include: {
         environments: {
-          orderBy: { createdAt: 'asc' }
+          orderBy: { sortOrder: 'asc' }
         },
         brands: {
           orderBy: { createdAt: 'asc' }
@@ -366,7 +368,7 @@ export const getProjectFlagsWithBrands = async (req: AuthenticatedRequest, res: 
             flagEnvironments: {
               include: {
                 environment: {
-                  select: { id: true, name: true, key: true }
+                  select: { id: true, name: true, key: true, sortOrder: true }
                 }
               }
             }

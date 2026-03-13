@@ -5,7 +5,8 @@ import {
   getEnvironment,
   createEnvironment,
   updateEnvironment,
-  deleteEnvironment
+  deleteEnvironment,
+  reorderEnvironments
 } from '../controllers/environments';
 import { authenticate, requireOrgMember, requireOrgRole } from '../middleware/auth';
 import { validate } from '../middleware/validate';
@@ -29,5 +30,6 @@ router.post(
 router.get('/:environmentId', authenticate, getEnvironment);
 router.patch('/:environmentId', authenticate, updateEnvironment);
 router.delete('/:environmentId', authenticate, deleteEnvironment);
+router.post('/project/:projectId/reorder', authenticate, reorderEnvironments);
 
 export { router as environmentsRouter };

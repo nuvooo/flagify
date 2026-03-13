@@ -491,8 +491,8 @@ export default function ProjectDetail() {
                               >
                                 <div className="flex items-center gap-2">
                                   <Badge 
-                                    variant={brand.isCustom ? "default" : "outline"} 
-                                    className="text-xs"
+                                    variant="outline" 
+                                    className="text-xs bg-white dark:bg-gray-800"
                                   >
                                     {brand.brandName}
                                   </Badge>

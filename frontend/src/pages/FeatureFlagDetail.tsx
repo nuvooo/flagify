@@ -270,15 +270,15 @@ export default function FeatureFlagDetail() {
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'BOOLEAN':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-700/10';
       case 'STRING':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20';
       case 'NUMBER':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-700/10';
       case 'JSON':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-700/10';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-600/10';
     }
   };
 

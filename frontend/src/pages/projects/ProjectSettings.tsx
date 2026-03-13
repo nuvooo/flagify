@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Settings, Trash2, Globe, AlertTriangle, Building2, Plus, MoreVertical, Edit2 } from 'lucide-react';
+import { ArrowLeft, Settings, Trash2, Globe, AlertTriangle, Building2, Plus, MoreVertical, Edit2, ArrowUp, ArrowDown } from 'lucide-react';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -231,6 +231,33 @@ export default function ProjectSettings() {
       setMessage({ 
         type: 'error', 
         text: error.response?.data?.error || 'Failed to delete environment' 
+      });
+    }
+  };
+
+  const handleReorderEnvironment = async (envId: string, direction: 'up' | 'down') => {
+    const index = environments.findIndex(e => e.id === envId);
+    if (index === -1) return;
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === environments.length - 1) return;
+
+    const newEnvironments = [...environments];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    [newEnvironments[index], newEnvironments[targetIndex]] = [newEnvironments[targetIndex], newEnvironments[index]];
+
+    // Optimistic update
+    setEnvironments(newEnvironments);
+
+    try {
+      await api.post(`/environments/project/${projectId}/reorder`, {
+        environmentIds: newEnvironments.map(e => e.id)
+      });
+    } catch (error: any) {
+      // Revert on error
+      setEnvironments(environments);
+      setMessage({ 
+        type: 'error', 
+        text: 'Failed to reorder environments' 
       });
     }
   };
@@ -470,7 +497,7 @@ export default function ProjectSettings() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {environments.map((env) => (
+                {environments.map((env, index) => (
                   <div key={env.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
@@ -482,6 +509,26 @@ export default function ProjectSettings() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      <div className="flex items-center border rounded-md overflow-hidden mr-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-none border-r"
+                          disabled={index === 0}
+                          onClick={() => handleReorderEnvironment(env.id, 'up')}
+                        >
+                          <ArrowUp className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-none"
+                          disabled={index === environments.length - 1}
+                          onClick={() => handleReorderEnvironment(env.id, 'down')}
+                        >
+                          <ArrowDown className="h-3 w-3" />
+                        </Button>
+                      </div>
                       <Badge variant="secondary">{env.flagCount} flags</Badge>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
