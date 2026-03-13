@@ -73,9 +73,9 @@ export default function LandingPage() {
             </Link>
           </div>
           <div className="hidden md:flex md:gap-x-8">
-            <a href="https://flagify.examplesart.de/" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold leading-6 text-gray-900 hover:text-primary-600 transition-colors">
+            <Link to="/login?demo=true" className="text-sm font-semibold leading-6 text-gray-900 hover:text-primary-600 transition-colors">
               Live Demo
-            </a>
+            </Link>
             <Link to="/docs" className="text-sm font-semibold leading-6 text-gray-900 hover:text-primary-600 transition-colors">
               Documentation
             </Link>
@@ -132,15 +132,13 @@ export default function LandingPage() {
                   >
                     Start for Free
                   </Link>
-                  <a 
-                    href="https://flagify.examplesart.de/" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
+                  <Link 
+                    to="/login?demo=true"
                     className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-md bg-white px-6 py-3 text-lg font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                   >
                     <PlayIcon className="h-5 w-5" />
                     Try Live Demo
-                  </a>
+                  </Link>
                   <a 
                     href="https://github.com/nuvooo/flagify/" 
                     target="_blank" 
@@ -264,15 +262,13 @@ export default function LandingPage() {
                 <DocumentTextIcon className="h-5 w-5" />
                 Read Documentation
               </Link>
-              <a
-                href="https://flagify.examplesart.de/"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to="/login?demo=true"
                 className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-md bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
               >
                 <PlayIcon className="h-5 w-5" />
                 Try Live Demo
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -295,7 +291,7 @@ export default function LandingPage() {
               <h3 className="text-sm font-semibold leading-6 text-white">Product</h3>
               <ul className="mt-6 space-y-4">
                 <li><Link to="/docs" className="text-sm leading-6 text-gray-400 hover:text-white">Documentation</Link></li>
-                <li><a href="https://flagify.examplesart.de/" target="_blank" rel="noopener noreferrer" className="text-sm leading-6 text-gray-400 hover:text-white">Live Demo</a></li>
+                <li><Link to="/login?demo=true" className="text-sm leading-6 text-gray-400 hover:text-white">Live Demo</Link></li>
                 <li><Link to="/register" className="text-sm leading-6 text-gray-400 hover:text-white">Get Started</Link></li>
               </ul>
             </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/button';
@@ -11,8 +11,10 @@ import { FlagIcon, Loader2 } from 'lucide-react';
 
 export default function Login() {
   const { t } = useTranslation();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [searchParams] = useSearchParams();
+  const isDemo = searchParams.get('demo') === 'true';
+  const [email, setEmail] = useState(isDemo ? 'demo@flagify.io' : '');
+  const [password, setPassword] = useState(isDemo ? 'demo1234' : '');
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +52,13 @@ export default function Login() {
           <CardHeader className="space-y-1 text-center pb-2">
             <CardTitle className="text-2xl font-bold">{t('login.title')}</CardTitle>
             <CardDescription>{t('login.subtitle')}</CardDescription>
+            {isDemo && (
+              <div className="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+                <p className="font-medium mb-1">🎮 Live Demo Mode</p>
+                <p>Email: <code className="font-mono bg-amber-100 px-1 rounded">demo@flagify.io</code></p>
+                <p>Password: <code className="font-mono bg-amber-100 px-1 rounded">demo1234</code></p>
+              </div>
+            )}
           </CardHeader>
 
           <form onSubmit={handleSubmit}>
