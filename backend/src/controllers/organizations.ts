@@ -94,20 +94,33 @@ export const createOrganization = async (req: AuthenticatedRequest, res: Respons
 
     const slug = slugify(name);
 
-    // Check if slug exists
-    const existing = await prisma.organization.findUnique({
-      where: { slug }
+    // Check if user already has an organization with this slug
+    const userOrgs = await prisma.organization.findMany({
+      where: {
+        members: {
+          some: { userId }
+        },
+        slug
+      }
     });
 
-    if (existing) {
-      return res.status(409).json({ error: 'Organization with this name already exists' });
+    if (userOrgs.length > 0) {
+      return res.status(409).json({ error: 'You already have an organization with this name' });
+    }
+
+    // Check if slug exists globally (for URL uniqueness, add random suffix if needed)
+    let finalSlug = slug;
+    let counter = 1;
+    while (await prisma.organization.findUnique({ where: { slug: finalSlug } })) {
+      finalSlug = `${slug}-${counter}`;
+      counter++;
     }
 
     const result = await prisma.$transaction(async (tx) => {
       const org = await tx.organization.create({
         data: {
           name,
-          slug,
+          slug: finalSlug,
           description
         }
       });
@@ -131,6 +144,7 @@ export const createOrganization = async (req: AuthenticatedRequest, res: Respons
 
 export const updateOrganization = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    const userId = req.user!.userId;
     const { orgId } = req.params;
     const { name, description } = req.body;
 
@@ -140,8 +154,38 @@ export const updateOrganization = async (req: AuthenticatedRequest, res: Respons
 
     const updateData: any = {};
     if (name) {
+      const newSlug = slugify(name);
+      
+      // Check if user already has another organization with this slug
+      const userOrgs = await prisma.organization.findMany({
+        where: {
+          id: { not: orgId },
+          members: {
+            some: { userId }
+          },
+          slug: newSlug
+        }
+      });
+
+      if (userOrgs.length > 0) {
+        return res.status(409).json({ error: 'You already have an organization with this name' });
+      }
+
       updateData.name = name;
-      updateData.slug = slugify(name);
+      
+      // Find unique slug globally (add suffix if needed)
+      let finalSlug = newSlug;
+      let counter = 1;
+      while (await prisma.organization.findFirst({ 
+        where: { 
+          slug: finalSlug,
+          id: { not: orgId }
+        } 
+      })) {
+        finalSlug = `${newSlug}-${counter}`;
+        counter++;
+      }
+      updateData.slug = finalSlug;
     }
     if (description !== undefined) updateData.description = description;
 
