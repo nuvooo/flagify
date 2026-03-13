@@ -104,23 +104,50 @@ export const createEnvironment = async (req: AuthenticatedRequest, res: Response
     const { name, key } = req.body;
 
     const project = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectId },
+      include: {
+        featureFlags: true
+      }
     });
 
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    const environment = await prisma.environment.create({
-      data: {
-        name,
-        key,
-        projectId,
-        organizationId: project.organizationId
+    // Create environment and flag environments in transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const environment = await tx.environment.create({
+        data: {
+          name,
+          key,
+          projectId,
+          organizationId: project.organizationId
+        }
+      });
+
+      // Create flag environments for all existing feature flags
+      if (project.featureFlags.length > 0) {
+        const defaultValues: Record<string, string> = {
+          'BOOLEAN': 'false',
+          'STRING': '',
+          'NUMBER': '0',
+          'JSON': '{}'
+        };
+
+        await tx.flagEnvironment.createMany({
+          data: project.featureFlags.map(flag => ({
+            flagId: flag.id,
+            environmentId: environment.id,
+            enabled: false,
+            defaultValue: defaultValues[flag.flagType] || ''
+          }))
+        });
       }
+
+      return environment;
     });
 
-    res.status(201).json(environment);
+    res.status(201).json(result);
   } catch (error) {
     next(error);
   }
