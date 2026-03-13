@@ -6,7 +6,8 @@ import {
   getProject,
   createProject,
   updateProject,
-  deleteProject
+  deleteProject,
+  getProjectFlagsWithBrands
 } from '../controllers/projects';
 import { authenticate, requireOrgMember, requireOrgRole } from '../middleware/auth';
 import { validate } from '../middleware/validate';
@@ -45,5 +46,6 @@ router.patch(
   updateProject
 );
 router.delete('/:projectId', validateProjectId, authenticate, deleteProject);
+router.get('/:projectId/flags-with-brands', validateProjectId, authenticate, getProjectFlagsWithBrands);
 
 export { router as projectsRouter };

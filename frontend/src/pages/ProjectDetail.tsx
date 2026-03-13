@@ -51,18 +51,6 @@ interface Environment {
   key: string;
 }
 
-interface Brand {
-  id: string;
-  name: string;
-  key: string;
-}
-
-interface Brand {
-  id: string;
-  name: string;
-  key: string;
-}
-
 interface BrandFlagValue {
   brandId: string;
   brandName: string;
@@ -129,59 +117,19 @@ export default function ProjectDetail() {
     
     try {
       setIsLoading(true);
-      const [projectRes, flagsRes, brandsRes] = await Promise.all([
-        api.get(`/projects/${validProjectId}`),
-        api.get(`/feature-flags/project/${validProjectId}`),
-        api.get(`/brands/project/${validProjectId}`),
-      ]);
+      
+      // Use optimized API for multi-tenant projects
+      const projectRes = await api.get(`/projects/${validProjectId}`);
       setProject(projectRes.data);
       setIsMultiTenant(projectRes.data.type === 'MULTI');
-      const brands = brandsRes.data;
       
-      // If multi-tenant, fetch brand-specific values for each environment
-      if (projectRes.data.type === 'MULTI' && brands.length > 0) {
-        const flagsWithBrands = await Promise.all(
-          flagsRes.data.map(async (flag: FeatureFlag) => {
-            // For each environment, fetch brand values
-            const environmentsWithBrands = await Promise.all(
-              flag.environments.map(async (env: FlagEnvironment) => {
-                // Fetch brand values for this specific environment
-                const brandValues = await Promise.all(
-                  brands.map(async (brand: Brand) => {
-                    try {
-                      const brandFlagsRes = await api.get(`/brands/${brand.id}/flags`);
-                      const brandFlag = brandFlagsRes.data.flags.find((f: FeatureFlag) => f.id === flag.id);
-                      // Find the specific environment in brand data
-                      const brandEnv = brandFlag?.environments?.find(
-                        (e: FlagEnvironment) => e.environmentId === env.environmentId
-                      );
-                      
-                      return {
-                        brandId: brand.id,
-                        brandName: brand.name,
-                        enabled: brandEnv?.enabled ?? env.enabled,
-                        defaultValue: brandEnv?.defaultValue ?? env.defaultValue,
-                        isCustom: !!brandEnv?.isBrandSpecific,
-                      };
-                    } catch {
-                      return {
-                        brandId: brand.id,
-                        brandName: brand.name,
-                        enabled: env.enabled,
-                        defaultValue: env.defaultValue,
-                        isCustom: false,
-                      };
-                    }
-                  })
-                );
-                return { ...env, brandValues };
-              })
-            );
-            return { ...flag, environments: environmentsWithBrands };
-          })
-        );
-        setFeatureFlags(flagsWithBrands);
+      if (projectRes.data.type === 'MULTI') {
+        // Use new optimized endpoint that returns all flags with brand values
+        const flagsWithBrandsRes = await api.get(`/projects/${validProjectId}/flags-with-brands`);
+        setFeatureFlags(flagsWithBrandsRes.data.flags);
       } else {
+        // For single-tenant, use simple endpoint
+        const flagsRes = await api.get(`/feature-flags/project/${validProjectId}`);
         setFeatureFlags(flagsRes.data);
       }
     } catch (error) {

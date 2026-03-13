@@ -307,3 +307,102 @@ export const deleteProject = async (req: AuthenticatedRequest, res: Response, ne
     next(error);
   }
 };
+
+// Get all flags with brand values for a project (optimized for multi-tenant)
+export const getProjectFlagsWithBrands = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const { projectId } = req.params;
+
+    if (!isValidObjectId(projectId)) {
+      return sendInvalidIdError(res, 'Project ID');
+    }
+
+    // Get project with all related data in one query
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        environments: {
+          orderBy: { createdAt: 'asc' }
+        },
+        brands: {
+          orderBy: { createdAt: 'asc' }
+        },
+        featureFlags: {
+          include: {
+            flagEnvironments: {
+              include: {
+                environment: {
+                  select: { id: true, name: true, key: true }
+                }
+              }
+            }
+          },
+          orderBy: { createdAt: 'desc' }
+        }
+      }
+    });
+
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    // Transform flags to include brand values per environment
+    const transformedFlags = project.featureFlags.map(flag => {
+      const environments = project.environments.map(env => {
+        // Find default flag environment (no brand)
+        const defaultFlagEnv = flag.flagEnvironments.find(
+          fe => fe.environmentId === env.id && !fe.brandId
+        );
+
+        // Get brand values for this environment
+        const brandValues = project.brands.map(brand => {
+          const brandFlagEnv = flag.flagEnvironments.find(
+            fe => fe.environmentId === env.id && fe.brandId === brand.id
+          );
+
+          return {
+            brandId: brand.id,
+            brandName: brand.name,
+            enabled: brandFlagEnv?.enabled ?? defaultFlagEnv?.enabled ?? false,
+            defaultValue: brandFlagEnv?.defaultValue ?? defaultFlagEnv?.defaultValue ?? '',
+            isCustom: !!brandFlagEnv
+          };
+        });
+
+        return {
+          id: defaultFlagEnv?.id || `${flag.id}-${env.id}`,
+          environmentId: env.id,
+          environmentName: env.name,
+          enabled: defaultFlagEnv?.enabled ?? false,
+          defaultValue: defaultFlagEnv?.defaultValue ?? '',
+          brandValues
+        };
+      });
+
+      return {
+        id: flag.id,
+        name: flag.name,
+        key: flag.key,
+        description: flag.description,
+        flagType: flag.flagType,
+        createdAt: flag.createdAt,
+        updatedAt: flag.updatedAt,
+        environments
+      };
+    });
+
+    res.json({
+      project: {
+        id: project.id,
+        name: project.name,
+        key: project.key,
+        type: project.type,
+        description: project.description,
+        organizationId: project.organizationId
+      },
+      flags: transformedFlags
+    });
+  } catch (error) {
+    next(error);
+  }
+};
