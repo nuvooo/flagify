@@ -57,12 +57,10 @@ interface Brand {
   key: string;
 }
 
-interface FlagEnvironment {
+interface Brand {
   id: string;
-  environmentId: string;
-  environmentName: string;
-  enabled: boolean;
-  defaultValue: string;
+  name: string;
+  key: string;
 }
 
 interface BrandFlagValue {
@@ -73,6 +71,15 @@ interface BrandFlagValue {
   isCustom: boolean;
 }
 
+interface FlagEnvironment {
+  id: string;
+  environmentId: string;
+  environmentName: string;
+  enabled: boolean;
+  defaultValue: string;
+  brandValues?: BrandFlagValue[];  // Brand values per environment
+}
+
 interface FeatureFlag {
   id: string;
   name: string;
@@ -80,7 +87,6 @@ interface FeatureFlag {
   description: string | null;
   flagType: 'BOOLEAN' | 'STRING' | 'NUMBER' | 'JSON';
   environments: FlagEnvironment[];
-  brandValues?: BrandFlagValue[];
   createdAt: string;
   updatedAt: string;
 }
@@ -130,38 +136,48 @@ export default function ProjectDetail() {
       ]);
       setProject(projectRes.data);
       setIsMultiTenant(projectRes.data.type === 'MULTI');
+      const brands = brandsRes.data;
       
-      // If multi-tenant, fetch brand-specific values for each flag
-      if (projectRes.data.type === 'MULTI' && brandsRes.data.length > 0) {
+      // If multi-tenant, fetch brand-specific values for each environment
+      if (projectRes.data.type === 'MULTI' && brands.length > 0) {
         const flagsWithBrands = await Promise.all(
           flagsRes.data.map(async (flag: FeatureFlag) => {
-            const brandValues = await Promise.all(
-              brandsRes.data.map(async (brand: Brand) => {
-                try {
-                  const brandFlagsRes = await api.get(`/brands/${brand.id}/flags`);
-                  const brandFlag = brandFlagsRes.data.flags.find((f: FeatureFlag) => f.id === flag.id);
-                  const brandEnv = brandFlag?.environments?.[0]; // Get first env as default
-                  const defaultEnv = flag.environments?.[0];
-                  
-                  return {
-                    brandId: brand.id,
-                    brandName: brand.name,
-                    enabled: brandEnv?.enabled ?? defaultEnv?.enabled ?? false,
-                    defaultValue: brandEnv?.defaultValue ?? defaultEnv?.defaultValue ?? '',
-                    isCustom: !!brandEnv?.isBrandSpecific,
-                  };
-                } catch {
-                  return {
-                    brandId: brand.id,
-                    brandName: brand.name,
-                    enabled: flag.environments?.[0]?.enabled ?? false,
-                    defaultValue: flag.environments?.[0]?.defaultValue ?? '',
-                    isCustom: false,
-                  };
-                }
+            // For each environment, fetch brand values
+            const environmentsWithBrands = await Promise.all(
+              flag.environments.map(async (env: FlagEnvironment) => {
+                // Fetch brand values for this specific environment
+                const brandValues = await Promise.all(
+                  brands.map(async (brand: Brand) => {
+                    try {
+                      const brandFlagsRes = await api.get(`/brands/${brand.id}/flags`);
+                      const brandFlag = brandFlagsRes.data.flags.find((f: FeatureFlag) => f.id === flag.id);
+                      // Find the specific environment in brand data
+                      const brandEnv = brandFlag?.environments?.find(
+                        (e: FlagEnvironment) => e.environmentId === env.environmentId
+                      );
+                      
+                      return {
+                        brandId: brand.id,
+                        brandName: brand.name,
+                        enabled: brandEnv?.enabled ?? env.enabled,
+                        defaultValue: brandEnv?.defaultValue ?? env.defaultValue,
+                        isCustom: !!brandEnv?.isBrandSpecific,
+                      };
+                    } catch {
+                      return {
+                        brandId: brand.id,
+                        brandName: brand.name,
+                        enabled: env.enabled,
+                        defaultValue: env.defaultValue,
+                        isCustom: false,
+                      };
+                    }
+                  })
+                );
+                return { ...env, brandValues };
               })
             );
-            return { ...flag, brandValues };
+            return { ...flag, environments: environmentsWithBrands };
           })
         );
         setFeatureFlags(flagsWithBrands);
@@ -515,8 +531,8 @@ export default function ProjectDetail() {
                           {env.environmentName}
                         </h4>
                         <div className="space-y-3">
-                          {/* List all brands with their toggles */}
-                          {flag.brandValues?.map((brand) => {
+                          {/* List all brands with their toggles - from env.brandValues */}
+                          {env.brandValues?.map((brand) => {
                             const toggleKey = `${flag.id}-${env.environmentId}-${brand.brandId}`;
                             const isToggling = togglingBrandFlags.has(toggleKey);
                             
@@ -525,7 +541,12 @@ export default function ProjectDetail() {
                                 key={brand.brandId}
                                 className="flex items-center justify-between p-2 rounded bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700"
                               >
-                                <span className="text-sm font-medium">{brand.brandName}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium">{brand.brandName}</span>
+                                  {brand.isCustom && (
+                                    <Badge variant="outline" className="text-xs">Custom</Badge>
+                                  )}
+                                </div>
                                 <button
                                   onClick={() => handleToggleBrandFlag(flag, brand, env.environmentId)}
                                   disabled={isToggling}
