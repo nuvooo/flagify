@@ -7,7 +7,9 @@ import {
   KeyIcon, 
   ChartBarIcon,
   ShieldCheckIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  DocumentTextIcon,
+  PlayIcon
 } from '@heroicons/react/24/outline';
 
 const features = [
@@ -43,6 +45,19 @@ const features = [
   },
 ];
 
+const codeExample = `import { Flagify } from '@flagify/sdk';
+
+const flagify = new Flagify({ apiKey: 'your-api-key' });
+
+// Check if feature is enabled
+const isEnabled = await flagify.getBooleanFlag('new-dashboard');
+
+if (isEnabled) {
+  // Show new feature
+} else {
+  // Show old feature
+}`;
+
 export default function LandingPage() {
   return (
     <div className="bg-white">
@@ -57,13 +72,24 @@ export default function LandingPage() {
               <span className="text-xl font-bold tracking-tight text-gray-900">Flagify</span>
             </Link>
           </div>
-          <div className="flex flex-1 justify-end gap-x-6">
-            <Link to="/login" className="text-sm font-semibold leading-6 text-gray-900 pt-2">
+          <div className="hidden md:flex md:gap-x-8">
+            <a href="https://flagify.examplesart.de/" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold leading-6 text-gray-900 hover:text-primary-600 transition-colors">
+              Live Demo
+            </a>
+            <Link to="/docs" className="text-sm font-semibold leading-6 text-gray-900 hover:text-primary-600 transition-colors">
+              Documentation
+            </Link>
+            <a href="https://github.com/nuvooo/flagify/" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold leading-6 text-gray-900 hover:text-primary-600 transition-colors">
+              GitHub
+            </a>
+          </div>
+          <div className="flex flex-1 justify-end gap-x-4">
+            <Link to="/login" className="hidden sm:block text-sm font-semibold leading-6 text-gray-900 pt-2">
               Log in
             </Link>
             <Link
               to="/register"
-              className="rounded-md bg-primary-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+              className="rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
             >
               Get Started
             </Link>
@@ -83,37 +109,65 @@ export default function LandingPage() {
               }}
             />
           </div>
-          <div className="py-24 sm:py-32">
-            <div className="mx-auto max-w-7xl px-6 lg:px-8 text-center">
-              <div className="mx-auto max-w-2xl lg:text-center">
+          <div className="py-24 sm:py-32 lg:pb-40">
+            <div className="mx-auto max-w-7xl px-6 lg:px-8">
+              <div className="mx-auto max-w-2xl text-center">
+                <div className="mb-8 flex justify-center">
+                  <span className="inline-flex items-center rounded-full bg-primary-50 px-3 py-1 text-sm font-medium text-primary-700 ring-1 ring-inset ring-primary-700/10">
+                    🚀 Now with Multi-Tenant Support
+                  </span>
+                </div>
                 <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-                  Feature Flag Management for Modern Teams
+                  Feature Flags Made{' '}
+                  <span className="text-primary-600">Simple</span>
                 </h1>
                 <p className="mt-6 text-lg leading-8 text-gray-600">
                   Deploy faster and more reliably with Flagify. Control features in real-time, 
                   target specific users, and manage multiple environments with our powerful open-source platform.
                 </p>
-                <div className="mt-10 flex items-center justify-center gap-x-6">
+                <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
                   <Link
                     to="/register"
-                    className="rounded-md bg-primary-600 px-6 py-3 text-lg font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                    className="w-full sm:w-auto rounded-md bg-primary-600 px-6 py-3 text-lg font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
                   >
                     Start for Free
                   </Link>
-                  <a href="#features" className="text-sm font-semibold leading-6 text-gray-900 uppercase tracking-widest">
-                    Learn more <span aria-hidden="true">→</span>
+                  <a 
+                    href="https://flagify.examplesart.de/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-md bg-white px-6 py-3 text-lg font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  >
+                    <PlayIcon className="h-5 w-5" />
+                    Try Live Demo
+                  </a>
+                  <a 
+                    href="https://github.com/nuvooo/flagify/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-md bg-gray-900 px-6 py-3 text-lg font-semibold text-white shadow-sm hover:bg-gray-800"
+                  >
+                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
+                    </svg>
+                    GitHub
                   </a>
                 </div>
               </div>
+              
+              {/* Code Example */}
               <div className="mt-16 flow-root sm:mt-24">
-                <div className="-m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 lg:-m-4 lg:rounded-2xl lg:p-4">
-                  <img
-                    src="/screenshot.png"
-                    alt="App screenshot"
-                    width={2432}
-                    height={1442}
-                    className="rounded-md shadow-2xl ring-1 ring-gray-900/10"
-                  />
+                <div className="relative rounded-2xl bg-gray-900 px-6 pb-14 pt-8 shadow-2xl ring-1 ring-gray-900/10 sm:px-10 sm:pb-20 sm:pt-10">
+                  <div className="absolute left-4 top-4 flex gap-2">
+                    <div className="h-3 w-3 rounded-full bg-red-500" />
+                    <div className="h-3 w-3 rounded-full bg-yellow-500" />
+                    <div className="h-3 w-3 rounded-full bg-green-500" />
+                  </div>
+                  <div className="mt-8 overflow-x-auto">
+                    <pre className="text-sm leading-6 text-gray-300">
+                      <code>{codeExample}</code>
+                    </pre>
+                  </div>
                 </div>
               </div>
             </div>
@@ -121,7 +175,7 @@ export default function LandingPage() {
         </div>
 
         {/* Feature section */}
-        <div id="features" className="mx-auto mt-32 max-w-7xl px-6 sm:mt-56 lg:px-8">
+        <div id="features" className="mx-auto -mt-20 max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center">
             <h2 className="text-base font-semibold leading-7 text-primary-600 uppercase tracking-widest">Everything you need</h2>
             <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
@@ -192,19 +246,80 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+
+        {/* Quick Start Section */}
+        <div className="mx-auto mt-32 max-w-7xl px-6 sm:mt-56 lg:px-8">
+          <div className="relative isolate overflow-hidden bg-gray-900 px-6 py-24 text-center shadow-2xl sm:rounded-3xl sm:px-16">
+            <h2 className="mx-auto max-w-2xl text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              Ready to get started?
+            </h2>
+            <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-gray-300">
+              Deploy Flagify in minutes with Docker or explore our live demo to see it in action.
+            </p>
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                to="/docs"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-md bg-white px-6 py-3 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >
+                <DocumentTextIcon className="h-5 w-5" />
+                Read Documentation
+              </Link>
+              <a
+                href="https://flagify.examplesart.de/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-md bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+              >
+                <PlayIcon className="h-5 w-5" />
+                Try Live Demo
+              </a>
+            </div>
+          </div>
+        </div>
       </main>
 
       {/* Footer */}
       <footer className="mt-32 bg-gray-900 sm:mt-56">
         <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-            <div className="flex items-center gap-2">
-              <FlagIcon className="h-8 w-8 text-primary-500" />
-              <span className="text-xl font-bold text-white uppercase tracking-tighter">Flagify</span>
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+            <div className="lg:col-span-2">
+              <div className="flex items-center gap-2">
+                <FlagIcon className="h-8 w-8 text-primary-500" />
+                <span className="text-xl font-bold text-white uppercase tracking-tighter">Flagify</span>
+              </div>
+              <p className="mt-4 text-sm leading-6 text-gray-400">
+                Open-source feature flag management platform. Deploy with confidence, control with precision.
+              </p>
             </div>
+            <div>
+              <h3 className="text-sm font-semibold leading-6 text-white">Product</h3>
+              <ul className="mt-6 space-y-4">
+                <li><Link to="/docs" className="text-sm leading-6 text-gray-400 hover:text-white">Documentation</Link></li>
+                <li><a href="https://flagify.examplesart.de/" target="_blank" rel="noopener noreferrer" className="text-sm leading-6 text-gray-400 hover:text-white">Live Demo</a></li>
+                <li><Link to="/register" className="text-sm leading-6 text-gray-400 hover:text-white">Get Started</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold leading-6 text-white">Resources</h3>
+              <ul className="mt-6 space-y-4">
+                <li><a href="https://github.com/nuvooo/flagify/" target="_blank" rel="noopener noreferrer" className="text-sm leading-6 text-gray-400 hover:text-white">GitHub</a></li>
+                <li><Link to="/docs/api" className="text-sm leading-6 text-gray-400 hover:text-white">API Reference</Link></li>
+                <li><Link to="/docs/sdks" className="text-sm leading-6 text-gray-400 hover:text-white">SDKs</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-12 border-t border-gray-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs leading-5 text-gray-400">
               &copy; {new Date().getFullYear()} Flagify. Open source under MIT License.
             </p>
+            <div className="flex gap-4">
+              <a href="https://github.com/nuvooo/flagify/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white">
+                <span className="sr-only">GitHub</span>
+                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
+                </svg>
+              </a>
+            </div>
           </div>
         </div>
       </footer>

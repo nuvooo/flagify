@@ -3,6 +3,7 @@ import { useAuthStore } from './store/authStore';
 import MainLayout from './components/layout/MainLayout';
 import Dashboard from './pages/Dashboard';
 import LandingPage from './pages/LandingPage';
+import Docs from './pages/Docs';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -32,6 +33,8 @@ function App() {
       <Route path="/register" element={!token ? <Register /> : <Navigate to="/dashboard" />} />
       <Route path="/forgot-password" element={!token ? <ForgotPassword /> : <Navigate to="/dashboard" />} />
       <Route path="/reset-password" element={!token ? <ResetPassword /> : <Navigate to="/dashboard" />} />
+      <Route path="/docs" element={<Docs />} />
+      <Route path="/docs/*" element={<Docs />} />
       
       {/* Protected Routes */}
       <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
