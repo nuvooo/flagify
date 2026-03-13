@@ -182,13 +182,13 @@ export default function ApiKeys() {
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'SERVER':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-400';
       case 'CLIENT':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+        return 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-400';
       case 'SDK':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-400';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-foreground';
     }
   };
 
@@ -314,32 +314,32 @@ export default function ApiKeys() {
 
       {/* Newly Created Key Alert */}
       {newlyCreatedKey && (
-        <div className="rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-4">
+        <div className="rounded-md bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/50 p-4">
           <div className="flex items-start gap-3">
-            <CheckCircleIcon className="h-5 w-5 text-green-500 mt-0.5" />
+            <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
             <div className="flex-1">
-              <h3 className="text-sm font-medium text-green-800 dark:text-green-200">
+              <h3 className="text-sm font-medium text-green-800 dark:text-green-400">
                 API Key Created Successfully
               </h3>
-              <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+              <p className="text-sm text-green-700 dark:text-green-500 mt-1">
                 Make sure to copy your API key now. You won&apos;t be able to see it again!
               </p>
-              <div className="mt-3 flex items-center gap-2 bg-gray-900 rounded-md p-3">
-                <code className="text-green-400 text-sm font-mono break-all flex-1">
+              <div className="mt-3 flex items-center gap-2 bg-muted rounded-md p-3 border border-border">
+                <code className="text-green-600 dark:text-green-400 text-sm font-mono break-all flex-1">
                   {newlyCreatedKey}
                 </code>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => copyKeyToClipboard(newlyCreatedKey)}
-                  className="text-gray-400 hover:text-white shrink-0"
+                  className="text-muted-foreground hover:text-foreground shrink-0"
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
               <Button
                 variant="link"
-                className="mt-2 h-auto p-0 text-green-800 dark:text-green-200"
+                className="mt-2 h-auto p-0 text-green-800 dark:text-green-400"
                 onClick={() => setNewlyCreatedKey(null)}
               >
                 Dismiss

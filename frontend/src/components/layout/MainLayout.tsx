@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -91,6 +92,9 @@ export default function MainLayout() {
           <div className="flex items-center gap-2 ml-auto">
             {/* Language Switcher */}
             <LanguageSwitcher />
+
+            {/* Theme Toggle */}
+            <ThemeToggle />
 
             {/* Notifications - coming soon */}
             <Button variant="ghost" size="icon" disabled className="relative opacity-50">

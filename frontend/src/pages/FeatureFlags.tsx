@@ -241,15 +241,15 @@ export default function FeatureFlags() {
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'BOOLEAN':
-        return 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-700/10';
+        return 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-400 ring-1 ring-inset ring-blue-700/10 dark:ring-blue-400/20';
       case 'STRING':
-        return 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20';
+        return 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400 ring-1 ring-inset ring-green-600/20 dark:ring-green-400/20';
       case 'NUMBER':
-        return 'bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-700/10';
+        return 'bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-400 ring-1 ring-inset ring-purple-700/10 dark:ring-purple-400/20';
       case 'JSON':
-        return 'bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-700/10';
+        return 'bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-400 ring-1 ring-inset ring-orange-700/10 dark:ring-orange-400/20';
       default:
-        return 'bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-600/10';
+        return 'bg-muted text-foreground ring-1 ring-inset ring-border';
     }
   };
 
@@ -258,17 +258,17 @@ export default function FeatureFlags() {
       {/* Page header */}
       <div className="md:flex md:items-center md:justify-between">
         <div className="min-w-0 flex-1">
-          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+          <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:text-3xl sm:tracking-tight">
             Feature Flags
           </h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Manage feature flags across your projects and environments
           </p>
         </div>
         <div className="mt-4 flex md:ml-4 md:mt-0">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+            className="inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <PlusIcon className="-ml-0.5 mr-1.5 h-5 w-5" />
             New Feature Flag
@@ -280,7 +280,7 @@ export default function FeatureFlags() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="relative flex-1 max-w-lg">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+            <MagnifyingGlassIcon className="h-5 w-5 text-muted-foreground" />
           </div>
           <input
             type="search"
@@ -288,11 +288,11 @@ export default function FeatureFlags() {
             placeholder="Search feature flags..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full rounded-md border-gray-300 pl-10 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+            className="block w-full rounded-md border border-input bg-background pl-10 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
           />
         </div>
         <div className="flex items-center space-x-2">
-          <FunnelIcon className="h-5 w-5 text-gray-400" />
+          <FunnelIcon className="h-5 w-5 text-muted-foreground" />
           <select
             value={selectedProject}
             onChange={(e) => {
@@ -303,7 +303,7 @@ export default function FeatureFlags() {
                 setSearchParams({});
               }
             }}
-            className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+            className="rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
           >
             <option value="all">All Projects</option>
             {projectNames.map((project) => (
@@ -315,7 +315,7 @@ export default function FeatureFlags() {
           <select
             value={selectedEnvironment}
             onChange={(e) => setSelectedEnvironment(e.target.value)}
-            className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+            className="rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
           >
             <option value="all">All Environments</option>
             {environments.map((env) => (
@@ -353,46 +353,46 @@ export default function FeatureFlags() {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-lg bg-white p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-lg bg-background p-6 text-left align-middle shadow-xl transition-all border border-border">
                   <div className="flex items-center justify-between mb-4">
                     <Dialog.Title
                       as="h3"
-                      className="text-lg font-semibold leading-6 text-gray-900"
+                      className="text-lg font-semibold leading-6 text-foreground"
                     >
                       Create New Feature Flag
                     </Dialog.Title>
                     <button
                       onClick={() => setIsModalOpen(false)}
                       disabled={isCreating}
-                      className="text-gray-400 hover:text-gray-500 disabled:opacity-50"
+                      className="text-muted-foreground hover:text-foreground disabled:opacity-50"
                     >
                       <XMarkIcon className="h-5 w-5" />
                     </button>
                   </div>
 
                   {createError && (
-                    <div className="mb-4 rounded-md bg-red-50 p-3">
-                      <p className="text-sm text-red-700">{createError}</p>
+                    <div className="mb-4 rounded-md bg-destructive/10 p-3 border border-destructive/20">
+                      <p className="text-sm text-destructive">{createError}</p>
                     </div>
                   )}
 
                   {createSuccess && (
-                    <div className="mb-4 rounded-md bg-green-50 p-3 flex items-center">
-                      <CheckCircleIcon className="h-5 w-5 text-green-400 mr-2" />
-                      <p className="text-sm text-green-700">{createSuccess}</p>
+                    <div className="mb-4 rounded-md bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/50 p-3 flex items-center">
+                      <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
+                      <p className="text-sm text-green-700 dark:text-green-400">{createSuccess}</p>
                     </div>
                   )}
 
                   <form onSubmit={createFeatureFlag} className="space-y-4">
                     <div>
-                      <label htmlFor="flag-project" className="block text-sm font-medium text-gray-700">
-                        Project <span className="text-red-500">*</span>
+                      <label htmlFor="flag-project" className="block text-sm font-medium text-foreground">
+                        Project <span className="text-destructive">*</span>
                       </label>
                       <select
                         id="flag-project"
                         value={newFlagData.projectId}
                         onChange={(e) => setNewFlagData({ ...newFlagData, projectId: e.target.value, environmentId: '' })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                         required
                         disabled={isCreating}
                       >
@@ -406,14 +406,14 @@ export default function FeatureFlags() {
                     </div>
 
                     <div>
-                      <label htmlFor="flag-environment" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="flag-environment" className="block text-sm font-medium text-foreground">
                         Environment
                       </label>
                       <select
                         id="flag-environment"
                         value={newFlagData.environmentId}
                         onChange={(e) => setNewFlagData({ ...newFlagData, environmentId: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                         disabled={isCreating || !newFlagData.projectId || availableEnvironments.length === 0}
                       >
                         <option value="">
@@ -428,15 +428,15 @@ export default function FeatureFlags() {
                     </div>
 
                     <div>
-                      <label htmlFor="flag-name" className="block text-sm font-medium text-gray-700">
-                        Flag Name <span className="text-red-500">*</span>
+                      <label htmlFor="flag-name" className="block text-sm font-medium text-foreground">
+                        Flag Name <span className="text-destructive">*</span>
                       </label>
                       <input
                         type="text"
                         id="flag-name"
                         value={newFlagData.name}
                         onChange={(e) => handleNameChange(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                         placeholder="e.g., Dark Mode"
                         required
                         disabled={isCreating}
@@ -444,26 +444,26 @@ export default function FeatureFlags() {
                     </div>
 
                     <div>
-                      <label htmlFor="flag-key" className="block text-sm font-medium text-gray-700">
-                        Key <span className="text-red-500">*</span>
+                      <label htmlFor="flag-key" className="block text-sm font-medium text-foreground">
+                        Key <span className="text-destructive">*</span>
                       </label>
                       <input
                         type="text"
                         id="flag-key"
                         value={newFlagData.key}
                         onChange={(e) => setNewFlagData({ ...newFlagData, key: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                         placeholder="dark_mode"
                         required
                         disabled={isCreating}
                       />
-                      <p className="mt-1 text-xs text-gray-500">
+                      <p className="mt-1 text-xs text-muted-foreground">
                         Used in code to reference this flag. Auto-generated from name.
                       </p>
                     </div>
 
                     <div>
-                      <label htmlFor="flag-type" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="flag-type" className="block text-sm font-medium text-foreground">
                         Type
                       </label>
                       <select
@@ -477,7 +477,7 @@ export default function FeatureFlags() {
                           else if (newType === 'JSON') defaultValue = '{}';
                           setNewFlagData({ ...newFlagData, type: newType, defaultValue });
                         }}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                         disabled={isCreating}
                       >
                         <option value="BOOLEAN">Boolean (true/false)</option>
@@ -488,7 +488,7 @@ export default function FeatureFlags() {
                     </div>
 
                     <div>
-                      <label htmlFor="flag-default" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="flag-default" className="block text-sm font-medium text-foreground">
                         Default Value
                       </label>
                       {newFlagData.type === 'BOOLEAN' ? (
@@ -496,7 +496,7 @@ export default function FeatureFlags() {
                           id="flag-default"
                           value={newFlagData.defaultValue}
                           onChange={(e) => setNewFlagData({ ...newFlagData, defaultValue: e.target.value })}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                          className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                           disabled={isCreating}
                         >
                           <option value="false">false</option>
@@ -508,7 +508,7 @@ export default function FeatureFlags() {
                           id="flag-default"
                           value={newFlagData.defaultValue}
                           onChange={(e) => setNewFlagData({ ...newFlagData, defaultValue: e.target.value })}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                          className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                           placeholder={newFlagData.type === 'JSON' ? '{"enabled": true}' : 'Enter default value'}
                           disabled={isCreating}
                         />
@@ -516,7 +516,7 @@ export default function FeatureFlags() {
                     </div>
 
                     <div>
-                      <label htmlFor="flag-description" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="flag-description" className="block text-sm font-medium text-foreground">
                         Description
                       </label>
                       <textarea
@@ -524,7 +524,7 @@ export default function FeatureFlags() {
                         value={newFlagData.description}
                         onChange={(e) => setNewFlagData({ ...newFlagData, description: e.target.value })}
                         rows={2}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                         placeholder="Brief description of this feature flag"
                         disabled={isCreating}
                       />
@@ -535,14 +535,14 @@ export default function FeatureFlags() {
                         type="button"
                         onClick={() => setIsModalOpen(false)}
                         disabled={isCreating}
-                        className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                        className="rounded-md bg-background px-3 py-2 text-sm font-semibold text-foreground shadow-sm ring-1 ring-inset ring-border hover:bg-muted disabled:opacity-50"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={isCreating || !newFlagData.name || !newFlagData.key || !newFlagData.projectId}
-                        className="rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isCreating ? 'Creating...' : 'Create Feature Flag'}
                       </button>
@@ -557,32 +557,32 @@ export default function FeatureFlags() {
 
       {/* Feature flags list */}
       {isLoading ? (
-        <div className="rounded-lg bg-white shadow">
-          <div className="divide-y divide-gray-200">
+        <div className="rounded-lg bg-card shadow border border-border">
+          <div className="divide-y divide-border">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="p-6 animate-pulse">
                 <div className="flex items-center justify-between">
-                  <div className="h-6 w-48 bg-gray-200 rounded" />
-                  <div className="h-6 w-20 bg-gray-200 rounded" />
+                  <div className="h-6 w-48 bg-muted rounded" />
+                  <div className="h-6 w-20 bg-muted rounded" />
                 </div>
-                <div className="mt-2 h-4 w-32 bg-gray-200 rounded" />
+                <div className="mt-2 h-4 w-32 bg-muted rounded" />
               </div>
             ))}
           </div>
         </div>
       ) : filteredFlags.length === 0 ? (
-        <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
-          <FlagIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-semibold text-gray-900">
+        <div className="rounded-lg border-2 border-dashed border-border p-12 text-center">
+          <FlagIcon className="mx-auto h-12 w-12 text-muted-foreground" />
+          <h3 className="mt-2 text-sm font-semibold text-foreground">
             No feature flags
           </h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Get started by creating a new feature flag.
           </p>
           <div className="mt-6">
             <button
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700"
+              className="inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
             >
               <PlusIcon className="-ml-0.5 mr-1.5 h-5 w-5" />
               New Feature Flag
@@ -590,19 +590,19 @@ export default function FeatureFlags() {
           </div>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg bg-white shadow">
-          <div className="divide-y divide-gray-200">
+        <div className="overflow-hidden rounded-lg bg-card shadow border border-border">
+          <div className="divide-y divide-border">
             {filteredFlags.map((flag) => (
               <div
                 key={flag.id}
-                className="flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between p-6 hover:bg-muted/50 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-3">
-                    <h3 className="text-base font-semibold text-gray-900">
+                    <h3 className="text-base font-semibold text-foreground">
                       <Link
                         to={`/feature-flags/${flag.id}`}
-                        className="hover:text-primary-600"
+                        className="hover:text-primary"
                       >
                         {flag.name}
                       </Link>
@@ -616,20 +616,20 @@ export default function FeatureFlags() {
                       {flag.type}
                     </span>
                     {flag.isEnabled ? (
-                      <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                      <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-950 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-400">
                         <CheckCircleIcon className="mr-1 h-3 w-3" />
                         On
                       </span>
                     ) : (
-                      <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                      <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                         <XCircleIcon className="mr-1 h-3 w-3" />
                         Off
                       </span>
                     )}
                   </div>
 
-                  <div className="mt-1 flex items-center space-x-4 text-sm text-gray-500">
-                    <code className="text-xs bg-gray-100 px-2 py-0.5 rounded">
+                  <div className="mt-1 flex items-center space-x-4 text-sm text-muted-foreground">
+                    <code className="text-xs bg-muted px-2 py-0.5 rounded">
                       {flag.key}
                     </code>
                     <span>•</span>
@@ -639,12 +639,12 @@ export default function FeatureFlags() {
                   </div>
 
                   {flag.description && (
-                    <p className="mt-1 text-sm text-gray-500 line-clamp-1">
+                    <p className="mt-1 text-sm text-muted-foreground line-clamp-1">
                       {flag.description}
                     </p>
                   )}
 
-                  <div className="mt-2 flex items-center text-xs text-gray-400">
+                  <div className="mt-2 flex items-center text-xs text-muted-foreground">
                     <ClockIcon className="mr-1 h-3 w-3" />
                     Updated {formatDate(flag.updatedAt)}
                   </div>
@@ -656,20 +656,20 @@ export default function FeatureFlags() {
                     onChange={() => toggleFlag(flag.id, flag.isEnabled)}
                     disabled={togglingFlags.has(flag.id)}
                     className={clsx(
-                      flag.isEnabled ? 'bg-primary-600' : 'bg-gray-200',
-                      'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
+                      flag.isEnabled ? 'bg-primary' : 'bg-muted',
+                      'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
                     )}
                   >
                     <span
                       className={clsx(
                         flag.isEnabled ? 'translate-x-5' : 'translate-x-0',
-                        'pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+                        'pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-background shadow ring-0 transition duration-200 ease-in-out'
                       )}
                     />
                   </Switch>
 
                   <Menu as="div" className="relative">
-                    <Menu.Button className="flex items-center rounded-full p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                    <Menu.Button className="flex items-center rounded-full p-2 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                       <span className="sr-only">Open options</span>
                       <EllipsisVerticalIcon className="h-5 w-5" />
                     </Menu.Button>
@@ -681,7 +681,7 @@ export default function FeatureFlags() {
                       leaveFrom="transform opacity-100 scale-100"
                       leaveTo="transform opacity-0 scale-95"
                     >
-                      <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-popover shadow-lg ring-1 ring-border focus:outline-none">
                         <div className="py-1">
                           <Menu.Item>
                             {({ active }) => (
@@ -689,8 +689,8 @@ export default function FeatureFlags() {
                                 to={`/feature-flags/${flag.id}`}
                                 className={clsx(
                                   active
-                                    ? 'bg-gray-100 text-gray-900'
-                                    : 'text-gray-700',
+                                    ? 'bg-muted text-foreground'
+                                    : 'text-foreground',
                                   'block px-4 py-2 text-sm'
                                 )}
                               >
@@ -703,8 +703,8 @@ export default function FeatureFlags() {
                               <button
                                 className={clsx(
                                   active
-                                    ? 'bg-gray-100 text-gray-900'
-                                    : 'text-gray-700',
+                                    ? 'bg-muted text-foreground'
+                                    : 'text-foreground',
                                   'block w-full px-4 py-2 text-left text-sm'
                                 )}
                               >
@@ -712,7 +712,7 @@ export default function FeatureFlags() {
                               </button>
                             )}
                           </Menu.Item>
-                          <div className="border-t border-gray-100">
+                          <div className="border-t border-border">
                             <Menu.Item>
                               {({ active }) => (
                                 <button
@@ -720,8 +720,8 @@ export default function FeatureFlags() {
                                   disabled={isDeleting === flag.id}
                                   className={clsx(
                                     active
-                                      ? 'bg-gray-100 text-red-900'
-                                      : 'text-red-700',
+                                      ? 'bg-muted text-destructive'
+                                      : 'text-destructive',
                                     'block w-full px-4 py-2 text-left text-sm disabled:opacity-50'
                                   )}
                                 >

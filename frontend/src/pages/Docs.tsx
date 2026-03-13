@@ -9,6 +9,7 @@ import {
   ChevronDownIcon,
   PlayIcon
 } from '@heroicons/react/24/outline';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const sidebarNavigation = [
   {
@@ -155,27 +156,26 @@ export default function Docs() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+      <header className="sticky top-0 z-50 bg-background border-b border-border">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
               <Link to="/" className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
-                  <FlagIcon className="h-5 w-5 text-white" />
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+                  <FlagIcon className="h-5 w-5 text-primary-foreground" />
                 </span>
-                <span className="text-lg font-bold text-gray-900">Flagify</span>
+                <span className="text-lg font-bold text-foreground">Flagify</span>
               </Link>
-              <span className="text-gray-300">|</span>
-              <span className="text-sm text-gray-500">Documentation</span>
+              <span className="text-muted-foreground">|</span>
+              <span className="text-sm text-muted-foreground">Documentation</span>
             </div>
             <div className="flex items-center gap-4">
+              <ThemeToggle />
               <a 
-                href="https://flagify.examplesart.de/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hidden sm:flex items-center gap-1 text-sm text-gray-600 hover:text-primary-600"
+                href="/login?demo=true" 
+                className="hidden sm:flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
               >
                 <PlayIcon className="h-4 w-4" />
                 Live Demo
@@ -184,7 +184,7 @@ export default function Docs() {
                 href="https://github.com/nuvooo/flagify/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-sm text-gray-600 hover:text-primary-600"
+                className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
               >
                 <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                   <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
@@ -211,7 +211,7 @@ export default function Docs() {
                 <div key={section.title} className="mb-4">
                   <button
                     onClick={() => toggleSection(section.title)}
-                    className="flex w-full items-center justify-between py-2 text-sm font-semibold text-gray-900"
+                    className="flex w-full items-center justify-between py-2 text-sm font-semibold text-foreground"
                   >
                     {section.title}
                     {expandedSections.includes(section.title) ? (
@@ -221,15 +221,15 @@ export default function Docs() {
                     )}
                   </button>
                   {expandedSections.includes(section.title) && (
-                    <ul className="ml-2 space-y-1 border-l border-gray-200">
+                    <ul className="ml-2 space-y-1 border-l border-border">
                       {section.items.map((item) => (
                         <li key={item.name}>
                           <a
                             href={item.href}
                             className={`block py-1 pl-4 text-sm transition-colors ${
                               activeSection === item.href.replace('#', '')
-                                ? 'text-primary-600 font-medium border-l-2 border-primary-600 -ml-[2px]'
-                                : 'text-gray-600 hover:text-gray-900'
+                                ? 'text-primary font-medium border-l-2 border-primary -ml-[2px]'
+                                : 'text-muted-foreground hover:text-foreground'
                             }`}
                           >
                             {item.name}
@@ -246,142 +246,142 @@ export default function Docs() {
           {/* Main Content */}
           <main className="flex-1 min-w-0">
             <div className="prose prose-slate max-w-none">
-              <h1 id="introduction" className="text-4xl font-bold text-gray-900 mb-6">
+              <h1 id="introduction" className="text-4xl font-bold text-foreground mb-6">
                 Flagify Documentation
               </h1>
               
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-lg text-muted-foreground mb-8">
                 Welcome to Flagify! This guide will help you get started with feature flags, 
                 from basic setup to advanced targeting and multi-tenant deployments.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12 not-prose">
-                <a href="#quickstart" className="group block p-6 bg-gray-50 rounded-xl border border-gray-200 hover:border-primary-500 hover:shadow-md transition-all">
+                <a href="#quickstart" className="group block p-6 bg-muted rounded-xl border border-border hover:border-primary hover:shadow-md transition-all">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 bg-primary-100 rounded-lg">
-                      <BookOpenIcon className="h-5 w-5 text-primary-600" />
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <BookOpenIcon className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="font-semibold text-gray-900 group-hover:text-primary-600">Quick Start</h3>
+                    <h3 className="font-semibold text-foreground group-hover:text-primary">Quick Start</h3>
                   </div>
-                  <p className="text-sm text-gray-600">Get up and running with Flagify in 5 minutes</p>
+                  <p className="text-sm text-muted-foreground">Get up and running with Flagify in 5 minutes</p>
                 </a>
                 
-                <a href="#sdk-js" className="group block p-6 bg-gray-50 rounded-xl border border-gray-200 hover:border-primary-500 hover:shadow-md transition-all">
+                <a href="#sdk-js" className="group block p-6 bg-muted rounded-xl border border-border hover:border-primary hover:shadow-md transition-all">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 bg-primary-100 rounded-lg">
-                      <CodeBracketIcon className="h-5 w-5 text-primary-600" />
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <CodeBracketIcon className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="font-semibold text-gray-900 group-hover:text-primary-600">SDKs</h3>
+                    <h3 className="font-semibold text-foreground group-hover:text-primary">SDKs</h3>
                   </div>
-                  <p className="text-sm text-gray-600">Integrate Flagify into your application</p>
+                  <p className="text-sm text-muted-foreground">Integrate Flagify into your application</p>
                 </a>
                 
-                <a href="#docker" className="group block p-6 bg-gray-50 rounded-xl border border-gray-200 hover:border-primary-500 hover:shadow-md transition-all">
+                <a href="#docker" className="group block p-6 bg-muted rounded-xl border border-border hover:border-primary hover:shadow-md transition-all">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 bg-primary-100 rounded-lg">
-                      <ServerIcon className="h-5 w-5 text-primary-600" />
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <ServerIcon className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="font-semibold text-gray-900 group-hover:text-primary-600">Deployment</h3>
+                    <h3 className="font-semibold text-foreground group-hover:text-primary">Deployment</h3>
                   </div>
-                  <p className="text-sm text-gray-600">Deploy with Docker or Coolify</p>
+                  <p className="text-sm text-muted-foreground">Deploy with Docker or Coolify</p>
                 </a>
                 
                 <a 
                   href="https://github.com/nuvooo/flagify/" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="group block p-6 bg-gray-50 rounded-xl border border-gray-200 hover:border-primary-500 hover:shadow-md transition-all"
+                  className="group block p-6 bg-muted rounded-xl border border-border hover:border-primary hover:shadow-md transition-all"
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 bg-primary-100 rounded-lg">
-                      <svg className="h-5 w-5 text-primary-600" fill="currentColor" viewBox="0 0 24 24">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <svg className="h-5 w-5 text-primary" fill="currentColor" viewBox="0 0 24 24">
                         <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-gray-900 group-hover:text-primary-600">GitHub</h3>
+                    <h3 className="font-semibold text-foreground group-hover:text-primary">GitHub</h3>
                   </div>
-                  <p className="text-sm text-gray-600">View source code and contribute</p>
+                  <p className="text-sm text-muted-foreground">View source code and contribute</p>
                 </a>
               </div>
 
-              <h2 id="quickstart" className="text-2xl font-bold text-gray-900 mt-12 mb-4">
+              <h2 id="quickstart" className="text-2xl font-bold text-foreground mt-12 mb-4">
                 Quick Start
               </h2>
               
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 The fastest way to try Flagify is using our live demo or running it locally with Docker.
               </p>
 
-              <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-3">Option 1: Live Demo</h3>
-              <p className="text-gray-600 mb-4">
-                Try Flagify instantly without installation at{' '}
-                <a href="https://flagify.examplesart.de/" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
-                  flagify.examplesart.de
-                </a>
+              <h3 className="text-xl font-semibold text-foreground mt-8 mb-3">Option 1: Live Demo</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Try Flagify instantly without installation{' '}
+                <Link to="/login?demo=true" className="text-primary hover:underline">
+                  here
+                </Link>
               </p>
 
-              <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-3">Option 2: Docker Compose</h3>
+              <h3 className="text-xl font-semibold text-foreground mt-8 mb-3">Option 2: Docker Compose</h3>
               <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
                 <pre className="text-sm text-gray-300">
                   <code>{codeSnippets.docker}</code>
                 </pre>
               </div>
 
-              <h2 id="installation" className="text-2xl font-bold text-gray-900 mt-12 mb-4">
+              <h2 id="installation" className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-4">
                 Installation
               </h2>
               
-              <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-3">System Requirements</h3>
-              <ul className="list-disc list-inside text-gray-600 space-y-2">
+              <h3 className="text-xl font-semibold text-foreground mt-8 mb-3">System Requirements</h3>
+              <ul className="list-disc list-inside text-muted-foreground space-y-2">
                 <li>Node.js 20+ (for development)</li>
                 <li>MongoDB 7+ with replica set</li>
                 <li>Redis 7+</li>
                 <li>Docker & Docker Compose (recommended)</li>
               </ul>
 
-              <h2 id="flags" className="text-2xl font-bold text-gray-900 mt-12 mb-4">
+              <h2 id="flags" className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-4">
                 Feature Flags
               </h2>
               
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Feature flags are the core concept of Flagify. They allow you to control feature availability 
                 without deploying new code.
               </p>
 
-              <h3 className="text-xl font-semibold text-gray-900 mt-8 mb-3">Flag Types</h3>
-              <ul className="list-disc list-inside text-gray-600 space-y-2">
+              <h3 className="text-xl font-semibold text-foreground mt-8 mb-3">Flag Types</h3>
+              <ul className="list-disc list-inside text-muted-foreground space-y-2">
                 <li><strong>Boolean:</strong> Simple on/off switches (true/false)</li>
                 <li><strong>String:</strong> Text values like theme colors or messages</li>
                 <li><strong>Number:</strong> Numeric values like limits or thresholds</li>
                 <li><strong>JSON:</strong> Complex configuration objects</li>
               </ul>
 
-              <h2 id="environments" className="text-2xl font-bold text-gray-900 mt-12 mb-4">
+              <h2 id="environments" className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-4">
                 Environments
               </h2>
               
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Environments allow you to manage flags differently across Development, Staging, and Production. 
                 Each environment has its own set of flag values.
               </p>
 
-              <h2 id="multitenancy" className="text-2xl font-bold text-gray-900 mt-12 mb-4">
+              <h2 id="multitenancy" className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-4">
                 Multi-Tenancy
               </h2>
               
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Flagify supports multi-tenant projects through the concept of <strong>Brands</strong>. 
                 This is perfect for SaaS applications where different customers need different feature configurations.
               </p>
               
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
-                <p className="text-sm text-amber-800">
+              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-lg p-4 mt-4">
+                <p className="text-sm text-amber-800 dark:text-amber-400">
                   <strong>Note:</strong> When converting a project from Multi-Tenant to Single-Tenant, 
                   all brand-specific configurations will be deleted.
                 </p>
               </div>
 
-              <h2 id="sdk-js" className="text-2xl font-bold text-gray-900 mt-12 mb-4">
+              <h2 id="sdk-js" className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-4">
                 JavaScript/TypeScript SDK
               </h2>
               
@@ -391,7 +391,7 @@ export default function Docs() {
                 </pre>
               </div>
 
-              <h2 id="sdk-rest" className="text-2xl font-bold text-gray-900 mt-12 mb-4">
+              <h2 id="sdk-rest" className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-4">
                 REST API
               </h2>
               
@@ -401,70 +401,70 @@ export default function Docs() {
                 </pre>
               </div>
 
-              <h2 id="docker" className="text-2xl font-bold text-gray-900 mt-12 mb-4">
+              <h2 id="docker" className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-4">
                 Docker Deployment
               </h2>
               
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 The recommended way to deploy Flagify is using Docker Compose. 
                 This sets up the complete stack including MongoDB and Redis.
               </p>
 
-              <h2 id="coolify" className="text-2xl font-bold text-gray-900 mt-12 mb-4">
+              <h2 id="coolify" className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-4">
                 Coolify Deployment
               </h2>
               
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Flagify is ready for Coolify deployment. Use the provided <code>docker-compose.coolify.yml</code> 
                 for easy self-hosting on your own infrastructure.
               </p>
 
-              <h2 id="env" className="text-2xl font-bold text-gray-900 mt-12 mb-4">
+              <h2 id="env" className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-4">
                 Environment Variables
               </h2>
               
-              <table className="min-w-full divide-y divide-gray-200 mt-4">
+              <table className="min-w-full divide-y divide-border mt-4">
                 <thead>
                   <tr>
-                    <th className="py-2 text-left text-sm font-semibold text-gray-900">Variable</th>
-                    <th className="py-2 text-left text-sm font-semibold text-gray-900">Description</th>
-                    <th className="py-2 text-left text-sm font-semibold text-gray-900">Required</th>
+                    <th className="py-2 text-left text-sm font-semibold text-foreground">Variable</th>
+                    <th className="py-2 text-left text-sm font-semibold text-foreground">Description</th>
+                    <th className="py-2 text-left text-sm font-semibold text-foreground">Required</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-border">
                   <tr>
-                    <td className="py-2 text-sm font-mono text-gray-700">DATABASE_URL</td>
-                    <td className="py-2 text-sm text-gray-600">MongoDB connection string</td>
-                    <td className="py-2 text-sm text-gray-600">Yes</td>
+                    <td className="py-2 text-sm font-mono text-foreground">DATABASE_URL</td>
+                    <td className="py-2 text-sm text-muted-foreground">MongoDB connection string</td>
+                    <td className="py-2 text-sm text-muted-foreground">Yes</td>
                   </tr>
                   <tr>
-                    <td className="py-2 text-sm font-mono text-gray-700">REDIS_URL</td>
-                    <td className="py-2 text-sm text-gray-600">Redis connection string</td>
-                    <td className="py-2 text-sm text-gray-600">Yes</td>
+                    <td className="py-2 text-sm font-mono text-foreground">REDIS_URL</td>
+                    <td className="py-2 text-sm text-muted-foreground">Redis connection string</td>
+                    <td className="py-2 text-sm text-muted-foreground">Yes</td>
                   </tr>
                   <tr>
-                    <td className="py-2 text-sm font-mono text-gray-700">JWT_SECRET</td>
-                    <td className="py-2 text-sm text-gray-600">Secret for JWT tokens</td>
-                    <td className="py-2 text-sm text-gray-600">Yes</td>
+                    <td className="py-2 text-sm font-mono text-foreground">JWT_SECRET</td>
+                    <td className="py-2 text-sm text-muted-foreground">Secret for JWT tokens</td>
+                    <td className="py-2 text-sm text-muted-foreground">Yes</td>
                   </tr>
                   <tr>
-                    <td className="py-2 text-sm font-mono text-gray-700">SMTP_HOST</td>
-                    <td className="py-2 text-sm text-gray-600">SMTP server for emails</td>
-                    <td className="py-2 text-sm text-gray-600">Optional</td>
+                    <td className="py-2 text-sm font-mono text-foreground">SMTP_HOST</td>
+                    <td className="py-2 text-sm text-muted-foreground">SMTP server for emails</td>
+                    <td className="py-2 text-sm text-muted-foreground">Optional</td>
                   </tr>
                 </tbody>
               </table>
 
-              <div className="mt-12 p-6 bg-gray-50 rounded-xl border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Need Help?</h3>
-                <p className="text-gray-600 mb-4">
+              <div className="mt-12 p-6 bg-muted rounded-xl border border-border">
+                <h3 className="text-lg font-semibold text-foreground mb-2">Need Help?</h3>
+                <p className="text-muted-foreground mb-4">
                   If you need assistance or want to report an issue, visit our GitHub repository.
                 </p>
                 <a 
                   href="https://github.com/nuvooo/flagify/issues" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium"
+                  className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
                 >
                   Open an Issue on GitHub
                   <ChevronRightIcon className="h-4 w-4" />

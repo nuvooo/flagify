@@ -142,10 +142,10 @@ export default function Organizations() {
       {/* Page header */}
       <div className="md:flex md:items-center md:justify-between">
         <div className="min-w-0 flex-1">
-          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+          <h2 className="text-2xl font-bold leading-7 text-gray-900 dark:text-white sm:truncate sm:text-3xl sm:tracking-tight">
             Organizations
           </h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Manage your organizations and teams
           </p>
         </div>
@@ -177,14 +177,14 @@ export default function Organizations() {
 
       {/* Error message */}
       {error && (
-        <div className="rounded-md bg-red-50 p-4">
+        <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
           <div className="flex">
             <div className="flex-shrink-0">
               <ExclamationTriangleIcon className="h-5 w-5 text-red-400" aria-hidden="true" />
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error</h3>
-              <div className="mt-2 text-sm text-red-700">
+              <h3 className="text-sm font-medium text-red-800 dark:text-red-400">Error</h3>
+              <div className="mt-2 text-sm text-red-700 dark:text-red-300">
                 <p>{error}</p>
               </div>
             </div>
@@ -204,7 +204,7 @@ export default function Organizations() {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black bg-opacity-25" />
+            <div className="fixed inset-0 bg-black bg-opacity-25 dark:bg-black dark:bg-opacity-50" />
           </Transition.Child>
 
           <div className="fixed inset-0 overflow-y-auto">
@@ -218,39 +218,39 @@ export default function Organizations() {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-white p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-white dark:bg-gray-900 p-6 text-left align-middle shadow-xl transition-all">
                   <div className="flex items-center justify-between mb-4">
                     <Dialog.Title
                       as="h3"
-                      className="text-lg font-semibold leading-6 text-gray-900"
+                      className="text-lg font-semibold leading-6 text-gray-900 dark:text-white"
                     >
                       Create New Organization
                     </Dialog.Title>
                     <button
                       onClick={() => setIsModalOpen(false)}
                       disabled={isCreating}
-                      className="text-gray-400 hover:text-gray-500 disabled:opacity-50"
+                      className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 disabled:opacity-50"
                     >
                       <XMarkIcon className="h-5 w-5" />
                     </button>
                   </div>
 
                   {createError && (
-                    <div className="mb-4 rounded-md bg-red-50 p-3">
-                      <p className="text-sm text-red-700">{createError}</p>
+                    <div className="mb-4 rounded-md bg-red-50 dark:bg-red-900/20 p-3">
+                      <p className="text-sm text-red-700 dark:text-red-300">{createError}</p>
                     </div>
                   )}
 
                   {createSuccess && (
-                    <div className="mb-4 rounded-md bg-green-50 p-3 flex items-center">
+                    <div className="mb-4 rounded-md bg-green-50 dark:bg-green-900/20 p-3 flex items-center">
                       <CheckCircleIcon className="h-5 w-5 text-green-400 mr-2" />
-                      <p className="text-sm text-green-700">{createSuccess}</p>
+                      <p className="text-sm text-green-700 dark:text-green-300">{createSuccess}</p>
                     </div>
                   )}
 
                   <form onSubmit={createOrganization} className="space-y-4">
                     <div>
-                      <label htmlFor="org-name" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="org-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Organization Name <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -258,7 +258,7 @@ export default function Organizations() {
                         id="org-name"
                         value={newOrgData.name}
                         onChange={(e) => handleNameChange(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                         placeholder="e.g., Acme Corporation"
                         required
                         disabled={isCreating}
@@ -266,7 +266,7 @@ export default function Organizations() {
                     </div>
 
                     <div>
-                      <label htmlFor="org-slug" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="org-slug" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Slug
                       </label>
                       <input
@@ -274,17 +274,17 @@ export default function Organizations() {
                         id="org-slug"
                         value={newOrgData.slug}
                         onChange={(e) => setNewOrgData({ ...newOrgData, slug: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                         placeholder="acme-corporation"
                         disabled={isCreating}
                       />
-                      <p className="mt-1 text-xs text-gray-500">
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                         Used in URLs. Auto-generated from name.
                       </p>
                     </div>
 
                     <div>
-                      <label htmlFor="org-description" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="org-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Description
                       </label>
                       <textarea
@@ -292,7 +292,7 @@ export default function Organizations() {
                         value={newOrgData.description}
                         onChange={(e) => setNewOrgData({ ...newOrgData, description: e.target.value })}
                         rows={3}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                         placeholder="Brief description of your organization"
                         disabled={isCreating}
                       />
@@ -303,7 +303,7 @@ export default function Organizations() {
                         type="button"
                         onClick={() => setIsModalOpen(false)}
                         disabled={isCreating}
-                        className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                        className="rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
                       >
                         Cancel
                       </button>
@@ -327,7 +327,7 @@ export default function Organizations() {
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="rounded-lg bg-white shadow animate-pulse">
+            <div key={i} className="rounded-lg bg-white dark:bg-gray-800 shadow animate-pulse">
               <div className="p-6">
                 <div className="h-6 w-32 bg-gray-200 rounded" />
                 <div className="mt-2 h-4 w-48 bg-gray-200 rounded" />
@@ -340,10 +340,10 @@ export default function Organizations() {
           ))}
         </div>
       ) : filteredOrganizations.length === 0 ? (
-        <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
-          <BuildingOfficeIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-semibold text-gray-900">No organizations</h3>
-          <p className="mt-1 text-sm text-gray-500">
+        <div className="rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700 p-12 text-center">
+          <BuildingOfficeIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+          <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">No organizations</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Get started by creating a new organization.
           </p>
           <div className="mt-6">
@@ -361,7 +361,7 @@ export default function Organizations() {
           {filteredOrganizations.map((org) => (
             <div
               key={org.id}
-              className="relative flex flex-col rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow"
+              className="relative flex flex-col rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex-1 p-6">
                 <div className="flex items-start justify-between">
@@ -370,16 +370,16 @@ export default function Organizations() {
                       <BuildingOfficeIcon className="h-6 w-6 text-primary-600" />
                     </div>
                     <div className="ml-4">
-                      <h3 className="text-lg font-medium text-gray-900">
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                         <Link to={`/organizations/${org.id}`} className="hover:text-primary-600">
                           {org.name}
                         </Link>
                       </h3>
-                      <p className="text-sm text-gray-500">{org.slug}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{org.slug}</p>
                     </div>
                   </div>
                   <Menu as="div" className="relative ml-2 inline-block text-left">
-                    <Menu.Button className="flex items-center rounded-full bg-white p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                    <Menu.Button className="flex items-center rounded-full bg-white dark:bg-gray-800 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
                       <span className="sr-only">Open options</span>
                       <EllipsisVerticalIcon className="h-5 w-5" />
                     </Menu.Button>
@@ -391,14 +391,14 @@ export default function Organizations() {
                       leaveFrom="transform opacity-100 scale-100"
                       leaveTo="transform opacity-0 scale-95"
                     >
-                      <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white dark:bg-gray-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                         <div className="py-1">
                           <Menu.Item>
                             {({ active }) => (
                               <Link
                                 to={`/organizations/${org.id}`}
                                 className={clsx(
-                                  active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                                  active ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300',
                                   'block px-4 py-2 text-sm'
                                 )}
                               >
@@ -411,7 +411,7 @@ export default function Organizations() {
                               <Link
                                 to={`/organizations/${org.id}/settings`}
                                 className={clsx(
-                                  active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                                  active ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300',
                                   'block px-4 py-2 text-sm'
                                 )}
                               >
@@ -420,14 +420,14 @@ export default function Organizations() {
                             )}
                           </Menu.Item>
                           {org.role === 'OWNER' && (
-                            <div className="border-t border-gray-100">
+                            <div className="border-t border-gray-100 dark:border-gray-800">
                               <Menu.Item>
                                 {({ active }) => (
                                   <button
                                     onClick={() => deleteOrganization(org.id)}
                                     disabled={isDeleting === org.id}
                                     className={clsx(
-                                      active ? 'bg-gray-100 text-red-900' : 'text-red-700',
+                                      active ? 'bg-gray-100 dark:bg-gray-800 text-red-900 dark:text-red-400' : 'text-red-700 dark:text-red-400',
                                       'block w-full px-4 py-2 text-left text-sm disabled:opacity-50'
                                     )}
                                   >
@@ -447,12 +447,12 @@ export default function Organizations() {
                 </div>
 
                 {org.description && (
-                  <p className="mt-3 text-sm text-gray-500 line-clamp-2">
+                  <p className="mt-3 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
                     {org.description}
                   </p>
                 )}
 
-                <div className="mt-4 flex items-center space-x-4 text-sm text-gray-500">
+                <div className="mt-4 flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
                   <div className="flex items-center">
                     <UsersIcon className="mr-1.5 h-4 w-4 flex-shrink-0" />
                     {org.memberCount} members
@@ -467,9 +467,9 @@ export default function Organizations() {
                   <span
                     className={clsx(
                       'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-                      org.role === 'OWNER' && 'bg-purple-100 text-purple-800',
-                      org.role === 'ADMIN' && 'bg-blue-100 text-blue-800',
-                      org.role === 'MEMBER' && 'bg-green-100 text-green-800'
+                      org.role === 'OWNER' && 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+                      org.role === 'ADMIN' && 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+                      org.role === 'MEMBER' && 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
                     )}
                   >
                     {org.role}

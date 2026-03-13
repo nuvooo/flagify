@@ -11,6 +11,7 @@ import {
   DocumentTextIcon,
   PlayIcon
 } from '@heroicons/react/24/outline';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const features = [
   {
@@ -60,36 +61,37 @@ if (isEnabled) {
 
 export default function LandingPage() {
   return (
-    <div className="bg-white">
+    <div className="bg-background transition-colors">
       {/* Navigation */}
-      <header className="relative z-50 bg-white border-b border-gray-200">
+      <header className="relative z-50 bg-background border-b border-border">
         <nav className="flex items-center justify-between p-6 lg:px-8" aria-label="Global">
           <div className="flex lg:flex-1">
             <Link to="/" className="-m-1.5 p-1.5 flex items-center gap-2">
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-600">
-                <FlagIcon className="h-6 w-6 text-white" />
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
+                <FlagIcon className="h-6 w-6 text-primary-foreground" />
               </span>
-              <span className="text-xl font-bold tracking-tight text-gray-900">Flagify</span>
+              <span className="text-xl font-bold tracking-tight text-foreground">Flagify</span>
             </Link>
           </div>
           <div className="hidden md:flex md:gap-x-8">
-            <Link to="/login?demo=true" className="text-sm font-semibold leading-6 text-gray-900 hover:text-primary-600 transition-colors">
+            <Link to="/login?demo=true" className="text-sm font-semibold leading-6 text-foreground hover:text-primary transition-colors">
               Live Demo
             </Link>
-            <Link to="/docs" className="text-sm font-semibold leading-6 text-gray-900 hover:text-primary-600 transition-colors">
+            <Link to="/docs" className="text-sm font-semibold leading-6 text-foreground hover:text-primary transition-colors">
               Documentation
             </Link>
-            <a href="https://github.com/nuvooo/flagify/" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold leading-6 text-gray-900 hover:text-primary-600 transition-colors">
+            <a href="https://github.com/nuvooo/flagify/" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold leading-6 text-foreground hover:text-primary transition-colors">
               GitHub
             </a>
           </div>
-          <div className="flex flex-1 justify-end gap-x-4">
-            <Link to="/login" className="hidden sm:block text-sm font-semibold leading-6 text-gray-900 pt-2">
+          <div className="flex flex-1 justify-end items-center gap-x-4">
+            <ThemeToggle />
+            <Link to="/login" className="hidden sm:block text-sm font-semibold leading-6 text-foreground">
               Log in
             </Link>
             <Link
               to="/register"
-              className="rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+              className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               Get Started
             </Link>
@@ -113,28 +115,28 @@ export default function LandingPage() {
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
               <div className="mx-auto max-w-2xl text-center">
                 <div className="mb-8 flex justify-center">
-                  <span className="inline-flex items-center rounded-full bg-primary-50 px-3 py-1 text-sm font-medium text-primary-700 ring-1 ring-inset ring-primary-700/10">
+                  <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary ring-1 ring-inset ring-primary/20">
                     🚀 Now with Multi-Tenant Support
                   </span>
                 </div>
-                <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
+                <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
                   Feature Flags Made{' '}
-                  <span className="text-primary-600">Simple</span>
+                  <span className="text-primary">Simple</span>
                 </h1>
-                <p className="mt-6 text-lg leading-8 text-gray-600">
+                <p className="mt-6 text-lg leading-8 text-muted-foreground">
                   Deploy faster and more reliably with Flagify. Control features in real-time, 
                   target specific users, and manage multiple environments with our powerful open-source platform.
                 </p>
                 <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
                   <Link
                     to="/register"
-                    className="w-full sm:w-auto rounded-md bg-primary-600 px-6 py-3 text-lg font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                    className="w-full sm:w-auto rounded-md bg-primary px-6 py-3 text-lg font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     Start for Free
                   </Link>
                   <Link 
                     to="/login?demo=true"
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-md bg-white px-6 py-3 text-lg font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-md bg-card px-6 py-3 text-lg font-semibold text-foreground shadow-sm ring-1 ring-inset ring-border hover:bg-muted"
                   >
                     <PlayIcon className="h-5 w-5" />
                     Try Live Demo
@@ -175,11 +177,11 @@ export default function LandingPage() {
         {/* Feature section */}
         <div id="features" className="mx-auto -mt-20 max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center">
-            <h2 className="text-base font-semibold leading-7 text-primary-600 uppercase tracking-widest">Everything you need</h2>
-            <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-base font-semibold leading-7 text-primary uppercase tracking-widest">Everything you need</h2>
+            <p className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               Powerful features to ship with confidence
             </p>
-            <p className="mt-6 text-lg leading-8 text-gray-600">
+            <p className="mt-6 text-lg leading-8 text-muted-foreground">
               Stop worrying about deployment windows. Release features to specific segments, run beta programs, and kill problematic features instantly.
             </p>
           </div>
@@ -187,13 +189,13 @@ export default function LandingPage() {
             <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none lg:grid-cols-2 lg:gap-y-16">
               {features.map((feature) => (
                 <div key={feature.name} className="relative pl-16">
-                  <dt className="text-base font-semibold leading-7 text-gray-900">
-                    <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-primary-600">
-                      <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
+                  <dt className="text-base font-semibold leading-7 text-foreground">
+                    <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
+                      <feature.icon className="h-6 w-6 text-primary-foreground" aria-hidden="true" />
                     </div>
                     {feature.name}
                   </dt>
-                  <dd className="mt-2 text-base leading-7 text-gray-600">{feature.description}</dd>
+                  <dd className="mt-2 text-base leading-7 text-muted-foreground">{feature.description}</dd>
                 </div>
               ))}
             </dl>
@@ -205,26 +207,26 @@ export default function LandingPage() {
           <div className="mx-auto max-w-2xl lg:mx-0 lg:max-w-none">
             <div className="grid grid-cols-1 gap-y-16 lg:grid-cols-2 lg:gap-x-16">
               <div>
-                <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Trusted by developers worldwide</h2>
-                <p className="mt-6 text-lg leading-8 text-gray-600">
+                <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Trusted by developers worldwide</h2>
+                <p className="mt-6 text-lg leading-8 text-muted-foreground">
                   Flagify is designed to handle enterprise workloads while remaining simple enough for individual developers. Our architecture ensures that feature evaluation happens locally in your SDK for maximum performance.
                 </p>
-                <div className="mt-10 flex gap-x-8 text-base font-semibold leading-7 text-gray-900 border-t border-gray-200 pt-10">
+                <div className="mt-10 flex gap-x-8 text-base font-semibold leading-7 text-foreground border-t border-border pt-10">
                   <div className="flex flex-col gap-y-3">
-                    <span className="text-4xl font-bold text-primary-600">10k+</span>
+                    <span className="text-4xl font-bold text-primary">10k+</span>
                     <span>Daily Evaluations</span>
                   </div>
                   <div className="flex flex-col gap-y-3">
-                    <span className="text-4xl font-bold text-primary-600">99.9%</span>
+                    <span className="text-4xl font-bold text-primary">99.9%</span>
                     <span>Uptime Guarantee</span>
                   </div>
                   <div className="flex flex-col gap-y-3">
-                    <span className="text-4xl font-bold text-primary-600">{'< 1ms'}</span>
+                    <span className="text-4xl font-bold text-primary">{'< 1ms'}</span>
                     <span>Local Evaluation</span>
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 rounded-2xl p-8 flex flex-col justify-center border border-gray-100">
+              <div className="bg-muted rounded-2xl p-8 flex flex-col justify-center border border-border">
                 <div className="space-y-4">
                   {[
                     "Self-hosted & Private",
@@ -234,7 +236,7 @@ export default function LandingPage() {
                     "Organization Management",
                     "Unlimited Projects & Flags"
                   ].map((item) => (
-                    <div key={item} className="flex items-center gap-x-3 text-gray-700">
+                    <div key={item} className="flex items-center gap-x-3 text-foreground">
                       <CheckCircleIcon className="h-6 w-6 text-green-500" />
                       <span className="font-medium">{item}</span>
                     </div>
@@ -264,7 +266,7 @@ export default function LandingPage() {
               </Link>
               <Link
                 to="/login?demo=true"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-md bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 <PlayIcon className="h-5 w-5" />
                 Try Live Demo

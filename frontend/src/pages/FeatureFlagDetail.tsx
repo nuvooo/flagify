@@ -270,15 +270,15 @@ export default function FeatureFlagDetail() {
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'BOOLEAN':
-        return 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-700/10';
+        return 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-400 ring-1 ring-inset ring-blue-700/10 dark:ring-blue-400/20';
       case 'STRING':
-        return 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20';
+        return 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400 ring-1 ring-inset ring-green-600/20 dark:ring-green-400/20';
       case 'NUMBER':
-        return 'bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-700/10';
+        return 'bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-400 ring-1 ring-inset ring-purple-700/10 dark:ring-purple-400/20';
       case 'JSON':
-        return 'bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-700/10';
+        return 'bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-400 ring-1 ring-inset ring-orange-700/10 dark:ring-orange-400/20';
       default:
-        return 'bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-600/10';
+        return 'bg-muted text-foreground ring-1 ring-inset ring-border';
     }
   };
 
@@ -296,13 +296,13 @@ export default function FeatureFlagDetail() {
     return (
       <div className="space-y-6">
         <div className="animate-pulse">
-          <div className="h-8 w-64 bg-gray-200 rounded" />
-          <div className="mt-2 h-4 w-96 bg-gray-200 rounded" />
+          <div className="h-8 w-64 bg-muted rounded" />
+          <div className="mt-2 h-4 w-96 bg-muted rounded" />
         </div>
-        <div className="bg-white shadow rounded-lg animate-pulse">
+        <div className="bg-card shadow rounded-lg animate-pulse border border-border">
           <div className="p-6 space-y-4">
-            <div className="h-10 w-full bg-gray-200 rounded" />
-            <div className="h-10 w-full bg-gray-200 rounded" />
+            <div className="h-10 w-full bg-muted rounded" />
+            <div className="h-10 w-full bg-muted rounded" />
           </div>
         </div>
       </div>
@@ -312,14 +312,14 @@ export default function FeatureFlagDetail() {
   if (!flag) {
     return (
       <div className="text-center py-12">
-        <FlagIcon className="mx-auto h-12 w-12 text-gray-400" />
-        <h3 className="mt-2 text-sm font-semibold text-gray-900">
+        <FlagIcon className="mx-auto h-12 w-12 text-muted-foreground" />
+        <h3 className="mt-2 text-sm font-semibold text-foreground">
           Feature flag not found
         </h3>
         <div className="mt-6">
           <Link
             to="/feature-flags"
-            className="inline-flex items-center text-primary-600 hover:text-primary-500"
+            className="inline-flex items-center text-primary hover:text-primary/80"
           >
             <ArrowLeftIcon className="mr-2 h-4 w-4" />
             Back to feature flags
@@ -335,7 +335,7 @@ export default function FeatureFlagDetail() {
       <div>
         <Link
           to="/feature-flags"
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeftIcon className="mr-1 h-4 w-4" />
           Back to feature flags
@@ -343,12 +343,12 @@ export default function FeatureFlagDetail() {
         <div className="mt-2 md:flex md:items-center md:justify-between">
           <div className="min-w-0 flex-1">
             <div className="flex items-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
-                <FlagIcon className="h-6 w-6 text-purple-600" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                <FlagIcon className="h-6 w-6 text-primary" />
               </div>
               <div className="ml-4">
                 <div className="flex items-center space-x-3">
-                  <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl">
+                  <h2 className="text-2xl font-bold leading-7 text-foreground sm:text-3xl">
                     {flag.name}
                   </h2>
                   <span
@@ -360,13 +360,13 @@ export default function FeatureFlagDetail() {
                     {flag.type}
                   </span>
                 </div>
-                <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
-                  <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-1">
+                  <code className="bg-muted px-2 py-0.5 rounded text-xs">
                     {flag.key}
                   </code>
                   <button
                     onClick={copyKeyToClipboard}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-muted-foreground hover:text-foreground"
                     title="Copy to clipboard"
                   >
                     <DocumentDuplicateIcon className="h-4 w-4" />
@@ -374,7 +374,7 @@ export default function FeatureFlagDetail() {
                   <span>•</span>
                   <Link
                     to={`/projects/${flag.projectId}`}
-                    className="hover:text-primary-600"
+                    className="hover:text-primary"
                   >
                     {flag.projectName}
                   </Link>
@@ -385,7 +385,7 @@ export default function FeatureFlagDetail() {
           <div className="mt-4 flex md:ml-4 md:mt-0 space-x-3">
             <button
               onClick={handleDelete}
-              className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-red-50"
+              className="inline-flex items-center rounded-md bg-background px-3 py-2 text-sm font-semibold text-destructive shadow-sm ring-1 ring-inset ring-border hover:bg-destructive/10"
             >
               <TrashIcon className="-ml-0.5 mr-1.5 h-5 w-5" />
               Delete
@@ -396,42 +396,42 @@ export default function FeatureFlagDetail() {
                 setEditDescription(flag?.description || '');
                 setIsEditing(true);
               }}
-              className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700"
+              className="inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
             >
               Edit Flag
             </button>
           </div>
         </div>
         {flag.description && !isEditing && (
-          <p className="mt-4 text-sm text-gray-600 max-w-3xl">{flag.description}</p>
+          <p className="mt-4 text-sm text-muted-foreground max-w-3xl">{flag.description}</p>
         )}
         
         {/* Edit Form */}
         {isEditing && flag && (
-          <div className="mt-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <div className="mt-4 bg-muted p-4 rounded-lg border border-border">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Flag Name</label>
+                <label className="block text-sm font-medium text-foreground">Flag Name</label>
                 <input
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <label className="block text-sm font-medium text-foreground">Description</label>
                 <textarea
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                   rows={2}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                 />
               </div>
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  className="rounded-md bg-background px-3 py-2 text-sm font-semibold text-foreground shadow-sm ring-1 ring-inset ring-border hover:bg-muted"
                 >
                   Cancel
                 </button>
@@ -453,7 +453,7 @@ export default function FeatureFlagDetail() {
                     }
                   }}
                   disabled={isSaving || !editName}
-                  className="rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 disabled:opacity-50"
+                  className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50"
                 >
                   {isSaving ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -464,7 +464,7 @@ export default function FeatureFlagDetail() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-border">
         <nav className="-mb-px flex space-x-8">
           {[
             { id: 'overview', name: 'Overview', icon: CodeBracketIcon },
@@ -476,16 +476,16 @@ export default function FeatureFlagDetail() {
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
               className={clsx(
                 activeTab === tab.id
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground',
                 'group inline-flex items-center border-b-2 py-4 px-1 text-sm font-medium'
               )}
             >
               <tab.icon
                 className={clsx(
                   activeTab === tab.id
-                    ? 'text-primary-500'
-                    : 'text-gray-400 group-hover:text-gray-500',
+                    ? 'text-primary'
+                    : 'text-muted-foreground group-hover:text-muted-foreground',
                   '-ml-0.5 mr-2 h-5 w-5'
                 )}
               />
@@ -499,32 +499,32 @@ export default function FeatureFlagDetail() {
       {activeTab === 'overview' && (
         <div className="space-y-6">
           {/* Environment Toggles */}
-          <div className="rounded-lg bg-white shadow">
-            <div className="border-b border-gray-200 px-4 py-4 sm:px-6">
-              <h3 className="text-base font-semibold text-gray-900">
+          <div className="rounded-lg bg-card shadow border border-border">
+            <div className="border-b border-border px-4 py-4 sm:px-6">
+              <h3 className="text-base font-semibold text-foreground">
                 Environment States
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Toggle this flag on or off for each environment
               </p>
             </div>
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-border">
               {environmentStates.map((env) => (
                 <div
                   key={env.id}
                   className="flex items-center justify-between px-4 py-4 sm:px-6"
                 >
                   <div className="flex items-center">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
-                      <BeakerIcon className="h-5 w-5 text-gray-600" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+                      <BeakerIcon className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-foreground">
                         {env.name}
                       </p>
-                      <p className="text-xs text-gray-500">
-                        Default:{' '}
-                        <code className="bg-gray-100 px-1 rounded">
+                      <p className="text-xs text-muted-foreground">
+                        Value:{' '}
+                        <code className="bg-muted px-1 rounded">
                           {typeof env.defaultValue === 'object'
                             ? JSON.stringify(env.defaultValue)
                             : String(env.defaultValue)}
@@ -534,12 +534,12 @@ export default function FeatureFlagDetail() {
                   </div>
                   <div className="flex items-center space-x-4">
                     {env.isEnabled ? (
-                      <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                      <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-950 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-400">
                         <CheckCircleIcon className="mr-1 h-3 w-3" />
                         Enabled
                       </span>
                     ) : (
-                      <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                      <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                         <XCircleIcon className="mr-1 h-3 w-3" />
                         Disabled
                       </span>
@@ -550,14 +550,14 @@ export default function FeatureFlagDetail() {
                         handleToggleEnvironment(env.id, env.isEnabled)
                       }
                       className={clsx(
-                        env.isEnabled ? 'bg-primary-600' : 'bg-gray-200',
-                        'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2'
+                        env.isEnabled ? 'bg-primary' : 'bg-muted',
+                        'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
                       )}
                     >
                       <span
                         className={clsx(
                           env.isEnabled ? 'translate-x-5' : 'translate-x-0',
-                          'pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+                          'pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-background shadow ring-0 transition duration-200 ease-in-out'
                         )}
                       />
                     </Switch>
@@ -568,19 +568,19 @@ export default function FeatureFlagDetail() {
           </div>
 
           {/* SDK Usage */}
-          <div className="rounded-lg bg-white shadow">
-            <div className="border-b border-gray-200 px-4 py-4 sm:px-6">
-              <h3 className="text-base font-semibold text-gray-900">
+          <div className="rounded-lg bg-card shadow border border-border">
+            <div className="border-b border-border px-4 py-4 sm:px-6">
+              <h3 className="text-base font-semibold text-foreground">
                 SDK Usage
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 How to use this flag in your code
               </p>
             </div>
             <div className="p-4 sm:p-6">
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">
+                  <h4 className="text-sm font-medium text-foreground mb-2">
                     JavaScript/TypeScript
                   </h4>
                   <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto">
@@ -599,7 +599,7 @@ if (isEnabled) {
                   </pre>
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">
+                  <h4 className="text-sm font-medium text-foreground mb-2">
                     cURL
                   </h4>
                   <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto">
@@ -620,37 +620,37 @@ if (isEnabled) {
           </div>
 
           {/* Metadata */}
-          <div className="rounded-lg bg-white shadow">
-            <div className="border-b border-gray-200 px-4 py-4 sm:px-6">
-              <h3 className="text-base font-semibold text-gray-900">
+          <div className="rounded-lg bg-card shadow border border-border">
+            <div className="border-b border-border px-4 py-4 sm:px-6">
+              <h3 className="text-base font-semibold text-foreground">
                 Metadata
               </h3>
             </div>
             <div className="px-4 py-4 sm:px-6">
               <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Created</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dt className="text-sm font-medium text-muted-foreground">Created</dt>
+                  <dd className="mt-1 text-sm text-foreground">
                     {formatDate(flag.createdAt)}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">
+                  <dt className="text-sm font-medium text-muted-foreground">
                     Last Updated
                   </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dd className="mt-1 text-sm text-foreground">
                     {formatDate(flag.updatedAt)}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Flag ID</dt>
-                  <dd className="mt-1 text-sm text-gray-900 font-mono">
+                  <dt className="text-sm font-medium text-muted-foreground">Flag ID</dt>
+                  <dd className="mt-1 text-sm text-foreground font-mono">
                     {flag.id}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Type</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{flag.type}</dd>
+                  <dt className="text-sm font-medium text-muted-foreground">Type</dt>
+                  <dd className="mt-1 text-sm text-foreground">{flag.type}</dd>
                 </div>
               </dl>
             </div>
@@ -663,16 +663,16 @@ if (isEnabled) {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-semibold text-gray-900">
+              <h3 className="text-base font-semibold text-foreground">
                 Targeting Rules
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Define rules to target specific users or contexts
               </p>
             </div>
             <button
               onClick={() => setShowNewRuleForm(!showNewRuleForm)}
-              className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700"
+              className="inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
             >
               <PlusIcon className="-ml-0.5 mr-1.5 h-4 w-4" />
               Add Rule
@@ -681,11 +681,11 @@ if (isEnabled) {
 
           {/* New Rule Form */}
           {showNewRuleForm && (
-            <div className="rounded-lg bg-gray-50 p-4 border border-gray-200">
+            <div className="rounded-lg bg-muted p-4 border border-border">
               <form onSubmit={handleAddRule} className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-foreground">
                       Rule Name
                     </label>
                     <input
@@ -695,12 +695,12 @@ if (isEnabled) {
                         setNewRule({ ...newRule, name: e.target.value })
                       }
                       placeholder="e.g., Beta Users"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                      className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-foreground">
                       Attribute
                     </label>
                     <input
@@ -710,12 +710,12 @@ if (isEnabled) {
                         setNewRule({ ...newRule, attribute: e.target.value })
                       }
                       placeholder="e.g., userGroup, email, country"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                      className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-foreground">
                       Operator
                     </label>
                     <select
@@ -726,7 +726,7 @@ if (isEnabled) {
                           operator: e.target.value as TargetingRule['operator'],
                         })
                       }
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                      className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     >
                       <option value="EQUALS">equals</option>
                       <option value="NOT_EQUALS">not equals</option>
@@ -738,7 +738,7 @@ if (isEnabled) {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-foreground">
                       Value
                     </label>
                     <input
@@ -748,7 +748,7 @@ if (isEnabled) {
                         setNewRule({ ...newRule, value: e.target.value })
                       }
                       placeholder="e.g., beta, @company.com"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                      className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       required
                     />
                   </div>
@@ -757,14 +757,14 @@ if (isEnabled) {
                   <button
                     type="button"
                     onClick={() => setShowNewRuleForm(false)}
-                    className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                    className="rounded-md bg-background px-3 py-2 text-sm font-semibold text-foreground shadow-sm ring-1 ring-inset ring-border hover:bg-muted"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSaving}
-                    className="rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 disabled:opacity-50"
+                    className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50"
                   >
                     {isSaving ? 'Saving...' : 'Add Rule'}
                   </button>
@@ -775,46 +775,46 @@ if (isEnabled) {
 
           {/* Rules List */}
           {targetingRules.length === 0 ? (
-            <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
-              <UsersIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-semibold text-gray-900">
+            <div className="rounded-lg border-2 border-dashed border-border p-12 text-center">
+              <UsersIcon className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-2 text-sm font-semibold text-foreground">
                 No targeting rules
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Add rules to target specific users or contexts.
               </p>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-lg bg-white shadow">
-              <div className="divide-y divide-gray-200">
+            <div className="overflow-hidden rounded-lg bg-card shadow border border-border">
+              <div className="divide-y divide-border">
                 {targetingRules.map((rule) => (
                   <div
                     key={rule.id}
-                    className="flex items-center justify-between p-6 hover:bg-gray-50"
+                    className="flex items-center justify-between p-6 hover:bg-muted/50"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-3">
-                        <h4 className="text-sm font-medium text-gray-900">
+                        <h4 className="text-sm font-medium text-foreground">
                           {rule.name}
                         </h4>
                         {rule.isEnabled ? (
-                          <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                          <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-950 px-2 py-0.5 text-xs font-medium text-green-800 dark:text-green-400">
                             Active
                           </span>
                         ) : (
-                          <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
+                          <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                             Inactive
                           </span>
                         )}
                       </div>
-                      <p className="mt-1 text-sm text-gray-500">
-                        <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
                           {rule.attribute}
                         </code>{' '}
-                        <span className="text-primary-600 font-medium">
+                        <span className="text-primary font-medium">
                           {rule.operator.toLowerCase().replace('_', ' ')}
                         </span>{' '}
-                        <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">
+                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
                           {rule.value}
                         </code>
                       </p>
@@ -826,20 +826,20 @@ if (isEnabled) {
                           handleToggleRule(rule.id, rule.isEnabled)
                         }
                         className={clsx(
-                          rule.isEnabled ? 'bg-primary-600' : 'bg-gray-200',
-                          'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2'
+                          rule.isEnabled ? 'bg-primary' : 'bg-muted',
+                          'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
                         )}
                       >
                         <span
                           className={clsx(
                             rule.isEnabled ? 'translate-x-4' : 'translate-x-0',
-                            'pointer-events-none relative inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+                            'pointer-events-none relative inline-block h-4 w-4 transform rounded-full bg-background shadow ring-0 transition duration-200 ease-in-out'
                           )}
                         />
                       </Switch>
                       <button
                         onClick={() => handleDeleteRule(rule.id)}
-                        className="text-gray-400 hover:text-red-600"
+                        className="text-muted-foreground hover:text-destructive"
                         title="Delete rule"
                       >
                         <TrashIcon className="h-4 w-4" />
@@ -855,9 +855,9 @@ if (isEnabled) {
 
       {/* History Tab */}
       {activeTab === 'history' && (
-        <div className="rounded-lg bg-white shadow">
-          <div className="border-b border-gray-200 px-4 py-4 sm:px-6">
-            <h3 className="text-base font-semibold text-gray-900">
+        <div className="rounded-lg bg-card shadow border border-border">
+          <div className="border-b border-border px-4 py-4 sm:px-6">
+            <h3 className="text-base font-semibold text-foreground">
               Change History
             </h3>
           </div>
@@ -891,27 +891,27 @@ if (isEnabled) {
                     <div className="relative pb-8">
                       {eventIdx !== 2 && (
                         <span
-                          className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
+                          className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-border"
                           aria-hidden="true"
                         />
                       )}
                       <div className="relative flex space-x-3">
                         <div>
-                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 ring-8 ring-white">
-                            <ClockIcon className="h-4 w-4 text-primary-600" />
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 ring-8 ring-card">
+                            <ClockIcon className="h-4 w-4 text-primary" />
                           </span>
                         </div>
                         <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
                           <div>
-                            <p className="text-sm text-gray-900">
+                            <p className="text-sm text-foreground">
                               <span className="font-medium">{event.action}</span>{' '}
                               - {event.description}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-muted-foreground">
                               by {event.user}
                             </p>
                           </div>
-                          <div className="whitespace-nowrap text-right text-sm text-gray-500">
+                          <div className="whitespace-nowrap text-right text-sm text-muted-foreground">
                             {formatDate(event.timestamp)}
                           </div>
                         </div>

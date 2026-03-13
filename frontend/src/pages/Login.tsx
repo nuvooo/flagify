@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,7 +38,11 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      {/* Theme Toggle - positioned absolute top right */}
+      <div className="fixed top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-3">
@@ -53,10 +58,10 @@ export default function Login() {
             <CardTitle className="text-2xl font-bold">{t('login.title')}</CardTitle>
             <CardDescription>{t('login.subtitle')}</CardDescription>
             {isDemo && (
-              <div className="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+              <div className="mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-sm">
                 <p className="font-medium mb-1">🎮 Live Demo Mode</p>
-                <p>Email: <code className="font-mono bg-amber-100 px-1 rounded">demo@flagify.io</code></p>
-                <p>Password: <code className="font-mono bg-amber-100 px-1 rounded">demo1234</code></p>
+                <p>Email: <code className="font-mono bg-amber-100 dark:bg-amber-950 px-1 rounded">demo@flagify.io</code></p>
+                <p>Password: <code className="font-mono bg-amber-100 dark:bg-amber-950 px-1 rounded">demo1234</code></p>
               </div>
             )}
           </CardHeader>

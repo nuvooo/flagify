@@ -7,6 +7,7 @@ import {
   BuildingOfficeIcon,
 } from '@heroicons/react/24/outline';
 import { useAuthStore } from '@/store/authStore';
+import { ThemeToggle } from './ThemeToggle';
 import clsx from 'clsx';
 
 interface HeaderProps {
@@ -24,21 +25,21 @@ export default function Header({ onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
+    <header className="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left side */}
           <div className="flex items-center">
             <button
               onClick={onMenuClick}
-              className="p-2 -ml-2 text-gray-400 lg:hidden hover:text-gray-500"
+              className="p-2 -ml-2 text-gray-400 lg:hidden hover:text-gray-500 dark:hover:text-gray-300"
             >
               <Bars3Icon className="w-6 h-6" />
             </button>
 
             {/* Organization selector */}
             <Menu as="div" className="relative ml-4">
-              <Menu.Button className="flex items-center max-w-xs px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+              <Menu.Button className="flex items-center max-w-xs px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
                 <BuildingOfficeIcon className="w-5 h-5 mr-2 text-gray-400" />
                 <span className="truncate max-w-[150px]">{currentOrg}</span>
                 <ChevronDownIcon className="w-5 h-5 ml-2 -mr-1 text-gray-400" />
@@ -52,9 +53,9 @@ export default function Header({ onMenuClick }: HeaderProps) {
                 leaveFrom="transform opacity-100 scale-100"
                 leaveTo="transform opacity-0 scale-95"
               >
-                <Menu.Items className="absolute left-0 z-10 mt-2 w-64 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                <Menu.Items className="absolute left-0 z-10 mt-2 w-64 origin-top-left rounded-md bg-white dark:bg-gray-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                   <div className="py-1">
-                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
                       Organizations
                     </div>
                     {organizations.map((org) => (
@@ -63,7 +64,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                           <button
                             onClick={() => setCurrentOrg(org)}
                             className={clsx(
-                              active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                              active ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300',
                               'block w-full px-4 py-2 text-left text-sm',
                               currentOrg === org && 'font-medium text-primary-600'
                             )}
@@ -76,13 +77,13 @@ export default function Header({ onMenuClick }: HeaderProps) {
                         )}
                       </Menu.Item>
                     ))}
-                    <div className="border-t border-gray-100 mt-1 pt-1">
+                    <div className="border-t border-gray-100 dark:border-gray-800 mt-1 pt-1">
                       <Menu.Item>
                         {({ active }) => (
                           <a
                             href="/organizations/new"
                             className={clsx(
-                              active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                              active ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300',
                               'block px-4 py-2 text-sm text-primary-600'
                             )}
                           >
@@ -99,13 +100,16 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
           {/* Right side */}
           <div className="flex items-center space-x-4">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+            
             {/* User menu */}
             <Menu as="div" className="relative">
               <Menu.Button className="flex items-center max-w-xs text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
                 <span className="sr-only">Open user menu</span>
                 <div className="flex items-center">
                   <UserCircleIcon className="w-8 h-8 text-gray-400" />
-                  <span className="hidden ml-2 text-sm font-medium text-gray-700 md:block">
+                  <span className="hidden ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 md:block">
                     {user?.name}
                   </span>
                   <ChevronDownIcon className="hidden w-5 h-5 ml-1 text-gray-400 md:block" />
@@ -120,13 +124,13 @@ export default function Header({ onMenuClick }: HeaderProps) {
                 leaveFrom="transform opacity-100 scale-100"
                 leaveTo="transform opacity-0 scale-95"
               >
-                <Menu.Items className="absolute right-0 z-10 w-48 mt-2 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                <Menu.Items className="absolute right-0 z-10 w-48 mt-2 origin-top-right bg-white dark:bg-gray-900 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                   <div className="py-1">
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-900">
+                    <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800">
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {user?.name}
                       </p>
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                         {user?.email}
                       </p>
                     </div>
@@ -135,8 +139,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
                         <a
                           href="/settings"
                           className={clsx(
-                            active ? 'bg-gray-100' : '',
-                            'block px-4 py-2 text-sm text-gray-700'
+                            active ? 'bg-gray-100 dark:bg-gray-800' : '',
+                            'block px-4 py-2 text-sm text-gray-700 dark:text-gray-300'
                           )}
                         >
                           Settings
@@ -148,8 +152,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
                         <button
                           onClick={handleLogout}
                           className={clsx(
-                            active ? 'bg-gray-100' : '',
-                            'block w-full px-4 py-2 text-left text-sm text-gray-700'
+                            active ? 'bg-gray-100 dark:bg-gray-800' : '',
+                            'block w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300'
                           )}
                         >
                           Sign out

@@ -518,9 +518,9 @@ export default function ProjectDetail() {
                     {flag.environments?.map((env) => (
                       <div
                         key={env.id}
-                        className="p-4 rounded-lg border bg-gray-50 border-gray-200 dark:bg-gray-900/20 dark:border-gray-800"
+                        className="p-4 rounded-lg border bg-muted border-border"
                       >
-                        <h4 className="font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-200">
+                        <h4 className="font-semibold text-foreground mb-3 pb-2 border-b border-border">
                           {env.environmentName}
                         </h4>
                         <div className="space-y-3">
@@ -532,12 +532,12 @@ export default function ProjectDetail() {
                             return (
                               <div
                                 key={brand.brandId}
-                                className="flex items-center justify-between p-2 rounded bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700"
+                                className="flex items-center justify-between p-2 rounded bg-card border border-border"
                               >
                                 <div className="flex items-center gap-2">
                                   <Badge 
                                     variant="outline" 
-                                    className="text-xs bg-white dark:bg-gray-800"
+                                    className="text-xs bg-card text-foreground"
                                   >
                                     {brand.brandName}
                                   </Badge>
@@ -547,12 +547,12 @@ export default function ProjectDetail() {
                                   disabled={isToggling}
                                   className={clsx(
                                     "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
-                                    brand.enabled ? "bg-green-500" : "bg-gray-300"
+                                    brand.enabled ? "bg-green-500 dark:bg-green-600" : "bg-gray-300 dark:bg-gray-600"
                                   )}
                                 >
                                   <span
                                     className={clsx(
-                                      "inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform",
+                                      "inline-block h-3.5 w-3.5 transform rounded-full bg-background transition-transform",
                                       brand.enabled ? "translate-x-5" : "translate-x-0.5"
                                     )}
                                   />
@@ -561,8 +561,8 @@ export default function ProjectDetail() {
                             );
                           })}
                         </div>
-                        <div className="mt-3 pt-2 border-t border-gray-200 text-xs text-muted-foreground">
-                          Default Value: <code className="bg-white dark:bg-gray-800 px-1 rounded">{env.defaultValue}</code>
+                        <div className="mt-3 pt-2 border-t border-border text-xs text-muted-foreground">
+                          <span className="text-foreground">Value:</span> <code className="bg-card px-1 rounded text-foreground">{env.defaultValue}</code>
                         </div>
                       </div>
                     ))}
@@ -576,33 +576,33 @@ export default function ProjectDetail() {
                         className={clsx(
                           "p-4 rounded-lg border transition-colors",
                           env.enabled
-                            ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800"
-                            : "bg-gray-50 border-gray-200 dark:bg-gray-900/20 dark:border-gray-800"
+                            ? "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900/50"
+                            : "bg-muted border-border"
                         )}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-medium">{env.environmentName}</span>
+                          <span className="font-medium text-foreground">{env.environmentName}</span>
                           <button
                             onClick={() => handleToggleFlag(flag.id, env.environmentId, env.enabled)}
                             className={clsx(
                               "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
-                              env.enabled ? "bg-green-500" : "bg-gray-300"
+                              env.enabled ? "bg-green-500 dark:bg-green-600" : "bg-gray-300 dark:bg-gray-600"
                             )}
                           >
                             <span
                               className={clsx(
-                                "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                                "inline-block h-4 w-4 transform rounded-full bg-background transition-transform",
                                 env.enabled ? "translate-x-6" : "translate-x-1"
                               )}
                             />
                           </button>
                         </div>
                         <div className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
-                          Value: <code className="bg-background px-1 rounded">{env.defaultValue}</code>
+                          <span className="text-foreground">Value:</span> <code className="bg-card px-1 rounded text-foreground">{env.defaultValue}</code>
                           {flag.flagType !== 'BOOLEAN' && (
                             <button
                               onClick={() => openEditValueDialog(flag, env)}
-                              className="text-xs text-primary-600 hover:text-primary-700 underline"
+                              className="text-xs text-primary hover:text-primary/80 underline"
                             >
                               Edit
                             </button>
