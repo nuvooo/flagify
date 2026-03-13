@@ -234,17 +234,13 @@ export default function ProjectDetail() {
     }
   };
 
-  const handleToggleBrandFlag = async (flag: FeatureFlag, brand: BrandFlagValue) => {
+  const handleToggleBrandFlag = async (flag: FeatureFlag, brand: BrandFlagValue, environmentId: string) => {
     if (!validProjectId) return;
     
-    const toggleKey = `${flag.id}-${brand.brandId}`;
+    const toggleKey = `${flag.id}-${environmentId}-${brand.brandId}`;
     setTogglingBrandFlags(prev => new Set(prev).add(toggleKey));
     
     try {
-      // Get first environment (for simplicity)
-      const environmentId = flag.environments?.[0]?.environmentId;
-      if (!environmentId) return;
-      
       await api.post(`/brands/${brand.brandId}/flags/${flag.id}/toggle`, {
         environmentId,
         enabled: !brand.enabled,
@@ -507,99 +503,97 @@ export default function ProjectDetail() {
                   </div>
                 </div>
 
-                {/* Environment Toggles */}
-                <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {flag.environments?.map((env) => (
-                    <div
-                      key={env.id}
-                      className={clsx(
-                        "p-4 rounded-lg border transition-colors",
-                        env.enabled
-                          ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800"
-                          : "bg-gray-50 border-gray-200 dark:bg-gray-900/20 dark:border-gray-800"
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{env.environmentName}</span>
-                        <button
-                          onClick={() => handleToggleFlag(flag.id, env.environmentId, env.enabled)}
-                          className={clsx(
-                            "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
-                            env.enabled ? "bg-green-500" : "bg-gray-300"
-                          )}
-                        >
-                          <span
-                            className={clsx(
-                              "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
-                              env.enabled ? "translate-x-6" : "translate-x-1"
-                            )}
-                          />
-                        </button>
-                      </div>
-                      <div className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
-                        Value: <code className="bg-background px-1 rounded">{env.defaultValue}</code>
-                        {flag.flagType !== 'BOOLEAN' && (
-                          <button
-                            onClick={() => openEditValueDialog(flag, env)}
-                            className="text-xs text-primary-600 hover:text-primary-700 underline"
-                          >
-                            Edit
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Brand-specific Toggles (only for multi-tenant) */}
-                {isMultiTenant && flag.brandValues && flag.brandValues.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-dashed">
-                    <p className="text-sm text-muted-foreground mb-3">Brand Overrides</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {flag.brandValues.map((brand) => {
-                        const toggleKey = `${flag.id}-${brand.brandId}`;
-                        const isToggling = togglingBrandFlags.has(toggleKey);
-                        
-                        return (
-                          <div
-                            key={brand.brandId}
-                            className={clsx(
-                              "p-4 rounded-lg border transition-colors",
-                              brand.enabled
-                                ? "bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800"
-                                : "bg-gray-50 border-gray-200 dark:bg-gray-900/20 dark:border-gray-800"
-                            )}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium">{brand.brandName}</span>
-                                {brand.isCustom && (
-                                  <Badge variant="outline" className="text-xs">Custom</Badge>
-                                )}
-                              </div>
-                              <button
-                                onClick={() => handleToggleBrandFlag(flag, brand)}
-                                disabled={isToggling}
-                                className={clsx(
-                                  "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
-                                  brand.enabled ? "bg-purple-500" : "bg-gray-300"
-                                )}
+                {/* For Multi-Tenant: One card per environment with brands inside */}
+                {isMultiTenant ? (
+                  <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {flag.environments?.map((env) => (
+                      <div
+                        key={env.id}
+                        className="p-4 rounded-lg border bg-gray-50 border-gray-200 dark:bg-gray-900/20 dark:border-gray-800"
+                      >
+                        <h4 className="font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-200">
+                          {env.environmentName}
+                        </h4>
+                        <div className="space-y-3">
+                          {/* List all brands with their toggles */}
+                          {flag.brandValues?.map((brand) => {
+                            const toggleKey = `${flag.id}-${env.environmentId}-${brand.brandId}`;
+                            const isToggling = togglingBrandFlags.has(toggleKey);
+                            
+                            return (
+                              <div
+                                key={brand.brandId}
+                                className="flex items-center justify-between p-2 rounded bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700"
                               >
-                                <span
+                                <span className="text-sm font-medium">{brand.brandName}</span>
+                                <button
+                                  onClick={() => handleToggleBrandFlag(flag, brand, env.environmentId)}
+                                  disabled={isToggling}
                                   className={clsx(
-                                    "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
-                                    brand.enabled ? "translate-x-6" : "translate-x-1"
+                                    "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
+                                    brand.enabled ? "bg-green-500" : "bg-gray-300"
                                   )}
-                                />
-                              </button>
-                            </div>
-                            <div className="mt-2 text-sm text-muted-foreground">
-                              Value: <code className="bg-background px-1 rounded">{brand.defaultValue}</code>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                                >
+                                  <span
+                                    className={clsx(
+                                      "inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform",
+                                      brand.enabled ? "translate-x-5" : "translate-x-0.5"
+                                    )}
+                                  />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="mt-3 pt-2 border-t border-gray-200 text-xs text-muted-foreground">
+                          Default Value: <code className="bg-white dark:bg-gray-800 px-1 rounded">{env.defaultValue}</code>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* For Single-Tenant: Simple environment toggles */
+                  <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {flag.environments?.map((env) => (
+                      <div
+                        key={env.id}
+                        className={clsx(
+                          "p-4 rounded-lg border transition-colors",
+                          env.enabled
+                            ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800"
+                            : "bg-gray-50 border-gray-200 dark:bg-gray-900/20 dark:border-gray-800"
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">{env.environmentName}</span>
+                          <button
+                            onClick={() => handleToggleFlag(flag.id, env.environmentId, env.enabled)}
+                            className={clsx(
+                              "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
+                              env.enabled ? "bg-green-500" : "bg-gray-300"
+                            )}
+                          >
+                            <span
+                              className={clsx(
+                                "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                                env.enabled ? "translate-x-6" : "translate-x-1"
+                              )}
+                            />
+                          </button>
+                        </div>
+                        <div className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
+                          Value: <code className="bg-background px-1 rounded">{env.defaultValue}</code>
+                          {flag.flagType !== 'BOOLEAN' && (
+                            <button
+                              onClick={() => openEditValueDialog(flag, env)}
+                              className="text-xs text-primary-600 hover:text-primary-700 underline"
+                            >
+                              Edit
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>

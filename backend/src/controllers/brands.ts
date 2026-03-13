@@ -157,8 +157,8 @@ export const toggleBrandFlag = async (req: AuthenticatedRequest, res: Response, 
       action: 'TOGGLE_BRAND',
       entityType: 'FLAG_ENVIRONMENT',
       entityId: flagEnv.id,
-      organizationId: brand.project.organizationId,
-      projectId: brand.projectId,
+      organizationId: flag.organizationId,
+      projectId: flag.projectId,
       userId,
       newValues: { brandId, flagId, environmentId, enabled }
     });
@@ -241,8 +241,8 @@ export const updateBrandFlagValue = async (req: AuthenticatedRequest, res: Respo
       action: 'UPDATE_BRAND_VALUE',
       entityType: 'FLAG_ENVIRONMENT',
       entityId: flagEnv.id,
-      organizationId: brand.project.organizationId,
-      projectId: brand.projectId,
+      organizationId: flag.organizationId,
+      projectId: flag.projectId,
       userId,
       newValues: { brandId, flagId, environmentId, defaultValue }
     });
