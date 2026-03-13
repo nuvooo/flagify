@@ -3,20 +3,32 @@ import Redis from 'ioredis';
 let redis: Redis | null = null;
 
 export const initRedis = () => {
-  redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+  if (redis) return redis;
+
+  const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+  console.log(`📡 Connecting to Redis at ${redisUrl}...`);
+
+  redis = new Redis(redisUrl, {
     retryStrategy: (times) => {
-      const delay = Math.min(times * 50, 2000);
-      return delay;
+      // Retry every 2 seconds, forever but without hammering
+      return 2000;
     },
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: null, // Critical for not crashing on startup or temporary drops
+    enableOfflineQueue: true,
+    connectTimeout: 10000,
   });
 
   redis.on('error', (err) => {
-    console.error('Redis error:', err);
+    // Log but don't crash
+    console.error('❌ Redis Connection Error:', err.message);
   });
 
   redis.on('connect', () => {
     console.log('✅ Connected to Redis');
+  });
+
+  redis.on('reconnecting', () => {
+    console.log('🔄 Reconnecting to Redis...');
   });
 
   return redis;
@@ -44,9 +56,28 @@ export const getAllFlagsCacheKey = (environmentId: string) =>
   `flags:${environmentId}:all`;
 
 export const invalidateFlagCache = async (environmentId: string, flagKey?: string) => {
-  const client = getRedis();
-  if (flagKey) {
-    await client.del(getFlagCacheKey(environmentId, flagKey));
+  try {
+    const client = getRedis();
+    const pipeline = client.pipeline();
+    
+    if (flagKey) {
+      pipeline.del(getFlagCacheKey(environmentId, flagKey));
+    }
+    
+    pipeline.del(getAllFlagsCacheKey(environmentId));
+    
+    // Also clear a potential wildcard matches just in case
+    if (flagKey) {
+      // This is a bit safer for some environments
+      const keys = await client.keys(`flag:${environmentId}:*`);
+      if (keys.length > 0) {
+        await client.del(...keys);
+      }
+    }
+
+    await pipeline.exec();
+  } catch (err) {
+    console.error('Failed to invalidate Redis cache:', err);
+    // Don't throw, we want the DB operation to succeed even if cache fails
   }
-  await client.del(getAllFlagsCacheKey(environmentId));
 };

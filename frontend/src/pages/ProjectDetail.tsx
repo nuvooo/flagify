@@ -186,21 +186,104 @@ export default function ProjectDetail() {
   };
 
   const handleToggleFlag = async (flagId: string, environmentId: string, enabled: boolean) => {
+    // Optimistic UI update
+    const previousFlags = [...featureFlags];
+    setFeatureFlags((prev) =>
+      prev.map((f) => {
+        if (f.id === flagId) {
+          return {
+            ...f,
+            environments: f.environments.map((e) =>
+              e.environmentId === environmentId ? { ...e, enabled: !enabled } : e
+            ),
+          };
+        }
+        return f;
+      })
+    );
+
     try {
       await api.post(`/feature-flags/${flagId}/toggle`, {
         environmentId,
         enabled: !enabled,
       });
-      // Refresh all data including brand values
-      fetchData();
+      // Optionally refresh after a small delay or trust the local state
     } catch (error) {
       console.error('Failed to toggle flag:', error);
+      // Rollback on error
+      setFeatureFlags(previousFlags);
+    }
+  };
+
+  const handleToggleBrandFlag = async (
+    brandId: string,
+    flagId: string,
+    environmentId: string,
+    enabled: boolean
+  ) => {
+    // Optimistic UI update
+    const previousFlags = [...featureFlags];
+    setFeatureFlags((prev) =>
+      prev.map((f) => {
+        if (f.id === flagId) {
+          return {
+            ...f,
+            environments: f.environments.map((e) => {
+              if (e.environmentId === environmentId) {
+                return {
+                  ...e,
+                  brandValues: e.brandValues?.map((bv) =>
+                    bv.brandId === brandId ? { ...bv, enabled: !enabled } : bv
+                  ),
+                };
+              }
+              return e;
+            }),
+          };
+        }
+        return f;
+      })
+    );
+
+    try {
+      await api.post(`/brands/${brandId}/flags/${flagId}/toggle`, {
+        environmentId,
+        enabled: !enabled,
+      });
+    } catch (error) {
+      console.error('Failed to toggle brand flag:', error);
+      // Rollback on error
+      setFeatureFlags(previousFlags);
     }
   };
 
   const handleToggleBrandFlag = async (flag: FeatureFlag, brand: BrandFlagValue, environmentId: string) => {
     if (!validProjectId) return;
     
+    // Optimistic update
+    const previousFlags = [...featureFlags];
+    setFeatureFlags((prev) =>
+      prev.map((f) => {
+        if (f.id === flag.id) {
+          return {
+            ...f,
+            environments: f.environments.map((e) => {
+              if (e.environmentId === environmentId) {
+                return {
+                  ...e,
+                  brandValues: e.brandValues?.map((bv) =>
+                    bv.brandId === brand.brandId ? { ...bv, enabled: !brand.enabled } : bv
+                  ),
+                };
+              }
+              return e;
+            }),
+          };
+        }
+        return f;
+      })
+    );
+
     const toggleKey = `${flag.id}-${environmentId}-${brand.brandId}`;
     setTogglingBrandFlags(prev => new Set(prev).add(toggleKey));
     
@@ -209,11 +292,11 @@ export default function ProjectDetail() {
         environmentId,
         enabled: !brand.enabled,
       });
-      
-      // Refresh all data
-      fetchData();
+      // Optionally remove toggling state without a full fetchData call
     } catch (error) {
       console.error('Failed to toggle brand flag:', error);
+      // Rollback on error
+      setFeatureFlags(previousFlags);
     } finally {
       setTogglingBrandFlags(prev => {
         const next = new Set(prev);
