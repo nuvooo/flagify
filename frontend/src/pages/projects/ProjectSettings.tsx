@@ -87,6 +87,9 @@ export default function ProjectSettings() {
   const [brandKey, setBrandKey] = useState('');
   const [brandDescription, setBrandDescription] = useState('');
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
+  
+  // Type change confirmation
+  const [showTypeChangeDialog, setShowTypeChangeDialog] = useState(false);
 
   useEffect(() => {
     if (!projectId) return;
@@ -121,6 +124,18 @@ export default function ProjectSettings() {
     e.preventDefault();
     if (!projectId) return;
     
+    // Check if type is changing from MULTI to SINGLE
+    if (project?.type === 'MULTI' && projectType === 'SINGLE' && brands.length > 0) {
+      setShowTypeChangeDialog(true);
+      return;
+    }
+    
+    await saveProject();
+  };
+  
+  const saveProject = async () => {
+    if (!projectId) return;
+    
     setIsSaving(true);
     setMessage(null);
 
@@ -131,7 +146,14 @@ export default function ProjectSettings() {
         type: projectType,
       });
       setProject(response.data);
-      setMessage({ type: 'success', text: 'Project updated successfully' });
+      setMessage({ 
+        type: 'success', 
+        text: response.data.message || 'Project updated successfully' 
+      });
+      // Clear brands if converted to single-tenant
+      if (projectType === 'SINGLE') {
+        setBrands([]);
+      }
     } catch (error: any) {
       console.error('Failed to update project:', error);
       setMessage({ 
@@ -140,6 +162,7 @@ export default function ProjectSettings() {
       });
     } finally {
       setIsSaving(false);
+      setShowTypeChangeDialog(false);
     }
   };
 
@@ -575,6 +598,42 @@ export default function ProjectSettings() {
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
               {isDeleting ? 'Deleting...' : 'Delete Project'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Type Change Warning Dialog */}
+      <Dialog open={showTypeChangeDialog} onOpenChange={setShowTypeChangeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Change Project Type?
+            </DialogTitle>
+            <DialogDescription className="space-y-4">
+              <p>
+                You are about to change this project from <strong>Multi-Tenant</strong> to <strong>Single-Tenant</strong>.
+              </p>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-800">
+                <p className="font-medium mb-2">This will permanently delete:</p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>All {brands.length} brand(s)</li>
+                  <li>All brand-specific flag configurations</li>
+                  <li>All brand-specific values and overrides</li>
+                </ul>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                The default flag values will be preserved. This action cannot be undone.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTypeChangeDialog(false)} disabled={isSaving}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={saveProject} disabled={isSaving}>
+              {isSaving ? 'Converting...' : 'Yes, Convert to Single-Tenant'}
             </Button>
           </DialogFooter>
         </DialogContent>

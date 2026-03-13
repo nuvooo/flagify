@@ -195,12 +195,41 @@ export const updateProject = async (req: AuthenticatedRequest, res: Response, ne
       return res.status(404).json({ error: 'Project not found' });
     }
 
+    const oldType = project.type;
+    const newType = type || oldType;
+
+    // If changing from MULTI to SINGLE, clean up brand-specific flag environments
+    if (oldType === 'MULTI' && newType === 'SINGLE') {
+      // Get all flags in this project
+      const flags = await prisma.featureFlag.findMany({
+        where: { projectId },
+        select: { id: true }
+      });
+      const flagIds = flags.map(f => f.id);
+
+      if (flagIds.length > 0) {
+        // Delete all brand-specific flag environments
+        const deletedCount = await prisma.flagEnvironment.deleteMany({
+          where: {
+            flagId: { in: flagIds },
+            brandId: { not: null }
+          }
+        });
+        console.log(`Cleaned up ${deletedCount.count} brand-specific flag environments`);
+      }
+
+      // Also delete all brands since they won't be used anymore
+      await prisma.brand.deleteMany({
+        where: { projectId }
+      });
+    }
+
     const updated = await prisma.project.update({
       where: { id: projectId },
       data: {
         ...(name && { name }),
         ...(description !== undefined && { description }),
-        ...(req.body.type && { type: req.body.type })
+        ...(type && { type })
       }
     });
 
@@ -211,11 +240,16 @@ export const updateProject = async (req: AuthenticatedRequest, res: Response, ne
       organizationId: project.organizationId,
       projectId,
       userId,
-      oldValues: { name: project.name, description: project.description },
-      newValues: { name: name || project.name, description: description !== undefined ? description : project.description }
+      oldValues: { name: project.name, description: project.description, type: oldType },
+      newValues: { name: name || project.name, description: description !== undefined ? description : project.description, type: newType }
     });
 
-    res.json(updated);
+    res.json({
+      ...updated,
+      message: (oldType === 'MULTI' && newType === 'SINGLE') 
+        ? 'Project converted to single-tenant. All brand-specific configurations have been removed.'
+        : undefined
+    });
   } catch (error) {
     next(error);
   }
