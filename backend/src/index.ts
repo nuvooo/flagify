@@ -17,11 +17,21 @@ import { apiKeysRouter } from './routes/apiKeys';
 import { auditLogsRouter } from './routes/auditLogs';
 import { errorHandler } from './middleware/errorHandler';
 import { initRedis } from './utils/redis';
+import cron from 'node-cron';
+import { resetDemoData } from './utils/demoReset';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+// Initialize Redis
+initRedis();
+
+// Schedule demo data reset every 10 minutes
+cron.schedule('*/10 * * * *', async () => {
+  await resetDemoData();
+});
 
 // Trust proxy for rate limiting behind nginx
 app.set('trust proxy', 1);
