@@ -23,6 +23,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Trust proxy for rate limiting behind nginx
+app.set('trust proxy', 1);
+
 // Initialize Redis
 initRedis();
 
