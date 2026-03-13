@@ -2,9 +2,11 @@
 
 ![Flagify Dashboard](screenshot.png)
 
-A complete, self-hosted Feature Flag Management Platform similar to LaunchDarkly. Manage feature flags, organizations, projects, and environments with a modern web interface and a powerful API.
+A complete, self-hosted Feature Flag Management Platform. Manage feature flags, organizations, projects, and environments with a modern web interface and a powerful API.
 
-Visit the live demo: [flagify.examplesart.de](https://flagify.examplesart.de/)
+🌐 **Live Demo**: [flagify.examplesart.de](https://flagify.examplesart.de/)  
+📖 **Documentation**: [flagify.examplesart.de/docs](https://flagify.examplesart.de/docs)  
+💻 **GitHub**: [github.com/nuvooo/flagify](https://github.com/nuvooo/flagify)
 
 ## ✨ Features
 
@@ -48,33 +50,24 @@ Visit the live demo: [flagify.examplesart.de](https://flagify.examplesart.de/)
 
 ### Installation
 
-1. **Clone or download the repository**
+1. **Clone the repository**
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/nuvooo/flagify.git
 cd flagify
 ```
 
-2. **Adjust configuration (optional)**
-
-```bash
-# Copy the example configuration
-cp .env.example .env
-
-# Edit the values in .env
-```
-
-3. **Start Docker Containers**
+2. **Start Docker Containers**
 
 ```bash
 docker-compose up -d
 ```
 
-4. **Access the application**
+3. **Access the application**
 
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:4000
-- API Documentation: http://localhost:4000/health
+- API Health: http://localhost:4000/health
 
 ### Demo Credentials
 
@@ -100,17 +93,10 @@ flagify/
 │       └── store/         # Zustand Stores
 ├── sdk/               # Official SDKs
 │   └── javascript/    # JS/TS SDK
+└── docker-compose.yml # Docker Compose Configuration
 ```
 
-## 📄 License
-
-This project is open-source and available under the [MIT License](LICENSE).
-├── sdk/               # Client SDKs
-│   └── javascript/        # JavaScript/TypeScript SDK
-└── docker-compose.yml # Docker Compose Konfiguration
-```
-
-## 🔧 Entwicklung
+## 🔧 Development
 
 ### Backend
 
@@ -120,11 +106,11 @@ npm install
 npm run dev
 ```
 
-Umgebungsvariablen:
-- `DATABASE_URL` - MongoDB Verbindungs-URL
-- `REDIS_URL` - Redis Verbindungs-URL
-- `JWT_SECRET` - Geheimer Schlüssel für JWT
-- `PORT` - API Port (default: 4000)
+Environment variables:
+- `DATABASE_URL` - MongoDB connection URL
+- `REDIS_URL` - Redis connection URL
+- `JWT_SECRET` - Secret key for JWT
+- `PORT` - API port (default: 4000)
 
 ### Frontend
 
@@ -134,7 +120,7 @@ npm install
 npm run dev
 ```
 
-### Datenbank-Migrationen
+### Database Migrations
 
 ```bash
 cd backend
@@ -142,49 +128,49 @@ npx prisma migrate dev
 npx prisma db seed
 ```
 
-## 📡 API Endpunkte
+## 📡 API Endpoints
 
-### Authentifizierung
+### Authentication
 
-| Methode | Endpunkt | Beschreibung |
-|---------|----------|--------------|
-| POST | `/api/auth/register` | Benutzer registrieren |
-| POST | `/api/auth/login` | Einloggen |
-| GET | `/api/auth/me` | Aktueller Benutzer |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Register user |
+| POST | `/api/auth/login` | Login |
+| GET | `/api/auth/me` | Current user |
 
-### Organisationen
+### Organizations
 
-| Methode | Endpunkt | Beschreibung |
-|---------|----------|--------------|
-| GET | `/api/organizations` | Alle Organisationen |
-| POST | `/api/organizations` | Organisation erstellen |
-| GET | `/api/organizations/:id` | Organisation Details |
-| GET | `/api/organizations/:id/members` | Mitglieder anzeigen |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/organizations` | List organizations |
+| POST | `/api/organizations` | Create organization |
+| GET | `/api/organizations/:id` | Organization details |
+| GET | `/api/organizations/:id/members` | List members |
 
-### Projekte
+### Projects
 
-| Methode | Endpunkt | Beschreibung |
-|---------|----------|--------------|
-| GET | `/api/projects/organization/:orgId` | Projekte anzeigen |
-| POST | `/api/projects/organization/:orgId` | Projekt erstellen |
-| GET | `/api/projects/:id` | Projekt Details |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/projects/organization/:orgId` | List projects |
+| POST | `/api/projects/organization/:orgId` | Create project |
+| GET | `/api/projects/:id` | Project details |
 
 ### Feature Flags
 
-| Methode | Endpunkt | Beschreibung |
-|---------|----------|--------------|
-| GET | `/api/feature-flags/project/:projectId` | Flags anzeigen |
-| POST | `/api/feature-flags/project/:projectId` | Flag erstellen |
-| POST | `/api/feature-flags/:id/toggle` | Flag umschalten |
-| PATCH | `/api/feature-flags/:id/value` | Wert ändern |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/feature-flags/project/:projectId` | List flags |
+| POST | `/api/feature-flags/project/:projectId` | Create flag |
+| POST | `/api/feature-flags/:id/toggle` | Toggle flag |
+| PATCH | `/api/feature-flags/:id/value` | Change value |
 
-### SDK Endpunkte (für Client-Anwendungen)
+### SDK Endpoints (for client applications)
 
-| Methode | Endpunkt | Beschreibung |
-|---------|----------|--------------|
-| GET | `/sdk/flags/:environmentKey` | Alle Flags |
-| GET | `/sdk/flags/:environmentKey/:flagKey` | Einzelnes Flag |
-| POST | `/sdk/evaluate/:environmentKey/:flagKey` | Flag mit Kontext auswerten |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/sdk/flags/:environmentKey` | All flags |
+| GET | `/sdk/flags/:environmentKey/:flagKey` | Single flag |
+| POST | `/sdk/evaluate/:environmentKey/:flagKey` | Evaluate with context |
 
 ## 💻 SDK Integration
 
@@ -203,22 +189,22 @@ const client = new FlagifyClient({
   baseUrl: 'https://your-flagify-instance.com'
 });
 
-// Boolean Flag prüfen
+// Check boolean flag
 const isEnabled = await client.isEnabled('new-feature');
 if (isEnabled) {
-  // Neue Funktionalität anzeigen
+  // Show new functionality
 }
 
-// String Wert abrufen
+// Get string value
 const message = await client.getString('welcome-message', 'Welcome!');
 
-// Number Wert abrufen
+// Get number value
 const limit = await client.getNumber('max-items', 10);
 
-// JSON Konfiguration abrufen
+// Get JSON configuration
 const config = await client.getJSON('app-config', {});
 
-// Mit Kontext (für Targeting)
+// With context (for targeting)
 client.setContext({
   userId: '123',
   email: 'user@example.com',
@@ -227,44 +213,44 @@ client.setContext({
 const isEnabledForUser = await client.isEnabled('beta-feature');
 ```
 
-## 🏗️ Architektur
+## 🏗️ Architecture
 
-### Multi-Tenant Architektur
+### Multi-Tenant Architecture
 
-Flagify verwendet eine Organisation-basierte Multi-Tenant-Architektur:
+Flagify uses an organization-based multi-tenant architecture:
 
 ```
-Benutzer
-  └── Organisationen (Owner, Admin, Member, Viewer)
-        └── Projekte
-              └── Umgebungen (Dev, Staging, Prod)
+Users
+  └── Organizations (Owner, Admin, Member, Viewer)
+        └── Projects
+              └── Environments (Dev, Staging, Prod)
                     └── Feature Flags
-                          └── Targeting Regeln
+                          └── Targeting Rules
 ```
 
-### Datenbank-Schema
+### Database Schema
 
-- **MongoDB**: Dokumentenbasierte Datenbank für alle Daten
-- **Redis**: Caching für SDK-Anfragen (30s TTL)
+- **MongoDB**: Document-based database for all data
+- **Redis**: Caching for SDK requests (30s TTL)
 
-### Sicherheit
+### Security
 
-- Passwörter werden mit bcrypt gehasht
-- JWT für Session-Management
-- API Keys für SDK-Zugriff
-- Rollenbasierte Zugriffskontrolle
+- Passwords hashed with bcrypt
+- JWT for session management
+- API Keys for SDK access
+- Role-based access control
 
-## 📝 Umgebungsvariablen
+## 📝 Environment Variables
 
-| Variable | Beschreibung | Standard |
-|----------|--------------|----------|
+| Variable | Description | Default |
+|----------|-------------|---------|
 | `DATABASE_URL` | MongoDB URL | - |
 | `REDIS_URL` | Redis URL | - |
 | `JWT_SECRET` | JWT Secret | - |
 | `PORT` | API Port | 4000 |
-| `NODE_ENV` | Umgebung | development |
+| `NODE_ENV` | Environment | development |
 
-## 🧪 Tests
+## 🧪 Testing
 
 ```bash
 # Backend Tests
@@ -288,29 +274,28 @@ docker-compose -f docker-compose.yml build
 docker-compose -f docker-compose.yml up -d
 ```
 
-### Manuelles Deployment
+### Manual Deployment
 
-1. MongoDB und Redis installieren
-2. Node.js 20+ installieren
-3. Backend bauen und starten
-4. Frontend bauen und servieren
+1. Install MongoDB and Redis
+2. Install Node.js 20+
+3. Build and start backend
+4. Build and serve frontend
 
-## 🤝 Beitragen
+## 🤝 Contributing
 
-Beiträge sind willkommen! Bitte folgen Sie diesen Schritten:
+Contributions are welcome! Please follow these steps:
 
-1. Fork erstellen
+1. Create a fork
 2. Feature Branch: `git checkout -b feature/AmazingFeature`
-3. Änderungen committen: `git commit -m 'Add some AmazingFeature'`
-4. Branch pushen: `git push origin feature/AmazingFeature`
-5. Pull Request erstellen
+3. Commit changes: `git commit -m 'Add some AmazingFeature'`
+4. Push branch: `git push origin feature/AmazingFeature`
+5. Create a Pull Request
 
-## 📄 Lizenz
+## 📄 License
 
-MIT License - siehe [LICENSE](LICENSE) für Details.
+MIT License - see [LICENSE](LICENSE) for details.
 
-## 🙏 Danksagungen
+## 🙏 Credits
 
-- Inspiriert von LaunchDarkly
-- Gebaut mit React, Node.js, MongoDB, Redis
-- Icons von Heroicons
+- Built with React, Node.js, MongoDB, Redis
+- Icons by Heroicons
