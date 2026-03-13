@@ -51,19 +51,36 @@ interface Environment {
   key: string;
 }
 
+interface Brand {
+  id: string;
+  name: string;
+  key: string;
+}
+
+interface FlagEnvironment {
+  id: string;
+  environmentId: string;
+  environmentName: string;
+  enabled: boolean;
+  defaultValue: string;
+}
+
+interface BrandFlagValue {
+  brandId: string;
+  brandName: string;
+  enabled: boolean;
+  defaultValue: string;
+  isCustom: boolean;
+}
+
 interface FeatureFlag {
   id: string;
   name: string;
   key: string;
   description: string | null;
   flagType: 'BOOLEAN' | 'STRING' | 'NUMBER' | 'JSON';
-  environments: {
-    id: string;
-    environmentId: string;
-    environmentName: string;
-    enabled: boolean;
-    defaultValue: string;
-  }[];
+  environments: FlagEnvironment[];
+  brandValues?: BrandFlagValue[];
   createdAt: string;
   updatedAt: string;
 }
@@ -89,35 +106,80 @@ export default function ProjectDetail() {
   const [isDeletingFlag, setIsDeletingFlag] = useState(false);
   
   // Edit flag value dialog state
-  const [editingFlagEnv, setEditingFlagEnv] = useState<{flag: FeatureFlag, env: FeatureFlag['environments'][0]} | null>(null);
+  const [editingFlagEnv, setEditingFlagEnv] = useState<{flag: FeatureFlag, env: FlagEnvironment} | null>(null);
   const [editValue, setEditValue] = useState('');
   const [isSavingValue, setIsSavingValue] = useState(false);
+  
+  // Brand management
+  const [isMultiTenant, setIsMultiTenant] = useState(false);
+  const [togglingBrandFlags, setTogglingBrandFlags] = useState<Set<string>>(new Set());
 
   // Validate IDs early
   const validOrgId = isValidObjectId(orgId) ? orgId : null;
   const validProjectId = isValidObjectId(projectId) ? projectId : null;
+
+  const fetchData = async () => {
+    if (!validProjectId) return;
+    
+    try {
+      setIsLoading(true);
+      const [projectRes, flagsRes, brandsRes] = await Promise.all([
+        api.get(`/projects/${validProjectId}`),
+        api.get(`/feature-flags/project/${validProjectId}`),
+        api.get(`/brands/project/${validProjectId}`),
+      ]);
+      setProject(projectRes.data);
+      setIsMultiTenant(projectRes.data.type === 'MULTI');
+      
+      // If multi-tenant, fetch brand-specific values for each flag
+      if (projectRes.data.type === 'MULTI' && brandsRes.data.length > 0) {
+        const flagsWithBrands = await Promise.all(
+          flagsRes.data.map(async (flag: FeatureFlag) => {
+            const brandValues = await Promise.all(
+              brandsRes.data.map(async (brand: Brand) => {
+                try {
+                  const brandFlagsRes = await api.get(`/brands/${brand.id}/flags`);
+                  const brandFlag = brandFlagsRes.data.flags.find((f: FeatureFlag) => f.id === flag.id);
+                  const brandEnv = brandFlag?.environments?.[0]; // Get first env as default
+                  const defaultEnv = flag.environments?.[0];
+                  
+                  return {
+                    brandId: brand.id,
+                    brandName: brand.name,
+                    enabled: brandEnv?.enabled ?? defaultEnv?.enabled ?? false,
+                    defaultValue: brandEnv?.defaultValue ?? defaultEnv?.defaultValue ?? '',
+                    isCustom: !!brandEnv?.isBrandSpecific,
+                  };
+                } catch {
+                  return {
+                    brandId: brand.id,
+                    brandName: brand.name,
+                    enabled: flag.environments?.[0]?.enabled ?? false,
+                    defaultValue: flag.environments?.[0]?.defaultValue ?? '',
+                    isCustom: false,
+                  };
+                }
+              })
+            );
+            return { ...flag, brandValues };
+          })
+        );
+        setFeatureFlags(flagsWithBrands);
+      } else {
+        setFeatureFlags(flagsRes.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch project data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!validOrgId || !validProjectId) {
       setIsLoading(false);
       return;
     }
-
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const [projectRes, flagsRes] = await Promise.all([
-          api.get(`/projects/${validProjectId}`),
-          api.get(`/feature-flags/project/${validProjectId}`),
-        ]);
-        setProject(projectRes.data);
-        setFeatureFlags(flagsRes.data);
-      } catch (error) {
-        console.error('Failed to fetch project data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
     fetchData();
   }, [validOrgId, validProjectId]);
@@ -165,11 +227,39 @@ export default function ProjectDetail() {
         environmentId,
         enabled: !enabled,
       });
-      // Refresh flags
-      const flagsRes = await api.get(`/feature-flags/project/${validProjectId}`);
-      setFeatureFlags(flagsRes.data);
+      // Refresh all data including brand values
+      fetchData();
     } catch (error) {
       console.error('Failed to toggle flag:', error);
+    }
+  };
+
+  const handleToggleBrandFlag = async (flag: FeatureFlag, brand: BrandFlagValue) => {
+    if (!validProjectId) return;
+    
+    const toggleKey = `${flag.id}-${brand.brandId}`;
+    setTogglingBrandFlags(prev => new Set(prev).add(toggleKey));
+    
+    try {
+      // Get first environment (for simplicity)
+      const environmentId = flag.environments?.[0]?.environmentId;
+      if (!environmentId) return;
+      
+      await api.post(`/brands/${brand.brandId}/flags/${flag.id}/toggle`, {
+        environmentId,
+        enabled: !brand.enabled,
+      });
+      
+      // Refresh all data
+      fetchData();
+    } catch (error) {
+      console.error('Failed to toggle brand flag:', error);
+    } finally {
+      setTogglingBrandFlags(prev => {
+        const next = new Set(prev);
+        next.delete(toggleKey);
+        return next;
+      });
     }
   };
 
@@ -460,6 +550,58 @@ export default function ProjectDetail() {
                     </div>
                   ))}
                 </div>
+
+                {/* Brand-specific Toggles (only for multi-tenant) */}
+                {isMultiTenant && flag.brandValues && flag.brandValues.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-dashed">
+                    <p className="text-sm text-muted-foreground mb-3">Brand Overrides</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {flag.brandValues.map((brand) => {
+                        const toggleKey = `${flag.id}-${brand.brandId}`;
+                        const isToggling = togglingBrandFlags.has(toggleKey);
+                        
+                        return (
+                          <div
+                            key={brand.brandId}
+                            className={clsx(
+                              "p-4 rounded-lg border transition-colors",
+                              brand.enabled
+                                ? "bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800"
+                                : "bg-gray-50 border-gray-200 dark:bg-gray-900/20 dark:border-gray-800"
+                            )}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{brand.brandName}</span>
+                                {brand.isCustom && (
+                                  <Badge variant="outline" className="text-xs">Custom</Badge>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => handleToggleBrandFlag(flag, brand)}
+                                disabled={isToggling}
+                                className={clsx(
+                                  "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
+                                  brand.enabled ? "bg-purple-500" : "bg-gray-300"
+                                )}
+                              >
+                                <span
+                                  className={clsx(
+                                    "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                                    brand.enabled ? "translate-x-6" : "translate-x-1"
+                                  )}
+                                />
+                              </button>
+                            </div>
+                            <div className="mt-2 text-sm text-muted-foreground">
+                              Value: <code className="bg-background px-1 rounded">{brand.defaultValue}</code>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
