@@ -1,0 +1,142 @@
+# Coolify Configuration for Flagify
+# This file configures the application for deployment on Coolify
+
+name: flagify
+description: "Feature Flag Management System - Organize, manage, and deploy feature flags across multiple environments"
+version: 1.0.0
+
+# Environment Variables that can be configured in Coolify UI
+environment:
+  - name: NODE_ENV
+    default: production
+    description: "Node environment"
+    
+  - name: DATABASE_URL
+    default: mongodb://mongodb:27017/flagify?replicaSet=rs0
+    description: "MongoDB connection string"
+    required: true
+    
+  - name: REDIS_URL
+    default: redis://redis:6379
+    description: "Redis connection string"
+    required: true
+    
+  - name: JWT_SECRET
+    default: change-this-secret-in-production
+    description: "JWT Secret for authentication"
+    required: true
+    isSecret: true
+    
+  - name: PORT
+    default: "4000"
+    description: "Backend server port"
+    
+  - name: FRONTEND_PORT
+    default: "3000"
+    description: "Frontend server port"
+    
+  - name: CORS_ORIGIN
+    default: "*"
+    description: "CORS allowed origins"
+
+# Port configuration
+ports:
+  - name: backend
+    port: 4000
+    description: "Backend API port"
+    
+  - name: frontend
+    port: 3000
+    description: "Frontend web port"
+    
+  - name: mongodb
+    port: 27017
+    description: "MongoDB port (internal)"
+    
+  - name: redis
+    port: 6379
+    description: "Redis port (internal)"
+
+# Health checks
+healthchecks:
+  - name: backend
+    path: /api/health
+    port: 4000
+    
+  - name: frontend
+    path: /
+    port: 3000
+
+# Persistent storage
+volumes:
+  - name: mongodb_data
+    mountPath: /data/db
+    description: "MongoDB data storage"
+    
+  - name: redis_data
+    mountPath: /data
+    description: "Redis data storage"
+    
+  - name: uploads
+    mountPath: /app/uploads
+    description: "File uploads storage"
+
+# Services configuration
+services:
+  mongodb:
+    image: mongo:7
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
+    environment:
+      MONGO_INITDB_DATABASE: flagify
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongodb:27017'}]}) }" | mongosh --port 27017 --quiet
+      interval: 5s
+      timeout: 30s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=${PORT}
+    ports:
+      - "${PORT}:4000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      - VITE_API_URL=http://backend:${PORT}
+    ports:
+      - "${FRONTEND_PORT}:80"
+    depends_on:
+      - backend
