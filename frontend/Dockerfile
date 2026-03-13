@@ -4,8 +4,8 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copy config files first
-COPY package.json tailwind.config.cjs postcss.config.cjs ./
-RUN npm install
+COPY package*.json tailwind.config.cjs postcss.config.cjs ./
+RUN npm ci --include=dev
 
 # Copy source code
 COPY . .
