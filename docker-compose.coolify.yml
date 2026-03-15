@@ -36,7 +36,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - flagify-network
+      - togglely-network
 
   backend:
     build:
@@ -60,7 +60,7 @@ services:
     volumes:
       - uploads:/app/uploads
     networks:
-      - flagify-network
+      - togglely-network
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4000/api/health"]
       interval: 30s
@@ -80,7 +80,7 @@ services:
     depends_on:
       - backend
     networks:
-      - flagify-network
+      - togglely-network
 
 volumes:
   mongodb_data:

@@ -1,7 +1,7 @@
-# Coolify Configuration for Flagify
+# Coolify Configuration for Togglely
 # This file configures the application for deployment on Coolify
 
-name: flagify
+name: togglely
 description: "Feature Flag Management System - Organize, manage, and deploy feature flags across multiple environments"
 version: 1.0.0
 
@@ -12,7 +12,7 @@ environment:
     description: "Node environment"
     
   - name: DATABASE_URL
-    default: mongodb://mongodb:27017/flagify?replicaSet=rs0
+    default: mongodb://mongodb:27017/togglely?replicaSet=rs0
     description: "MongoDB connection string"
     required: true
     
@@ -87,7 +87,7 @@ services:
     image: mongo:7
     command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
     environment:
-      MONGO_INITDB_DATABASE: flagify
+      MONGO_INITDB_DATABASE: togglely
     volumes:
       - mongodb_data:/data/db
     ports:
