@@ -324,7 +324,7 @@ export default function OrganizationDetail() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white font-bold">
-                        {project.name.charAt(0).toUpperCase()}
+                        {(project.name || '?').charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0">
                         <CardTitle className="text-base truncate group-hover:text-primary transition-colors">
