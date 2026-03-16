@@ -58,6 +58,9 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: togglely-frontend
+    environment:
+      - BACKEND_HOST=backend
+      - BACKEND_PORT=4000
     ports:
       - "3000:80"
     depends_on:
