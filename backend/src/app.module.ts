@@ -6,6 +6,7 @@ import { ProjectsModule } from './modules/projects/projects.module';
 import { BrandsModule } from './modules/brands/brands.module';
 import { SdkModule } from './modules/sdk/sdk.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { PrismaModule } from './shared/prisma.module';
 
 @Module({
@@ -14,6 +15,7 @@ import { PrismaModule } from './shared/prisma.module';
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     PrismaModule,
     AuthModule,
+    OrganizationsModule,
     FlagsModule,
     ProjectsModule,
     BrandsModule,
