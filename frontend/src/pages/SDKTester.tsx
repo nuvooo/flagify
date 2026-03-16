@@ -28,6 +28,7 @@ export default function SDKTester() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('');
+  // Note: apiKey is used in generated code example only
   const [apiKey, setApiKey] = useState<string>('');
   
   // Context attributes
@@ -40,6 +41,13 @@ export default function SDKTester() {
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Demo API keys for generated code examples
+  const getDemoApiKey = (projectKey: string) => {
+    if (projectKey === 'simple-web-app') return 'togglely_demo_simple_key';
+    if (projectKey === 'multi-tenant-saas') return 'togglely_demo_saas_key';
+    return 'your-api-key';
+  };
 
   useEffect(() => {
     fetchProjects();
@@ -93,13 +101,14 @@ export default function SDKTester() {
 
   const generateCode = () => {
     const context = buildContext();
-    const projectKey = selectedProjectData?.key || 'your-project';
+    const projectKey = selectedProjectData?.key || 'simple-web-app';
     const envKey = environments.find(e => e.id === selectedEnvironment)?.key || 'development';
+    const demoKey = apiKey || getDemoApiKey(projectKey);
     
     return `import { TogglelyClient } from '@togglely/sdk-core';
 
 const client = new TogglelyClient({
-  apiKey: '${apiKey || 'your-api-key'}',
+  apiKey: '${demoKey}',
   project: '${projectKey}',
   environment: '${envKey}',
   baseUrl: '${window.location.origin}'
@@ -109,7 +118,7 @@ const client = new TogglelyClient({
 client.setContext(${JSON.stringify(context, null, 2)});
 
 // Check if feature is enabled
-const isEnabled = await client.isEnabled('your-flag', false);
+const isEnabled = await client.isEnabled('new-dashboard', false);
 console.log('Feature enabled:', isEnabled);`;
   };
 
@@ -137,18 +146,22 @@ console.log('Feature enabled:', isEnabled);`;
 
       for (const flag of flagsRes.data.featureFlags || []) {
         try {
-          // Call SDK endpoint to evaluate flag
-          const sdkRes = await api.get(
+          // Call SDK endpoint with API key for authentication
+          const evalRes = await api.get(
             `/sdk/flags/${projectKey}/${envKey}/${flag.key}`,
             {
-              params: { context: JSON.stringify(context) },
-              headers: apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {}
+              params: { 
+                context: JSON.stringify(context) 
+              },
+              headers: { 
+                'X-API-Key': apiKey || getDemoApiKey(projectKey!)
+              }
             }
           );
           results.push({
             flagKey: flag.key,
-            value: sdkRes.data.value,
-            enabled: sdkRes.data.enabled
+            value: evalRes.data.value,
+            enabled: evalRes.data.enabled
           });
         } catch (e) {
           results.push({
@@ -254,7 +267,7 @@ console.log('Feature enabled:', isEnabled);`;
               className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Required only if testing with SDK authentication
+              Uses demo API key if empty (simple-web-app: togglely_demo_simple_key, multi-tenant-saas: togglely_demo_saas_key)
             </p>
           </div>
 
