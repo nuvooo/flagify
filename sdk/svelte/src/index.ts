@@ -279,12 +279,8 @@ export function featureToggle(node: HTMLElement, key: string): { destroy(): void
   return {
     destroy() {
       unsubscribe();
-    },
-    update(newKey: string) {
-      currentKey = newKey;
-      updateVisibility();
     }
-  };
+  } as { destroy(): void; update?(newKey: string): void };
 }
 
 // ==================== Helper Components ====================

@@ -16,6 +16,6 @@ export default [
       }
     ],
     plugins: [typescript({ tsconfig: './tsconfig.json' })],
-    external: ['vue', '@flagify/sdk-core']
+    external: ['vue', '@togglely/sdk-core']
   }
 ];

@@ -200,7 +200,7 @@ export function useJSONToggle<T = any>(key: string, defaultValue: T = {} as T): 
     unsubscribe();
   });
   
-  return value;
+  return value as Ref<T>;
 }
 
 /**

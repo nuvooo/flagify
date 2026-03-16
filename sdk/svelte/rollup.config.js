@@ -16,6 +16,6 @@ export default [
       }
     ],
     plugins: [typescript({ tsconfig: './tsconfig.json' })],
-    external: ['svelte/store', '@flagify/sdk-core']
+    external: ['svelte/store', '@togglely/sdk-core']
   }
 ];

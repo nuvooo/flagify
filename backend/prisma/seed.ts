@@ -12,7 +12,7 @@ async function main() {
 
   // Check if demo user exists
   const existingUser = await prisma.user.findUnique({
-    where: { email: 'demo@flagify.io' }
+    where: { email: 'demo@togglely.io' }
   });
 
   if (existingUser) {
@@ -25,7 +25,7 @@ async function main() {
   
   const user = await prisma.user.create({
     data: {
-      email: 'demo@flagify.io',
+      email: 'demo@togglely.io',
       password: hashedPassword,
       firstName: 'Demo',
       lastName: 'User'
@@ -160,7 +160,7 @@ async function main() {
   const apiKey = await prisma.apiKey.create({
     data: {
       name: 'Demo SDK Key',
-      key: 'flagify_demo_sdk_key_for_testing_purposes_only',
+      key: 'togglely_demo_sdk_key_for_testing_purposes_only',
       type: 'SDK',
       organizationId: org.id,
       userId: user.id
@@ -172,10 +172,10 @@ async function main() {
   console.log('✅ Seed completed successfully!');
   console.log('');
   console.log('Demo credentials:');
-  console.log('  Email: demo@flagify.io');
+  console.log('  Email: demo@togglely.io');
   console.log('  Password: demo1234');
   console.log('');
-  console.log('Demo API Key: flagify_demo_sdk_key_for_testing_purposes_only');
+  console.log('Demo API Key: togglely_demo_sdk_key_for_testing_purposes_only');
 }
 
 main()

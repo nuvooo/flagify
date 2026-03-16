@@ -12,7 +12,7 @@ export default [
       sourcemap: true
     },
     plugins: [resolve(), typescript({ tsconfig: './tsconfig.json' })],
-    external: ['@flagify/sdk-core']
+    external: ['@togglely/sdk-core']
   },
   // CJS build
   {
@@ -23,7 +23,7 @@ export default [
       sourcemap: true
     },
     plugins: [resolve(), typescript({ tsconfig: './tsconfig.json' })],
-    external: ['@flagify/sdk-core']
+    external: ['@togglely/sdk-core']
   },
   // UMD build (for CDN)
   {
@@ -31,7 +31,7 @@ export default [
     output: {
       file: 'dist/index.umd.js',
       format: 'umd',
-      name: 'Flagify',
+      name: 'Togglely',
       sourcemap: true,
       globals: {}
     },

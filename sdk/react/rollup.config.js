@@ -2,7 +2,7 @@ import typescript from '@rollup/plugin-typescript';
 
 export default [
   {
-    input: 'src/index.ts',
+    input: 'src/index.tsx',
     output: [
       {
         file: 'dist/index.esm.js',
@@ -16,6 +16,6 @@ export default [
       }
     ],
     plugins: [typescript({ tsconfig: './tsconfig.json' })],
-    external: ['react', '@flagify/sdk-core']
+    external: ['react', '@togglely/sdk-core']
   }
 ];
