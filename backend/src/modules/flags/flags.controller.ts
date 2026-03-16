@@ -15,6 +15,15 @@ export class FlagsController {
     return { featureFlags: flags };
   }
 
+  @Get('project/:projectId')
+  async findByProject(
+    @Param('projectId') projectId: string,
+    @Req() req: any,
+  ) {
+    const flags = await this.flagsService.findAll(req.user.userId, projectId);
+    return { featureFlags: flags };
+  }
+
   @Post('project/:projectId')
   async create(
     @Param('projectId') projectId: string,
