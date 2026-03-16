@@ -138,8 +138,8 @@ export const getAllFlags = async (req: AuthenticatedRequest, res: Response, next
       return acc;
     }, {} as Record<string, any>);
 
-    // Cache for 30 seconds
-    await redis.setex(cacheKey, 30, JSON.stringify(flags));
+    // Cache for 1 second during development/debugging
+    await redis.setex(cacheKey, 1, JSON.stringify(flags));
 
     res.json(flags);
   } catch (error) {
