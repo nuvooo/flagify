@@ -31,6 +31,16 @@ const limit = await client.getNumber('max-items', 10);
 // Get JSON value
 const config = await client.getJSON('app-config', {});
 
+// Set context (useful for multi-tenant and targeting)
+client.setContext({ 
+  userId: 'user-123', 
+  tenantId: 'customer-abc', 
+  plan: 'premium' 
+});
+
+// Flags will now be evaluated against this context
+const isPremiumFeature = await client.isEnabled('premium-feature', false);
+
 // Listen to events
 client.on('ready', () => console.log('Toggles loaded!'));
 client.on('offline', () => console.log('Using offline toggles'));

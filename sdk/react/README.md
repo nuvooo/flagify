@@ -12,7 +12,7 @@ npm install @togglely/sdk-react
 
 ### Provider
 
-Wrap your app with `TogglelyProvider`:
+Wrap your app with `TogglelyProvider`. You can provide an `initialContext` for multi-tenant setups:
 
 ```tsx
 import { TogglelyProvider } from '@togglely/sdk-react';
@@ -23,6 +23,10 @@ function App() {
       apiKey="your-api-key"
       environment="production"
       baseUrl="https://your-togglely-instance.com"
+      initialContext={{ 
+        tenantId: 'customer-123', 
+        plan: 'premium' 
+      }}
     >
       <MyApp />
     </TogglelyProvider>
@@ -30,7 +34,48 @@ function App() {
 }
 ```
 
+### Server Side Rendering (SSR) & Next.js
+
+For SSR, use `getTogglelyState` to fetch toggles before the page renders:
+
+```tsx
+// Next.js getServerSideProps example
+import { getTogglelyState } from '@togglely/sdk-react';
+
+export async function getServerSideProps() {
+  const toggles = await getTogglelyState({
+    apiKey: process.env.TOGGLELY_API_KEY,
+    environment: 'production',
+    baseUrl: 'https://your-togglely-instance.com'
+  }, { 
+    tenantId: 'customer-123' 
+  });
+
+  return { props: { initialToggles: toggles } };
+}
+
+// Then pass to Provider to avoid flickering
+<TogglelyProvider initialToggles={props.initialToggles} ...>
+```
+
 ### Hooks
+
+#### `useTogglelyClient()`
+
+Access the core client to update context dynamically:
+
+```tsx
+function LoginComponent() {
+  const client = useTogglelyClient();
+
+  const handleLogin = (user) => {
+    client.setContext({ 
+      userId: user.id, 
+      tenantId: user.companyId 
+    });
+  };
+}
+```
 
 #### `useToggle(key, defaultValue)`
 
