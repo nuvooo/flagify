@@ -1,44 +1,27 @@
-FROM node:20-alpine AS builder
+# Stage 2: Runtime
+FROM node:20-slim AS runner
 
 WORKDIR /app
 
+# Install OpenSSL 1.1 - required for Prisma
+RUN apt-get update && \
+    apt-get install -y openssl libssl1.1 ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
 # Copy package files
 COPY package*.json ./
+RUN npm install
+
+# Copy prisma schema
 COPY prisma ./prisma/
-
-# Install ALL dependencies (including devDependencies for build)
-RUN npm ci --include=dev
-
-# Generate Prisma client
 RUN npx prisma generate
 
-# Copy source code
+# Copy source
 COPY . .
 
-# Build TypeScript
-RUN npx tsc
-
-# Production stage
-FROM node:20-alpine AS production
-
-WORKDIR /app
-
-# Install OpenSSL (needed for Prisma)
-RUN apk add --no-cache openssl
-
-# Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
-
-# Install production dependencies only
-RUN npm ci --omit=dev
-
-# Copy built application
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Build
+RUN npm run build
 
 EXPOSE 4000
 
-# Inline start script
-CMD ["sh", "-c", "sleep 5 && npx prisma db push --accept-data-loss 2>/dev/null || true && npx prisma db seed 2>/dev/null || true && node dist/index.js"]
+CMD ["npm", "run", "start:prod"]
