@@ -40,9 +40,11 @@ export class Project {
   get type(): ProjectType { return this.props.type; }
   get allowedOrigins(): string[] { return [...this.props.allowedOrigins]; }
   get organizationId(): string { return this.props.organizationId; }
+  get createdAt(): Date { return this.props.createdAt; }
+  get updatedAt(): Date { return this.props.updatedAt; }
   get isMultiTenant(): boolean { return this.props.type === 'MULTI'; }
 
-  update(data: { name?: string; description?: string; allowedOrigins?: string[] }): Project {
+  update(data: { name?: string; description?: string | null; allowedOrigins?: string[] }): Project {
     return new Project({
       ...this.props,
       name: data.name ?? this.props.name,

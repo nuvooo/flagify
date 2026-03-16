@@ -56,3 +56,9 @@ export class DomainError extends Error {
     return new DomainError('FORBIDDEN', 'Access denied');
   }
 }
+
+// Type guard for DomainError
+export function isDomainError(error: unknown): error is DomainError {
+  return error instanceof DomainError || 
+    (typeof error === 'object' && error !== null && 'code' in error);
+}

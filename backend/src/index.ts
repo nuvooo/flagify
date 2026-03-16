@@ -18,6 +18,8 @@ import { apiKeysRouter } from './routes/apiKeys';
 import { auditLogsRouter } from './routes/auditLogs';
 import { errorHandler } from './middleware/errorHandler';
 import { initRedis } from './utils/redis';
+import { setupContainer } from './shared/container';
+import { prisma } from './utils/prisma';
 
 dotenv.config();
 
@@ -26,6 +28,9 @@ const PORT = process.env.PORT || 4000;
 
 // Initialize Redis
 initRedis();
+
+// Initialize Dependency Injection Container (Hexagonal Architecture)
+setupContainer(prisma);
 
 // DEMO RESET COMPLETELY DISABLED
 // Previously caused server crashes, removed for stability

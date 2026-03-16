@@ -1,30 +1,40 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { body } from 'express-validator';
 import {
   getFeatureFlags,
   getMyFeatureFlags,
   getFeatureFlag,
-  createFeatureFlag,
-  updateFeatureFlag,
-  deleteFeatureFlag,
   toggleFlag,
-  updateFlagValue,
   getFlagEnvironments,
   updateFlagEnvironment,
   createTargetingRule,
   updateTargetingRule,
   deleteTargetingRule
 } from '../controllers/featureFlags';
+import { FeatureFlagController } from '../interfaces/http/controllers/feature-flag.controller';
 import { authenticate } from '../middleware/auth';
 import { validate } from '../middleware/validate';
 import { validateProjectId, validateFlagId, validateEnvironmentId } from '../middleware/validateId';
 
 const router = Router();
+const flagController = new FeatureFlagController();
 
 router.use(authenticate);
 
+// Legacy routes (kept for backward compatibility)
 router.get('/', getMyFeatureFlags);
 router.get('/project/:projectId', validateProjectId, authenticate, getFeatureFlags);
+router.get('/:flagId', validateFlagId, authenticate, getFeatureFlag);
+router.post('/:flagId/toggle', validateFlagId, authenticate, toggleFlag);
+router.get('/:flagId/environments', validateFlagId, authenticate, getFlagEnvironments);
+router.patch('/:flagId/environments/:environmentId', validateFlagId, validateEnvironmentId, authenticate, updateFlagEnvironment);
+router.post('/:flagId/environments/:environmentId/rules', validateFlagId, validateEnvironmentId, authenticate, createTargetingRule);
+router.patch('/:flagId/environments/:environmentId/rules/:ruleId', validateFlagId, validateEnvironmentId, authenticate, updateTargetingRule);
+router.delete('/:flagId/environments/:environmentId/rules/:ruleId', validateFlagId, validateEnvironmentId, authenticate, deleteTargetingRule);
+
+// New hexagonal routes (using clean architecture)
+
+// Create flag with new controller
 router.post(
   '/project/:projectId',
   validateProjectId,
@@ -32,14 +42,16 @@ router.post(
   [
     body('name').trim().notEmpty(),
     body('key').trim().notEmpty(),
-    body('flagType').optional().isIn(['BOOLEAN', 'STRING', 'NUMBER', 'JSON']),
+    body('type').optional().isIn(['BOOLEAN', 'STRING', 'NUMBER', 'JSON']),
+    body('flagType').optional().isIn(['BOOLEAN', 'STRING', 'NUMBER', 'JSON']), // backward compatibility
     body('description').optional().trim(),
+    body('initialValues').optional().isObject(),
     validate
   ],
-  createFeatureFlag
+  (req: Request, res: Response, next: NextFunction) => flagController.create(req, res, next)
 );
 
-router.get('/:flagId', validateFlagId, authenticate, getFeatureFlag);
+// Update flag with new controller
 router.patch(
   '/:flagId',
   validateFlagId,
@@ -49,23 +61,20 @@ router.patch(
     body('description').optional().trim(),
     validate
   ],
-  updateFeatureFlag
+  (req: Request, res: Response, next: NextFunction) => flagController.update(req, res, next)
 );
-router.delete('/:flagId', validateFlagId, authenticate, deleteFeatureFlag);
 
-// Toggle flag in environment
-router.post('/:flagId/toggle', validateFlagId, authenticate, toggleFlag);
+// Delete flag with new controller
+router.delete('/:flagId', validateFlagId, authenticate, (req, res, next) => 
+  flagController.delete(req, res, next)
+);
 
-// Update flag value
-router.patch('/:flagId/value', validateFlagId, authenticate, updateFlagValue);
-
-// Flag environments
-router.get('/:flagId/environments', validateFlagId, authenticate, getFlagEnvironments);
-router.patch('/:flagId/environments/:environmentId', validateFlagId, validateEnvironmentId, authenticate, updateFlagEnvironment);
-
-// Targeting rules
-router.post('/:flagId/environments/:environmentId/rules', validateFlagId, validateEnvironmentId, authenticate, createTargetingRule);
-router.patch('/:flagId/environments/:environmentId/rules/:ruleId', validateFlagId, validateEnvironmentId, authenticate, updateTargetingRule);
-router.delete('/:flagId/environments/:environmentId/rules/:ruleId', validateFlagId, validateEnvironmentId, authenticate, deleteTargetingRule);
+// Update flag value (brand-specific or default) with new controller
+router.patch('/:flagId/environments/:environmentId/value', validateFlagId, validateEnvironmentId, authenticate, [
+  body('enabled').optional().isBoolean(),
+  body('value').optional(),
+  body('brandId').optional().isString(),
+  validate
+], (req: Request, res: Response, next: NextFunction) => flagController.updateValue(req, res, next));
 
 export { router as featureFlagsRouter };

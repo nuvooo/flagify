@@ -20,10 +20,11 @@ export interface FlagProps {
 export class Flag {
   private constructor(private readonly props: FlagProps) {}
 
-  static create(props: Omit<FlagProps, 'createdAt' | 'updatedAt'>): Flag {
+  static create(props: Omit<FlagProps, 'id' | 'createdAt' | 'updatedAt'>): Flag {
     const now = new Date();
     return new Flag({
       ...props,
+      id: crypto.randomUUID(),
       createdAt: now,
       updatedAt: now
     });
@@ -46,7 +47,7 @@ export class Flag {
   get updatedAt(): Date { return this.props.updatedAt; }
 
   // Domain logic
-  update(data: { name?: string; description?: string }): Flag {
+  update(data: { name?: string; description?: string | null }): Flag {
     return new Flag({
       ...this.props,
       name: data.name ?? this.props.name,
