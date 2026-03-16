@@ -134,35 +134,28 @@ export const getAllFlags = async (req: AuthenticatedRequest, res: Response, next
       }
     }
 
-    // Fetch flag environments: brand-specific if brand found, otherwise default (no brand)
-    const flagEnvs = await prisma.flagEnvironment.findMany({
-      where: {
-        environmentId: environment.id,
-        ...(brand ? { brandId: brand.id } : { brandId: null })
-      },
-      include: {
-        flag: { select: { id: true, key: true, flagType: true } },
-        targetingRules: { include: { conditions: true } }
-      }
-    });
-
-    // If brand was provided but no brand-specific entries found, fall back to default (no brand)
-    const effectiveFlagEnvs = (brand && flagEnvs.length === 0)
-      ? await prisma.flagEnvironment.findMany({
-          where: { 
-            environmentId: environment.id,
-            brandId: null  // Get default values
-          },
-          include: {
-            flag: { select: { id: true, key: true, flagType: true } },
-            targetingRules: { include: { conditions: true } }
-          }
-        })
-      : flagEnvs;
+    // For multi-tenant: only return brand-specific flags
+    // If no brand specified, return empty (no defaults in multi-tenant)
+    let flagEnvs: any[] = [];
+    
+    if (brand) {
+      // Fetch brand-specific flags
+      flagEnvs = await prisma.flagEnvironment.findMany({
+        where: {
+          environmentId: environment.id,
+          brandId: brand.id
+        },
+        include: {
+          flag: { select: { id: true, key: true, flagType: true } },
+          targetingRules: { include: { conditions: true } }
+        }
+      });
+    }
+    // If no brand specified, flagEnvs stays empty → all flags will return false
 
     const result: Record<string, { value: any; enabled: boolean }> = {};
 
-    for (const flagEnv of effectiveFlagEnvs) {
+    for (const flagEnv of flagEnvs) {
       let value = parseFlagValue(flagEnv.defaultValue, flagEnv.flag.flagType, flagEnv.enabled);
       
       // Only evaluate targeting rules if enabled and context provided
@@ -223,25 +216,15 @@ export const getFlag = async (req: AuthenticatedRequest, res: Response, next: Ne
       });
     }
 
-    // Try to find brand-specific flag first, then default
-    let flagEnv = await prisma.flagEnvironment.findFirst({
-      where: {
-        environmentId: environment.id,
-        brandId: brand ? brand.id : null,
-        flag: { key: flagKey }
-      },
-      include: {
-        flag: true,
-        targetingRules: { include: { conditions: true } }
-      }
-    });
-
-    // If brand-specific entry not found, fall back to default (no brand)
-    if (!flagEnv && brand) {
+    // For multi-tenant: only return brand-specific flag
+    // If no brand specified or brand not found, return false
+    let flagEnv = null;
+    
+    if (brand) {
       flagEnv = await prisma.flagEnvironment.findFirst({
         where: {
           environmentId: environment.id,
-          brandId: null,
+          brandId: brand.id,
           flag: { key: flagKey }
         },
         include: {
