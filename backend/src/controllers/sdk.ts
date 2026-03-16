@@ -90,14 +90,17 @@ const parseFlagValue = (value: string, type: string): any => {
 
 export const getAllFlags = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const { environmentKey } = req.params;
+    const { projectKey, environmentKey } = req.params;
     const organizationId = req.organizationId;
 
-    // Find environment
+    // Find environment within the specific project
     const environment = await prisma.environment.findFirst({
       where: {
         key: environmentKey,
-        project: { organizationId }
+        project: { 
+          key: projectKey,
+          organizationId 
+        }
       }
     });
 
@@ -146,14 +149,17 @@ export const getAllFlags = async (req: AuthenticatedRequest, res: Response, next
 
 export const getFlag = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const { environmentKey, flagKey } = req.params;
+    const { projectKey, environmentKey, flagKey } = req.params;
     const organizationId = req.organizationId;
 
-    // Find environment and flag
+    // Find environment within project
     const environment = await prisma.environment.findFirst({
       where: {
         key: environmentKey,
-        project: { organizationId }
+        project: { 
+          key: projectKey,
+          organizationId 
+        }
       }
     });
 
@@ -192,15 +198,18 @@ export const getFlag = async (req: AuthenticatedRequest, res: Response, next: Ne
 
 export const evaluateFlag = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const { environmentKey, flagKey } = req.params;
+    const { projectKey, environmentKey, flagKey } = req.params;
     const context: FlagContext = req.body.context || {};
     const organizationId = req.organizationId;
 
-    // Find environment and flag
+    // Find environment within project
     const environment = await prisma.environment.findFirst({
       where: {
         key: environmentKey,
-        project: { organizationId }
+        project: { 
+          key: projectKey,
+          organizationId 
+        }
       }
     });
 

@@ -7,13 +7,13 @@ const router = Router();
 // SDK endpoints use API key authentication
 router.use(authenticateApiKey);
 
-// Get all flags for an environment
-router.get('/flags/:environmentKey', getAllFlags);
+// Get all flags for an environment within a project
+router.get('/flags/:projectKey/:environmentKey', getAllFlags);
 
 // Get specific flag
-router.get('/flags/:environmentKey/:flagKey', getFlag);
+router.get('/flags/:projectKey/:environmentKey/:flagKey', getFlag);
 
 // Evaluate flag with context
-router.post('/evaluate/:environmentKey/:flagKey', evaluateFlag);
+router.post('/evaluate/:projectKey/:environmentKey/:flagKey', evaluateFlag);
 
 export { router as sdkRouter };

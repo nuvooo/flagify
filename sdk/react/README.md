@@ -21,6 +21,7 @@ function App() {
   return (
     <TogglelyProvider 
       apiKey="your-api-key"
+      project="web-app"
       environment="production"
       baseUrl="https://your-togglely-instance.com"
       initialContext={{ 
@@ -45,6 +46,7 @@ import { getTogglelyState } from '@togglely/sdk-react';
 export async function getServerSideProps() {
   const toggles = await getTogglelyState({
     apiKey: process.env.TOGGLELY_API_KEY,
+    project: 'web-app',
     environment: 'production',
     baseUrl: 'https://your-togglely-instance.com'
   }, { 

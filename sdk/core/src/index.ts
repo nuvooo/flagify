@@ -8,6 +8,8 @@
 export interface TogglelyConfig {
   /** API Key from your Togglely dashboard */
   apiKey: string;
+  /** Project key */
+  project: string;
   /** Environment key (e.g., 'development', 'production') */
   environment: string;
   /** Base URL of your Togglely instance */
@@ -189,7 +191,7 @@ export class TogglelyClient {
     // Fetch from server
     try {
       const response = await this.fetchWithTimeout(
-        `${this.config.baseUrl}/sdk/flags/${this.config.environment}/${key}`,
+        `${this.config.baseUrl}/sdk/flags/${this.config.project}/${this.config.environment}/${key}`,
         {
           headers: {
             'Authorization': `Bearer ${this.config.apiKey}`,
@@ -323,7 +325,7 @@ export class TogglelyClient {
   async refresh(): Promise<void> {
     try {
       const response = await this.fetchWithTimeout(
-        `${this.config.baseUrl}/sdk/toggles/${this.config.environment}`,
+        `${this.config.baseUrl}/sdk/flags/${this.config.project}/${this.config.environment}`,
         {
           headers: {
             'Authorization': `Bearer ${this.config.apiKey}`,
