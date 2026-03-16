@@ -51,35 +51,37 @@ export async function resetDemoData() {
         const projectIds = projects.map(p => p.id);
 
         if (projectIds.length > 0) {
+          // Delete Flags and cascading relations correctly for MongoDB
+          const flags = await prisma.featureFlag.findMany({
+            where: { projectId: { in: projectIds } }
+          });
+          const flagIds = flags.map(f => f.id);
+
+          if (flagIds.length > 0) {
+            const flagEnvs = await prisma.flagEnvironment.findMany({
+              where: { flagId: { in: flagIds } }
+            });
+            const flagEnvIds = flagEnvs.map(fe => fe.id);
+
+            if (flagEnvIds.length > 0) {
+              const rules = await prisma.targetingRule.findMany({
+                where: { flagEnvId: { in: flagEnvIds } }
+              });
+              const ruleIds = rules.map(r => r.id);
+
+              if (ruleIds.length > 0) {
+                await prisma.ruleCondition.deleteMany({ where: { ruleId: { in: ruleIds } } });
+                await prisma.targetingRule.deleteMany({ where: { id: { in: ruleIds } } });
+              }
+              await prisma.flagEnvironment.deleteMany({ where: { id: { in: flagEnvIds } } });
+            }
+            await prisma.featureFlag.deleteMany({ where: { id: { in: flagIds } } });
+          }
+
           // Delete Brands (assigned to projects)
           await prisma.brand.deleteMany({ where: { projectId: { in: projectIds } } });
         }
 
-        // Delete Flag Environments (cascading cleanup)
-        // Since MongoDB adapter doesn't always handle nested deletes perfectly in deleteMany,
-        // we find flags first or delete them by organizationId
-        const flags = await prisma.featureFlag.findMany({
-          where: { organizationId: { in: orgIds } },
-          select: { id: true }
-        });
-        const flagIds = flags.map(f => f.id);
-
-        if (flagIds.length > 0) {
-          // Delete Targeting Rules associated with these flags
-          const flagEnvs = await prisma.flagEnvironment.findMany({
-            where: { flagId: { in: flagIds } },
-            select: { id: true }
-          });
-          const flagEnvIds = flagEnvs.map(fe => fe.id);
-          
-          if (flagEnvIds.length > 0) {
-             await prisma.targetingRule.deleteMany({ where: { flagEnvId: { in: flagEnvIds } } });
-             await prisma.flagEnvironment.deleteMany({ where: { id: { in: flagEnvIds } } });
-          }
-        }
-
-        // Delete Feature Flags
-        await prisma.featureFlag.deleteMany({ where: { organizationId: { in: orgIds } } });
         // Delete Environments
         await prisma.environment.deleteMany({ where: { organizationId: { in: orgIds } } });
         // Delete Projects
