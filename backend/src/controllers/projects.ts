@@ -320,12 +320,17 @@ export const deleteProject = async (req: AuthenticatedRequest, res: Response, ne
         });
       }
 
-      // 2. Delete environments
+      // 2. Delete brands (for multi-tenant projects)
+      await tx.brand.deleteMany({
+        where: { projectId }
+      });
+
+      // 3. Delete environments
       await tx.environment.deleteMany({
         where: { projectId }
       });
 
-      // 3. Finally delete the project
+      // 4. Finally delete the project
       await tx.project.delete({
         where: { id: projectId }
       });
