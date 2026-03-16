@@ -182,16 +182,21 @@ export class TogglelyClient {
   }
 
   async getValue(key: string): Promise<ToggleValue | null> {
-    // Try cache first
-    const cached = this.toggles.get(key);
-    if (cached) {
-      return cached;
+    // Try cache first - but only if no context is set
+    if (Object.keys(this.context).length === 0) {
+      const cached = this.toggles.get(key);
+      if (cached) {
+        return cached;
+      }
     }
 
     // Fetch from server
     try {
+      const contextParam = Object.keys(this.context).length > 0
+        ? `?context=${encodeURIComponent(JSON.stringify(this.context))}`
+        : '';
       const response = await this.fetchWithTimeout(
-        `${this.config.baseUrl}/sdk/flags/${this.config.project}/${this.config.environment}/${key}`,
+        `${this.config.baseUrl}/sdk/flags/${this.config.project}/${this.config.environment}/${key}${contextParam}`,
         {
           headers: {
             'Authorization': `Bearer ${this.config.apiKey}`,
@@ -324,8 +329,11 @@ export class TogglelyClient {
 
   async refresh(): Promise<void> {
     try {
+      const contextParam = Object.keys(this.context).length > 0
+        ? `?context=${encodeURIComponent(JSON.stringify(this.context))}`
+        : '';
       const response = await this.fetchWithTimeout(
-        `${this.config.baseUrl}/sdk/flags/${this.config.project}/${this.config.environment}`,
+        `${this.config.baseUrl}/sdk/flags/${this.config.project}/${this.config.environment}${contextParam}`,
         {
           headers: {
             'Authorization': `Bearer ${this.config.apiKey}`,
