@@ -277,18 +277,14 @@ export const deleteProject = async (req: AuthenticatedRequest, res: Response, ne
     }
 
     // Delete in transaction with proper dependency order
+    // NOTE: API Keys belong to organizations, not projects, so they are not deleted here
     await prisma.$transaction(async (tx) => {
-      // 1. Delete API keys associated with this project
-      await tx.apiKey.deleteMany({
-        where: { projectId }
-      });
-      
-      // 2. Delete audit logs for this project
+      // 1. Delete audit logs for this project
       await tx.auditLog.deleteMany({
         where: { projectId }
       });
       
-      // 3. Delete feature flags and their environments
+      // 2. Delete feature flags and their environments
       const flags = await tx.featureFlag.findMany({
         where: { projectId },
         select: { id: true }
@@ -330,17 +326,17 @@ export const deleteProject = async (req: AuthenticatedRequest, res: Response, ne
         });
       }
 
-      // 4. Delete brands (for multi-tenant projects)
+      // 3. Delete brands (for multi-tenant projects)
       await tx.brand.deleteMany({
         where: { projectId }
       });
 
-      // 5. Delete environments
+      // 4. Delete environments
       await tx.environment.deleteMany({
         where: { projectId }
       });
 
-      // 6. Finally delete the project
+      // 5. Finally delete the project
       await tx.project.delete({
         where: { id: projectId }
       });
