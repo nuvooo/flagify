@@ -125,13 +125,11 @@ export default function ProjectDetail() {
       setIsMultiTenant(projectRes.data.type === 'MULTI');
       
       if (projectRes.data.type === 'MULTI') {
-        // Use new optimized endpoint that returns all flags with brand values
         const flagsWithBrandsRes = await api.get(`/projects/${validProjectId}/flags-with-brands`);
-        setFeatureFlags(flagsWithBrandsRes.data.flags);
+        setFeatureFlags(flagsWithBrandsRes.data.flags || []);
       } else {
-        // For single-tenant, use simple endpoint
         const flagsRes = await api.get(`/feature-flags/project/${validProjectId}`);
-        setFeatureFlags(flagsRes.data);
+        setFeatureFlags(flagsRes.data.featureFlags || []);
       }
     } catch (error) {
       console.error('Failed to fetch project data:', error);
@@ -333,10 +331,10 @@ export default function ProjectDetail() {
     }
   };
 
-  const filteredFlags = featureFlags.filter(flag =>
-    flag.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    flag.key.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredFlags = Array.isArray(featureFlags) ? featureFlags.filter(flag =>
+    (flag.name || '').toLowerCase().includes((searchTerm || '').toLowerCase()) ||
+    (flag.key || '').toLowerCase().includes((searchTerm || '').toLowerCase())
+  ) : [];
 
   if (!validOrgId || !validProjectId) {
     return (
