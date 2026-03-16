@@ -201,8 +201,11 @@ export class TogglelyClient {
         params.set('context', JSON.stringify(this.context));
       }
       const query = params.toString() ? `?${params.toString()}` : '';
-      const response = await this.fetchWithTimeout(
-        `${this.config.baseUrl}/sdk/flags/${this.config.project}/${this.config.environment}/${key}${query}`,
+      const url = `${this.config.baseUrl}/sdk/flags/${this.config.project}/${this.config.environment}/${key}${query}`;
+      
+      console.log(`[Togglely SDK] Fetching: ${url}`);
+      
+      const response = await this.fetchWithTimeout(url,
         {
           headers: {
             'Authorization': `Bearer ${this.config.apiKey}`,
