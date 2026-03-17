@@ -1,3 +1,5 @@
+import { generateObjectId } from '../shared/utils';
+
 export type ProjectType = 'SINGLE' | 'MULTI';
 
 export interface ProjectProps {
@@ -19,7 +21,7 @@ export class Project {
     const now = new Date();
     return new Project({
       ...props,
-      id: crypto.randomUUID(),
+      id: generateObjectId(),
       createdAt: now,
       updatedAt: now,
     });

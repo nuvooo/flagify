@@ -50,7 +50,7 @@ export default function OrganizationSettings() {
       try {
         setIsLoading(true);
         const response = await api.get(`/organizations/${orgId}`);
-        const data = response.data;
+        const data = response.data.organization || response.data;
         setOrganization(data);
         setName(data.name || '');
         setDescription(data.description || '');
@@ -77,7 +77,7 @@ export default function OrganizationSettings() {
         name,
         description,
       });
-      setOrganization(response.data);
+      setOrganization(response.data.organization || response.data);
       setMessage({ type: 'success', text: 'Organization updated successfully' });
     } catch (error: any) {
       console.error('Failed to update organization:', error);

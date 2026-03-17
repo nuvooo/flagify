@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
   ClockIcon,
-
   MagnifyingGlassIcon,
-  ArrowPathIcon,
   UserIcon,
   FlagIcon,
   BuildingOfficeIcon,
@@ -62,217 +59,33 @@ export default function AuditLogs() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [logsRes, usersRes, projectsRes] = await Promise.all([
+        const [logsRes, projectsRes] = await Promise.all([
           api.get('/audit-logs'),
-          api.get('/users'),
           api.get('/projects'),
         ]);
-        setLogs(logsRes.data.logs);
-        setFilteredLogs(logsRes.data.logs);
-        setUsers(usersRes.data.users);
-        setProjects(projectsRes.data.projects);
+        const auditLogs = logsRes.data.auditLogs || [];
+        setLogs(auditLogs);
+        setFilteredLogs(auditLogs);
+        
+        const projs = projectsRes.data.projects || [];
+        setProjects(projs);
+
+        // Extract unique users from logs for filtering
+        const uniqueUsers = Array.from(new Set(auditLogs.map((l: any) => l.userId)))
+          .map(id => {
+            const log = auditLogs.find((l: any) => l.userId === id);
+            return { id: String(id), name: String(log?.userName || log?.userEmail || id) };
+          });
+        setUsers(uniqueUsers);
+
       } catch (error) {
         console.error('Failed to fetch audit logs:', error);
-        // Mock data for development
-        const mockLogs: AuditLog[] = [
-          {
-            id: '1',
-            action: 'CREATE',
-            entityType: 'FEATURE_FLAG',
-            entityId: '1',
-            entityName: 'Dark Mode',
-            userId: 'u1',
-            userName: 'John Doe',
-            userEmail: 'john@example.com',
-            projectId: '1',
-            projectName: 'Web Application',
-            organizationId: '1',
-            organizationName: 'Acme Corp',
-            metadata: { type: 'BOOLEAN', defaultValue: false },
-            createdAt: '2024-01-15T10:30:00Z',
-            ipAddress: '192.168.1.1',
-            userAgent: 'Mozilla/5.0',
-          },
-          {
-            id: '2',
-            action: 'UPDATE',
-            entityType: 'FEATURE_FLAG',
-            entityId: '1',
-            entityName: 'Dark Mode',
-            userId: 'u2',
-            userName: 'Jane Smith',
-            userEmail: 'jane@example.com',
-            projectId: '1',
-            projectName: 'Web Application',
-            organizationId: '1',
-            organizationName: 'Acme Corp',
-            metadata: { isEnabled: true },
-            createdAt: '2024-01-15T09:15:00Z',
-            ipAddress: '192.168.1.2',
-            userAgent: 'Mozilla/5.0',
-          },
-          {
-            id: '3',
-            action: 'CREATE',
-            entityType: 'PROJECT',
-            entityId: '2',
-            entityName: 'Mobile App',
-            userId: 'u1',
-            userName: 'John Doe',
-            userEmail: 'john@example.com',
-            projectId: null,
-            projectName: null,
-            organizationId: '1',
-            organizationName: 'Acme Corp',
-            metadata: { slug: 'mobile-app' },
-            createdAt: '2024-01-14T16:45:00Z',
-            ipAddress: '192.168.1.1',
-            userAgent: 'Mozilla/5.0',
-          },
-          {
-            id: '4',
-            action: 'DELETE',
-            entityType: 'FEATURE_FLAG',
-            entityId: '3',
-            entityName: 'Old Feature',
-            userId: 'u3',
-            userName: 'Bob Wilson',
-            userEmail: 'bob@example.com',
-            projectId: '1',
-            projectName: 'Web Application',
-            organizationId: '1',
-            organizationName: 'Acme Corp',
-            metadata: {},
-            createdAt: '2024-01-14T14:20:00Z',
-            ipAddress: '192.168.1.3',
-            userAgent: 'Mozilla/5.0',
-          },
-          {
-            id: '5',
-            action: 'INVITE',
-            entityType: 'MEMBER',
-            entityId: 'u4',
-            entityName: 'Alice Johnson',
-            userId: 'u1',
-            userName: 'John Doe',
-            userEmail: 'john@example.com',
-            projectId: null,
-            projectName: null,
-            organizationId: '1',
-            organizationName: 'Acme Corp',
-            metadata: { role: 'MEMBER', email: 'alice@example.com' },
-            createdAt: '2024-01-13T11:00:00Z',
-            ipAddress: '192.168.1.1',
-            userAgent: 'Mozilla/5.0',
-          },
-          {
-            id: '6',
-            action: 'CREATE',
-            entityType: 'API_KEY',
-            entityId: 'k1',
-            entityName: 'Production Server Key',
-            userId: 'u2',
-            userName: 'Jane Smith',
-            userEmail: 'jane@example.com',
-            projectId: '1',
-            projectName: 'Web Application',
-            organizationId: '1',
-            organizationName: 'Acme Corp',
-            metadata: { type: 'SERVER' },
-            createdAt: '2024-01-12T08:30:00Z',
-            ipAddress: '192.168.1.2',
-            userAgent: 'Mozilla/5.0',
-          },
-          {
-            id: '7',
-            action: 'LOGIN',
-            entityType: 'USER',
-            entityId: 'u1',
-            entityName: 'John Doe',
-            userId: 'u1',
-            userName: 'John Doe',
-            userEmail: 'john@example.com',
-            projectId: null,
-            projectName: null,
-            organizationId: null,
-            organizationName: null,
-            metadata: {},
-            createdAt: '2024-01-12T08:00:00Z',
-            ipAddress: '192.168.1.1',
-            userAgent: 'Mozilla/5.0',
-          },
-          {
-            id: '8',
-            action: 'UPDATE',
-            entityType: 'ORGANIZATION',
-            entityId: '1',
-            entityName: 'Acme Corp',
-            userId: 'u1',
-            userName: 'John Doe',
-            userEmail: 'john@example.com',
-            projectId: null,
-            projectName: null,
-            organizationId: '1',
-            organizationName: 'Acme Corp',
-            metadata: { description: 'Updated organization description' },
-            createdAt: '2024-01-11T15:45:00Z',
-            ipAddress: '192.168.1.1',
-            userAgent: 'Mozilla/5.0',
-          },
-          {
-            id: '9',
-            action: 'DISABLE',
-            entityType: 'FEATURE_FLAG',
-            entityId: '2',
-            entityName: 'New Checkout Flow',
-            userId: 'u2',
-            userName: 'Jane Smith',
-            userEmail: 'jane@example.com',
-            projectId: '1',
-            projectName: 'Web Application',
-            organizationId: '1',
-            organizationName: 'Acme Corp',
-            metadata: { environment: 'Production' },
-            createdAt: '2024-01-10T13:20:00Z',
-            ipAddress: '192.168.1.2',
-            userAgent: 'Mozilla/5.0',
-          },
-          {
-            id: '10',
-            action: 'REVOKE',
-            entityType: 'API_KEY',
-            entityId: 'k2',
-            entityName: 'Old Test Key',
-            userId: 'u3',
-            userName: 'Bob Wilson',
-            userEmail: 'bob@example.com',
-            projectId: '1',
-            projectName: 'Web Application',
-            organizationId: '1',
-            organizationName: 'Acme Corp',
-            metadata: {},
-            createdAt: '2024-01-09T10:00:00Z',
-            ipAddress: '192.168.1.3',
-            userAgent: 'Mozilla/5.0',
-          },
-        ];
-        setLogs(mockLogs);
-        setFilteredLogs(mockLogs);
-        setUsers([
-          { id: 'u1', name: 'John Doe' },
-          { id: 'u2', name: 'Jane Smith' },
-          { id: 'u3', name: 'Bob Wilson' },
-        ]);
-        setProjects([
-          { id: '1', name: 'Web Application' },
-          { id: '2', name: 'Mobile App' },
-          { id: '3', name: 'API Gateway' },
-        ]);
+        setLogs([]);
+        setFilteredLogs([]);
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
@@ -304,9 +117,9 @@ export default function AuditLogs() {
       const search = filters.searchTerm.toLowerCase();
       result = result.filter(
         (log) =>
-          log.entityName.toLowerCase().includes(search) ||
-          log.userName.toLowerCase().includes(search) ||
-          log.userEmail.toLowerCase().includes(search)
+          log.entityName?.toLowerCase().includes(search) ||
+          log.userName?.toLowerCase().includes(search) ||
+          log.userEmail?.toLowerCase().includes(search)
       );
     }
 
@@ -314,17 +127,10 @@ export default function AuditLogs() {
     if (filters.dateRange !== 'all') {
       const now = new Date();
       const cutoff = new Date();
-      switch (filters.dateRange) {
-        case 'today':
-          cutoff.setHours(0, 0, 0, 0);
-          break;
-        case 'week':
-          cutoff.setDate(now.getDate() - 7);
-          break;
-        case 'month':
-          cutoff.setMonth(now.getMonth() - 1);
-          break;
-      }
+      if (filters.dateRange === 'today') cutoff.setHours(0, 0, 0, 0);
+      if (filters.dateRange === 'week') cutoff.setDate(now.getDate() - 7);
+      if (filters.dateRange === 'month') cutoff.setMonth(now.getMonth() - 1);
+      
       result = result.filter((log) => new Date(log.createdAt) >= cutoff);
     }
 
@@ -333,375 +139,195 @@ export default function AuditLogs() {
 
   const getActionColor = (action: string) => {
     switch (action) {
-      case 'CREATE':
-        return 'bg-green-100 text-green-800';
-      case 'UPDATE':
-        return 'bg-blue-100 text-blue-800';
-      case 'DELETE':
-      case 'REVOKE':
-        return 'bg-red-100 text-red-800';
-      case 'ENABLE':
-        return 'bg-green-100 text-green-800';
-      case 'DISABLE':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'INVITE':
-        return 'bg-purple-100 text-purple-800';
-      case 'LOGIN':
-      case 'LOGOUT':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+      case 'CREATE': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      case 'UPDATE': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'DELETE': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+      case 'ENABLE': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
+      case 'DISABLE': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400';
     }
   };
 
-  const getEntityIcon = (entityType: string) => {
-    switch (entityType) {
-      case 'FEATURE_FLAG':
-        return FlagIcon;
-      case 'PROJECT':
-        return FolderIcon;
-      case 'ORGANIZATION':
-        return BuildingOfficeIcon;
-      case 'API_KEY':
-        return KeyIcon;
-      case 'MEMBER':
-        return UsersIcon;
-      case 'USER':
-        return UserIcon;
-      case 'ENVIRONMENT':
-        return Cog6ToothIcon;
-      default:
-        return ClockIcon;
+  const getEntityIcon = (type: string) => {
+    switch (type) {
+      case 'FEATURE_FLAG': return <FlagIcon className="w-4 h-4" />;
+      case 'PROJECT': return <FolderIcon className="w-4 h-4" />;
+      case 'ORGANIZATION': return <BuildingOfficeIcon className="w-4 h-4" />;
+      case 'API_KEY': return <KeyIcon className="w-4 h-4" />;
+      case 'MEMBER': return <UsersIcon className="w-4 h-4" />;
+      case 'ENVIRONMENT': return <Cog6ToothIcon className="w-4 h-4" />;
+      default: return <ClockIcon className="w-4 h-4" />;
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 60) {
-      return `${diffMins}m ago`;
-    } else if (diffHours < 24) {
-      return `${diffHours}h ago`;
-    } else if (diffDays < 7) {
-      return `${diffDays}d ago`;
-    } else {
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    }
-  };
-
-  const clearFilters = () => {
-    setFilters({
-      action: 'all',
-      entityType: 'all',
-      userId: 'all',
-      projectId: 'all',
-      searchTerm: '',
-      dateRange: 'week',
-    });
-  };
-
-  const hasActiveFilters =
-    filters.action !== 'all' ||
-    filters.entityType !== 'all' ||
-    filters.userId !== 'all' ||
-    filters.projectId !== 'all' ||
-    filters.searchTerm !== '' ||
-    filters.dateRange !== 'week';
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div className="md:flex md:items-center md:justify-between">
-        <div className="min-w-0 flex-1">
-          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
-            Audit Logs
-          </h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Track all changes and activities in your organization
-          </p>
-        </div>
-        <div className="mt-4 flex md:ml-4 md:mt-0">
-          <button
-            onClick={() => window.location.reload()}
-            className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-          >
-            <ArrowPathIcon className="-ml-0.5 mr-1.5 h-5 w-5 text-gray-400" />
-            Refresh
-          </button>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Audit Logs</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Track all changes within your organization</p>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="rounded-lg bg-white shadow p-4">
-        <div className="flex flex-col gap-4">
-          {/* Search */}
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-            </div>
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by entity name, user, or email..."
+              placeholder="Search logs..."
+              className="w-full pl-9 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
               value={filters.searchTerm}
-              onChange={(e) =>
-                setFilters({ ...filters, searchTerm: e.target.value })
-              }
-              className="block w-full rounded-md border-gray-300 pl-10 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+              onChange={(e) => setFilters({ ...filters, searchTerm: e.target.value })}
             />
           </div>
 
-          {/* Filter dropdowns */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            <select
-              value={filters.action}
-              onChange={(e) =>
-                setFilters({ ...filters, action: e.target.value })
-              }
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-            >
-              <option value="all">All Actions</option>
-              <option value="CREATE">Created</option>
-              <option value="UPDATE">Updated</option>
-              <option value="DELETE">Deleted</option>
-              <option value="ENABLE">Enabled</option>
-              <option value="DISABLE">Disabled</option>
-              <option value="INVITE">Invited</option>
-              <option value="REVOKE">Revoked</option>
-              <option value="LOGIN">Login</option>
-              <option value="LOGOUT">Logout</option>
-            </select>
+          <select
+            className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md py-2 px-3 text-sm focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
+            value={filters.action}
+            onChange={(e) => setFilters({ ...filters, action: e.target.value })}
+          >
+            <option value="all">All Actions</option>
+            <option value="CREATE">Create</option>
+            <option value="UPDATE">Update</option>
+            <option value="DELETE">Delete</option>
+            <option value="ENABLE">Enable</option>
+            <option value="DISABLE">Disable</option>
+          </select>
 
-            <select
-              value={filters.entityType}
-              onChange={(e) =>
-                setFilters({ ...filters, entityType: e.target.value })
-              }
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-            >
-              <option value="all">All Entities</option>
-              <option value="FEATURE_FLAG">Feature Flag</option>
-              <option value="PROJECT">Project</option>
-              <option value="ORGANIZATION">Organization</option>
-              <option value="API_KEY">API Key</option>
-              <option value="MEMBER">Member</option>
-              <option value="USER">User</option>
-            </select>
+          <select
+            className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md py-2 px-3 text-sm focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
+            value={filters.entityType}
+            onChange={(e) => setFilters({ ...filters, entityType: e.target.value })}
+          >
+            <option value="all">All Entity Types</option>
+            <option value="FEATURE_FLAG">Feature Flags</option>
+            <option value="PROJECT">Projects</option>
+            <option value="ORGANIZATION">Organizations</option>
+            <option value="API_KEY">API Keys</option>
+            <option value="MEMBER">Members</option>
+          </select>
 
-            <select
-              value={filters.userId}
-              onChange={(e) =>
-                setFilters({ ...filters, userId: e.target.value })
-              }
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-            >
-              <option value="all">All Users</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
+          <select
+            className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md py-2 px-3 text-sm focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
+            value={filters.userId}
+            onChange={(e) => setFilters({ ...filters, userId: e.target.value })}
+          >
+            <option value="all">All Users</option>
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>{user.name}</option>
+            ))}
+          </select>
 
-            <select
-              value={filters.projectId}
-              onChange={(e) =>
-                setFilters({ ...filters, projectId: e.target.value })
-              }
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-            >
-              <option value="all">All Projects</option>
-              {projects.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
+          <select
+            className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md py-2 px-3 text-sm focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
+            value={filters.projectId}
+            onChange={(e) => setFilters({ ...filters, projectId: e.target.value })}
+          >
+            <option value="all">All Projects</option>
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>{project.name}</option>
+            ))}
+          </select>
 
-            <select
-              value={filters.dateRange}
-              onChange={(e) =>
-                setFilters({
-                  ...filters,
-                  dateRange: e.target.value as FilterState['dateRange'],
-                })
-              }
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-            >
-              <option value="today">Today</option>
-              <option value="week">Last 7 days</option>
-              <option value="month">Last 30 days</option>
-              <option value="all">All time</option>
-            </select>
-          </div>
-
-          {/* Clear filters */}
-          {hasActiveFilters && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">
-                Showing {filteredLogs.length} of {logs.length} results
-              </span>
-              <button
-                onClick={clearFilters}
-                className="text-sm text-primary-600 hover:text-primary-500 font-medium"
-              >
-                Clear all filters
-              </button>
-            </div>
-          )}
+          <select
+            className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md py-2 px-3 text-sm focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
+            value={filters.dateRange}
+            onChange={(e) => setFilters({ ...filters, dateRange: e.target.value as FilterState['dateRange'] })}
+          >
+            <option value="all">All Time</option>
+            <option value="today">Today</option>
+            <option value="week">Past Week</option>
+            <option value="month">Past Month</option>
+          </select>
         </div>
       </div>
 
-      {/* Logs Table */}
-      {isLoading ? (
-        <div className="rounded-lg bg-white shadow">
-          <div className="divide-y divide-gray-200">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="p-6 animate-pulse">
-                <div className="flex items-center space-x-4">
-                  <div className="h-10 w-10 bg-gray-200 rounded-full" />
-                  <div className="flex-1">
-                    <div className="h-4 w-48 bg-gray-200 rounded" />
-                    <div className="mt-2 h-3 w-32 bg-gray-200 rounded" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : filteredLogs.length === 0 ? (
-        <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
-          <ClockIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-semibold text-gray-900">
-            No audit logs found
-          </h3>
-          <p className="mt-1 text-sm text-gray-500">
-            {hasActiveFilters
-              ? 'Try adjusting your filters to see more results.'
-              : 'No activity has been recorded yet.'}
-          </p>
-        </div>
-      ) : (
-        <div className="overflow-hidden rounded-lg bg-white shadow">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Action
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Entity
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    User
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Project
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Time
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredLogs.map((log) => {
-                  const EntityIcon = getEntityIcon(log.entityType);
-
-                  return (
-                    <tr key={log.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={clsx(
-                            'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-                            getActionColor(log.action)
-                          )}
-                        >
-                          {log.action}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
-                            <EntityIcon className="h-4 w-4 text-gray-600" />
-                          </div>
-                          <div className="ml-3">
-                            <div className="text-sm font-medium text-gray-900">
-                              {log.entityName}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {log.entityType.replace('_', ' ')}
-                            </div>
-                          </div>
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-900/50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Activity</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Context</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {filteredLogs.length > 0 ? (
+                filteredLogs.map((log) => (
+                  <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-3">
+                        <div className={clsx('p-2 rounded-full', getActionColor(log.action))}>
+                          {getEntityIcon(log.entityType)}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
-                            <span className="text-sm font-medium text-primary-600">
-                              {log.userName.charAt(0)}
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <span className={clsx('px-2 py-0.5 rounded text-[10px] font-bold uppercase', getActionColor(log.action))}>
+                              {log.action}
                             </span>
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">{log.entityName}</span>
                           </div>
-                          <div className="ml-3">
-                            <div className="text-sm font-medium text-gray-900">
-                              {log.userName}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {log.userEmail}
-                            </div>
-                          </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{log.entityType.replace('_', ' ')}</p>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {log.projectName ? (
-                          <Link
-                            to={`/projects/${log.projectId}`}
-                            className="text-sm text-primary-600 hover:text-primary-500"
-                          >
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-7 h-7 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center">
+                          <UserIcon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{log.userName}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{log.userEmail}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="space-y-1">
+                        {log.projectName && (
+                          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                            <FolderIcon className="w-3 h-3 mr-1" />
                             {log.projectName}
-                          </Link>
-                        ) : (
-                          <span className="text-sm text-gray-400">—</span>
+                          </div>
                         )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span title={new Date(log.createdAt).toLocaleString()}>
-                          {formatDate(log.createdAt)}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        {log.organizationName && (
+                          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                            <BuildingOfficeIcon className="w-3 h-3 mr-1" />
+                            {log.organizationName}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                        <ClockIcon className="w-3 h-3 mr-1" />
+                        {new Date(log.createdAt).toLocaleString()}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                    No activity logs found matching your filters.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
     </div>
   );
 }

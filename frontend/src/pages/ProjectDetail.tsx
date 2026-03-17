@@ -113,28 +113,30 @@ export default function ProjectDetail() {
   const validOrgId = isValidObjectId(orgId) ? orgId : null;
   const validProjectId = isValidObjectId(projectId) ? projectId : null;
 
-  const fetchData = async () => {
+  const fetchData = async (skipLoading = false) => {
     if (!validProjectId) return;
     
     try {
-      setIsLoading(true);
+      if (!skipLoading) setIsLoading(true);
       
       // Use optimized API for multi-tenant projects
       const projectRes = await api.get(`/projects/${validProjectId}`);
-      setProject(projectRes.data);
-      setIsMultiTenant(projectRes.data.type === 'MULTI');
+      const projectData = projectRes.data.project || projectRes.data;
+      setProject(projectData);
+      setIsMultiTenant(projectData.type === 'MULTI');
       
-      if (projectRes.data.type === 'MULTI') {
+      if (projectData.type === 'MULTI') {
         const flagsWithBrandsRes = await api.get(`/projects/${validProjectId}/flags-with-brands`);
         setFeatureFlags(flagsWithBrandsRes.data.flags || []);
       } else {
         const flagsRes = await api.get(`/feature-flags/project/${validProjectId}`);
-        setFeatureFlags(flagsRes.data.featureFlags || []);
+        const flags = flagsRes.data.featureFlags || [];
+        setFeatureFlags(flags);
       }
     } catch (error) {
       console.error('Failed to fetch project data:', error);
     } finally {
-      setIsLoading(false);
+      if (!skipLoading) setIsLoading(false);
     }
   };
 
@@ -174,11 +176,20 @@ export default function ProjectDetail() {
       const response = await api.post(`/feature-flags/project/${validProjectId}`, {
         name: newFlagName,
         key: newFlagKey,
-        flagType: newFlagType,
-        defaultValue,
+        type: newFlagType,
+        initialValues: {
+          development: { enabled: false, value: defaultValue },
+          production: { enabled: false, value: defaultValue },
+        },
       });
-      // Response now includes environments from backend
-      setFeatureFlags([response.data, ...featureFlags]);
+      // Response includes flag with environments from backend
+      const newFlag = response.data.featureFlag || response.data;
+      if (newFlag.environments) {
+        setFeatureFlags([newFlag, ...featureFlags]);
+      } else {
+        // If no environments, fetch them
+        await fetchData();
+      }
       setShowCreateFlagDialog(false);
       setNewFlagName('');
       setNewFlagKey('');
@@ -212,7 +223,7 @@ export default function ProjectDetail() {
         environmentId,
         enabled: !enabled,
       });
-      // Optionally refresh after a small delay or trust the local state
+      // Refresh data to ensure consistency (without loading state to prevent scroll)
     } catch (error) {
       console.error('Failed to toggle flag:', error);
       // Rollback on error
@@ -258,6 +269,7 @@ export default function ProjectDetail() {
         environmentId,
         enabled: !enabled,
       });
+      // Refresh data to ensure consistency (without loading state to prevent scroll)
     } catch (error) {
       console.error('Failed to toggle brand flag:', error);
       // Rollback on error
@@ -300,15 +312,14 @@ export default function ProjectDetail() {
     if (!editingFlagEnv || !validProjectId) return;
     setIsSavingValue(true);
     try {
-      // Use new endpoints for better multi-tenant support
+      // Use correct endpoints for both single and multi-tenant
       if (project?.type === 'MULTI') {
         // For multi-tenant, save as default value (affects all brands without override)
-        await api.patch(`/api/feature-flags/${editingFlagEnv.flag.id}/environment/${editingFlagEnv.env.environmentId}/default`, {
+        await api.patch(`/feature-flags/${editingFlagEnv.flag.id}/environments/${editingFlagEnv.env.environmentId}`, {
           defaultValue: editValue,
-          enabled: editingFlagEnv.env.enabled
         });
       } else {
-        // For single-tenant, use legacy endpoint
+        // For single-tenant, use standard endpoint
         await api.patch(`/feature-flags/${editingFlagEnv.flag.id}/environments/${editingFlagEnv.env.environmentId}`, {
           defaultValue: editValue,
         });
@@ -317,10 +328,10 @@ export default function ProjectDetail() {
       // Refresh flags using the same logic as initial load
       if (project?.type === 'MULTI') {
         const flagsWithBrandsRes = await api.get(`/projects/${validProjectId}/flags-with-brands`);
-        setFeatureFlags(flagsWithBrandsRes.data.flags);
+        setFeatureFlags(flagsWithBrandsRes.data.flags || []);
       } else {
         const flagsRes = await api.get(`/feature-flags/project/${validProjectId}`);
-        setFeatureFlags(flagsRes.data);
+        setFeatureFlags(flagsRes.data.featureFlags || []);
       }
       
       setEditingFlagEnv(null);
@@ -393,7 +404,7 @@ export default function ProjectDetail() {
           </Button>
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white font-bold text-xl">
-              {project.name.charAt(0).toUpperCase()}
+              {project.name?.charAt(0).toUpperCase() || 'P'}
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
@@ -534,10 +545,15 @@ export default function ProjectDetail() {
                   </div>
                 </div>
 
-                {/* For Multi-Tenant: One card per environment with brands inside */}
+                {/* For Multi-Tenant: One card per environment with brand toggles only */}
                 {isMultiTenant ? (
                   <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {flag.environments?.map((env) => (
+                    {!flag.environments || flag.environments.length === 0 ? (
+                      <div className="col-span-3 text-sm text-muted-foreground p-4 border border-dashed rounded-lg">
+                        No environments found.
+                      </div>
+                    ) : (
+                    flag.environments.map((env) => (
                       <div
                         key={env.id}
                         className="p-4 rounded-lg border bg-muted border-border"
@@ -546,7 +562,7 @@ export default function ProjectDetail() {
                           {env.environmentName}
                         </h4>
                         <div className="space-y-3">
-                          {/* List all brands with their toggles - from env.brandValues */}
+                          {/* List all brands with their toggles */}
                           {env.brandValues?.map((brand) => {
                             const toggleKey = `${flag.id}-${env.environmentId}-${brand.brandId}`;
                             const isToggling = togglingBrandFlags.has(toggleKey);
@@ -583,32 +599,37 @@ export default function ProjectDetail() {
                             );
                           })}
                         </div>
-                        <div className="mt-3 pt-2 border-t border-border text-xs flex items-center gap-2">
-                          <span className={env.enabled ? "text-green-800 dark:text-green-200" : "text-muted-foreground"}>Value:</span>{' '}
-                          <code className={clsx(
-                            "px-1.5 py-0.5 rounded font-mono text-xs",
-                            env.enabled 
-                              ? "bg-green-100 dark:bg-green-900/50 text-green-900 dark:text-green-100" 
-                              : "bg-card text-foreground"
-                          )}>
-                            {env.defaultValue}
-                          </code>
-                          {flag.flagType !== 'BOOLEAN' && (
+                        {flag.flagType !== 'BOOLEAN' && (
+                          <div className="mt-3 pt-2 border-t border-border text-xs flex items-center gap-2">
+                            <span className={env.enabled ? "text-green-800 dark:text-green-200" : "text-muted-foreground"}>Value:</span>{' '}
+                            <code className={clsx(
+                              "px-1.5 py-0.5 rounded font-mono text-xs",
+                              env.enabled 
+                                ? "bg-green-100 dark:bg-green-900/50 text-green-900 dark:text-green-100" 
+                                : "bg-card text-foreground"
+                            )}>
+                              {env.defaultValue}
+                            </code>
                             <button
                               onClick={() => openEditValueDialog(flag, env)}
                               className="text-xs text-primary hover:text-primary/80 underline"
                             >
                               Edit
                             </button>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
-                    ))}
+                    )))}
                   </div>
                 ) : (
                   /* For Single-Tenant: Simple environment toggles */
                   <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {flag.environments?.map((env) => (
+                    {!flag.environments || flag.environments.length === 0 ? (
+                      <div className="col-span-3 text-sm text-muted-foreground p-4 border border-dashed rounded-lg">
+                        No environments found. Please refresh the page.
+                      </div>
+                    ) : (
+                    flag.environments.map((env) => (
                       <div
                         key={env.id}
                         className={clsx(
@@ -635,27 +656,27 @@ export default function ProjectDetail() {
                             />
                           </button>
                         </div>
-                        <div className="mt-2 text-sm flex items-center gap-2">
-                          <span className={env.enabled ? "text-green-800 dark:text-green-200" : "text-muted-foreground"}>Value:</span>{' '}
-                          <code className={clsx(
-                            "px-1.5 py-0.5 rounded font-mono text-xs",
-                            env.enabled 
-                              ? "bg-green-100 dark:bg-green-900/50 text-green-900 dark:text-green-100" 
-                              : "bg-card text-foreground"
-                          )}>
-                            {env.defaultValue}
-                          </code>
-                          {flag.flagType !== 'BOOLEAN' && (
+                        {flag.flagType !== 'BOOLEAN' && (
+                          <div className="mt-2 text-sm flex items-center gap-2">
+                            <span className={env.enabled ? "text-green-800 dark:text-green-200" : "text-muted-foreground"}>Value:</span>{' '}
+                            <code className={clsx(
+                              "px-1.5 py-0.5 rounded font-mono text-xs",
+                              env.enabled 
+                                ? "bg-green-100 dark:bg-green-900/50 text-green-900 dark:text-green-100" 
+                                : "bg-card text-foreground"
+                            )}>
+                              {env.defaultValue}
+                            </code>
                             <button
                               onClick={() => openEditValueDialog(flag, env)}
                               className="text-xs text-primary hover:text-primary/80 underline"
                             >
                               Edit
                             </button>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
-                    ))}
+                    )))}
                   </div>
                 )}
               </CardContent>

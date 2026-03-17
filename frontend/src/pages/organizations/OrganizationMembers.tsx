@@ -64,8 +64,8 @@ export default function OrganizationMembers() {
           api.get(`/organizations/${orgId}`),
           api.get(`/organizations/${orgId}/members`),
         ]);
-        setOrganization(orgRes.data);
-        setMembers(membersRes.data);
+        setOrganization(orgRes.data.organization || orgRes.data);
+        setMembers(membersRes.data.members || membersRes.data || []);
       } catch (error) {
         console.error('Failed to fetch data:', error);
         setMessage({ type: 'error', text: 'Failed to load members' });
@@ -218,7 +218,7 @@ export default function OrganizationMembers() {
                 <div key={member.id} className="flex items-center justify-between p-4 rounded-lg border">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-medium">
-                      {(member.firstName?.[0] || member.email[0]).toUpperCase()}
+                      {(member.firstName?.[0] || member.email?.[0] || '?').toUpperCase()}
                     </div>
                     <div>
                       <p className="font-medium">

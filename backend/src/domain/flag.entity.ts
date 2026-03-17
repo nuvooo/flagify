@@ -1,3 +1,5 @@
+import { generateObjectId } from '../shared/utils';
+
 export type FlagType = 'BOOLEAN' | 'STRING' | 'NUMBER' | 'JSON';
 
 export interface FlagProps {
@@ -20,7 +22,7 @@ export class Flag {
     const now = new Date();
     return new Flag({
       ...props,
-      id: crypto.randomUUID(),
+      id: generateObjectId(),
       createdAt: now,
       updatedAt: now,
     });

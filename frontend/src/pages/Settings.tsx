@@ -46,7 +46,7 @@ export default function Settings() {
     const fetchProfile = async () => {
       try {
         const response = await api.get('/auth/me');
-        const data = response.data;
+        const data = response.data.user || response.data;
         setProfile({
           ...data,
           name: `${data.firstName} ${data.lastName}`.trim(),
@@ -76,14 +76,16 @@ export default function Settings() {
         lastName,
       });
       
+      const updatedUser = response.data.user || response.data;
+      
       setProfile({
-        ...response.data,
-        name: `${response.data.firstName} ${response.data.lastName}`.trim(),
+        ...updatedUser,
+        name: `${updatedUser.firstName} ${updatedUser.lastName}`.trim(),
       });
       
       // Update auth store
       updateUser({
-        name: `${response.data.firstName} ${response.data.lastName}`.trim(),
+        name: `${updatedUser.firstName} ${updatedUser.lastName}`.trim(),
       });
       
       setMessage({ type: 'success', text: 'Profile updated successfully' });

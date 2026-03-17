@@ -102,10 +102,7 @@ export default function FeatureFlags() {
   const fetchProjects = async () => {
     try {
       const response = await api.get('/projects');
-      const projs = Array.isArray(response.data) 
-        ? response.data 
-        : response.data.projects || [];
-      setProjects(projs);
+      setProjects(response.data.projects || []);
     } catch (error) {
       console.error('Failed to fetch projects:', error);
     }

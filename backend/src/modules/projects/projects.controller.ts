@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Body, Param, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Req, UseGuards } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { AuthGuard } from '../../shared/auth.guard';
@@ -14,24 +14,27 @@ export class ProjectsController {
     return { projects };
   }
 
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    const project = await this.projectsService.findOne(id);
+    return { project };
+  }
+
+  @Get(':id/flags-with-brands')
+  async getFlagsWithBrands(@Param('id') id: string) {
+    return this.projectsService.getFlagsWithBrands(id);
+  }
+
+  @Get(':id/environments')
+  async getEnvironments(@Param('id') id: string) {
+    const envs = await this.projectsService.getEnvironments(id);
+    return { environments: envs };
+  }
+
   @Get('organization/:orgId')
-  async findByOrganization(
-    @Param('orgId') orgId: string,
-    @Req() req: any,
-  ) {
-    const projects = await this.projectsService.findByOrganization(orgId, req.user.userId);
-    return projects.map(p => ({
-      id: p.id,
-      name: p.name,
-      key: p.key,
-      description: p.description,
-      type: p.type,
-      organizationId: p.organizationId,
-      createdAt: p.createdAt,
-      updatedAt: p.updatedAt,
-      featureFlagCount: (p as any).featureFlagCount || 0,
-      environmentCount: (p as any).environmentCount || 0
-    }));
+  async findByOrganization(@Param('orgId') orgId: string) {
+    const projects = await this.projectsService.findByOrganization(orgId);
+    return { projects };
   }
 
   @Post('organization/:orgId')
@@ -44,9 +47,12 @@ export class ProjectsController {
     return { project };
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string, @Req() req: any) {
-    const project = await this.projectsService.findOne(id, req.user.userId);
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() body: { name?: string; description?: string; type?: 'SINGLE' | 'MULTI'; allowedOrigins?: string[] },
+  ) {
+    const project = await this.projectsService.update(id, body);
     return { project };
   }
 

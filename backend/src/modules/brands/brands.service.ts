@@ -5,6 +5,12 @@ import { PrismaService } from '../../shared/prisma.service';
 export class BrandsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async findByProject(projectId: string) {
+    return this.prisma.brand.findMany({
+      where: { projectId },
+    });
+  }
+
   async findFlagsForBrand(brandId: string) {
     const brand = await this.prisma.brand.findUnique({
       where: { id: brandId },
@@ -56,5 +62,69 @@ export class BrandsService {
         }),
       })),
     };
+  }
+
+  async create(projectId: string, data: { name: string; key: string; description?: string }) {
+    return this.prisma.brand.create({
+      data: {
+        name: data.name,
+        key: data.key,
+        description: data.description,
+        projectId,
+      },
+    });
+  }
+
+  async update(brandId: string, data: { name?: string; description?: string }) {
+    return this.prisma.brand.update({
+      where: { id: brandId },
+      data,
+    });
+  }
+
+  async delete(brandId: string) {
+    await this.prisma.brand.delete({ where: { id: brandId } });
+  }
+
+  async toggleFlag(brandId: string, flagId: string, environmentId: string, enabled?: boolean) {
+    // Try to find existing brand-specific flag environment
+    const existing = await this.prisma.flagEnvironment.findFirst({
+      where: { flagId, environmentId, brandId },
+    });
+
+    if (existing) {
+      const newEnabled = enabled !== undefined ? enabled : !existing.enabled;
+      return this.prisma.flagEnvironment.update({
+        where: { id: existing.id },
+        data: { enabled: newEnabled },
+      });
+    }
+
+    // Create new brand-specific flag environment
+    try {
+      return await this.prisma.flagEnvironment.create({
+        data: {
+          flagId,
+          environmentId,
+          brandId,
+          enabled: enabled ?? true,
+          defaultValue: 'false',
+        },
+      });
+    } catch (e: any) {
+      // If unique constraint, find and update instead
+      if (e.code === 'P2002') {
+        const found = await this.prisma.flagEnvironment.findFirst({
+          where: { flagId, environmentId, brandId },
+        });
+        if (found) {
+          return this.prisma.flagEnvironment.update({
+            where: { id: found.id },
+            data: { enabled: enabled ?? true },
+          });
+        }
+      }
+      throw e;
+    }
   }
 }

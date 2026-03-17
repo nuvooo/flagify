@@ -107,14 +107,15 @@ export default function ProjectSettings() {
           api.get(`/environments/project/${projectId}`),
           api.get(`/brands/project/${projectId}`),
         ]);
-        const data = projectRes.data;
-        setProject(data);
-        setName(data.name || '');
-        setDescription(data.description || '');
-        setProjectType(data.type || 'SINGLE');
-        setAllowedOrigins(data.allowedOrigins || []);
-        setEnvironments(envsRes.data);
-        setBrands(brandsRes.data);
+        const projectData = projectRes.data.project;
+        setProject(projectData);
+        setName(projectData.name || '');
+        setDescription(projectData.description || '');
+        setProjectType(projectData.type || 'SINGLE');
+        setAllowedOrigins(projectData.allowedOrigins || []);
+        
+        setEnvironments(envsRes.data.environments || []);
+        setBrands(brandsRes.data.brands || []);
       } catch (error) {
         console.error('Failed to fetch project:', error);
         setMessage({ type: 'error', text: 'Failed to load project' });
@@ -152,10 +153,10 @@ export default function ProjectSettings() {
         type: projectType,
         allowedOrigins,
       });
-      setProject(response.data);
+      setProject(response.data.project);
       setMessage({ 
         type: 'success', 
-        text: response.data.message || 'Project updated successfully' 
+        text: 'Project updated successfully' 
       });
       // Clear brands if converted to single-tenant
       if (projectType === 'SINGLE') {
@@ -192,13 +193,15 @@ export default function ProjectSettings() {
 
   const handleCreateEnvironment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!projectId) return;
+    if (!projectId || !project?.organizationId) return;
     try {
-      const response = await api.post(`/environments/project/${projectId}`, {
+      const response = await api.post(`/environments`, {
         name: envName,
         key: envKey,
+        projectId,
+        organizationId: project.organizationId,
       });
-      setEnvironments([...environments, response.data]);
+      setEnvironments([...environments, response.data.environment]);
       setShowEnvDialog(false);
       setEnvName('');
       setEnvKey('');
@@ -217,7 +220,7 @@ export default function ProjectSettings() {
       const response = await api.patch(`/environments/${editingEnv.id}`, {
         name: envName,
       });
-      setEnvironments(environments.map(e => e.id === editingEnv.id ? response.data : e));
+      setEnvironments(environments.map(e => e.id === editingEnv.id ? response.data.environment : e));
       setShowEnvDialog(false);
       setEditingEnv(null);
       setEnvName('');

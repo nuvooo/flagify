@@ -27,10 +27,106 @@ export class FlagsService {
       key: f.key,
       name: f.name,
       description: f.description,
-      type: f.flagType,
+      flagType: f.flagType,
       projectId: f.projectId,
-      isEnabled: false, // Would need separate query
+      enabled: false,
     }));
+  }
+
+  async findByProject(projectId: string) {
+    // Get project environments first
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: { environments: true },
+    });
+    
+    if (!project) throw new NotFoundException('Project not found');
+
+    const flags = await this.prisma.featureFlag.findMany({
+      where: { projectId },
+      include: {
+        flagEnvironments: {
+          include: { environment: true },
+        },
+      },
+    });
+
+    // Ensure all flags have environments (only non-brand ones)
+    for (const flag of flags) {
+      const existingEnvIds = new Set(
+        flag.flagEnvironments
+          .filter(fe => !fe.brandId) // Only non-brand environments
+          .map(fe => fe.environmentId)
+      );
+      
+      const missingEnvs = project.environments.filter(
+        env => !existingEnvIds.has(env.id)
+      );
+      
+      for (const env of missingEnvs) {
+        try {
+          await this.prisma.flagEnvironment.create({
+            data: {
+              flagId: flag.id,
+              environmentId: env.id,
+              brandId: null,
+              enabled: false,
+              defaultValue: flag.flagType === 'BOOLEAN' ? 'false' : 
+                           flag.flagType === 'NUMBER' ? '0' : 
+                           flag.flagType === 'JSON' ? '{}' : '',
+            },
+          });
+        } catch (e) {
+          // Ignore unique constraint errors
+          if (e.code !== 'P2002') throw e;
+        }
+      }
+    }
+
+    // Reload flags with created environments
+    const flagsWithEnvs = await this.prisma.featureFlag.findMany({
+      where: { projectId },
+      include: {
+        flagEnvironments: {
+          include: { environment: true },
+        },
+      },
+    });
+
+    return flagsWithEnvs.map(f => ({
+      id: f.id,
+      key: f.key,
+      name: f.name,
+      description: f.description,
+      flagType: f.flagType,
+      projectId: f.projectId,
+      environments: f.flagEnvironments
+        .filter(fe => !fe.brandId) // Only return non-brand environments
+        .map(fe => ({
+          id: fe.id,
+          environmentId: fe.environmentId,
+          environmentName: fe.environment.name,
+          enabled: fe.enabled,
+          defaultValue: fe.defaultValue,
+        })),
+    }));
+  }
+
+  async findOne(flagId: string) {
+    const f = await this.prisma.featureFlag.findUnique({
+      where: { id: flagId },
+    });
+
+    if (!f) throw new NotFoundException('Flag not found');
+
+    return {
+      id: f.id,
+      key: f.key,
+      name: f.name,
+      description: f.description,
+      flagType: f.flagType,
+      projectId: f.projectId,
+    };
   }
 
   async create(projectId: string, userId: string, dto: CreateFlagDto) {
@@ -66,7 +162,6 @@ export class FlagsService {
       createdById: userId,
     });
 
-    // Create flag
     const created = await this.prisma.featureFlag.create({
       data: {
         id: flag.id,
@@ -80,7 +175,6 @@ export class FlagsService {
       },
     });
 
-    // Create flag environments
     const envs = await Promise.all(
       project.environments.map(env =>
         this.prisma.flagEnvironment.create({
@@ -94,22 +188,132 @@ export class FlagsService {
       )
     );
 
+    // Get environments with names for the response
+    const envsWithNames = await this.prisma.flagEnvironment.findMany({
+      where: { flagId: created.id, brandId: null },
+      include: { environment: true },
+    });
+
     return {
-      flag: {
+      featureFlag: {
         id: created.id,
         key: created.key,
         name: created.name,
         description: created.description,
-        type: created.flagType,
+        flagType: created.flagType,
+        environments: envsWithNames.map(fe => ({
+          id: fe.id,
+          environmentId: fe.environmentId,
+          environmentName: fe.environment.name,
+          enabled: fe.enabled,
+          defaultValue: fe.defaultValue,
+        })),
       },
-      values: envs,
     };
+  }
+
+  async update(flagId: string, data: { name?: string; description?: string }) {
+    const updated = await this.prisma.featureFlag.update({
+      where: { id: flagId },
+      data,
+    });
+
+    return {
+      id: updated.id,
+      key: updated.key,
+      name: updated.name,
+      description: updated.description,
+      type: updated.flagType,
+      projectId: updated.projectId,
+    };
+  }
+
+  async toggle(flagId: string, environmentId: string, enabled?: boolean) {
+    // Try to find existing (checking both null and undefined for brandId)
+    const allEnvs = await this.prisma.flagEnvironment.findMany({
+      where: { flagId, environmentId },
+    });
+    const existing = allEnvs.find(fe => !fe.brandId);
+
+    if (existing) {
+      const newEnabled = enabled !== undefined ? enabled : !existing.enabled;
+      return this.prisma.flagEnvironment.update({
+        where: { id: existing.id },
+        data: { enabled: newEnabled },
+      });
+    }
+
+    try {
+      return await this.prisma.flagEnvironment.create({
+        data: {
+          flagId,
+          environmentId,
+          brandId: null,
+          enabled: enabled ?? true,
+          defaultValue: 'false',
+        },
+      });
+    } catch (e: any) {
+      // If unique constraint, try to find and update instead
+      if (e.code === 'P2002') {
+        const allEnvs = await this.prisma.flagEnvironment.findMany({
+          where: { flagId, environmentId },
+        });
+        const found = allEnvs.find(fe => !fe.brandId);
+        if (found) {
+          return this.prisma.flagEnvironment.update({
+            where: { id: found.id },
+            data: { enabled: enabled ?? true },
+          });
+        }
+      }
+      throw e;
+    }
+  }
+
+  async getEnvironments(flagId: string) {
+    const envs = await this.prisma.flagEnvironment.findMany({
+      where: { flagId, brandId: null },
+      include: { environment: true },
+    });
+
+    return envs.map(fe => ({
+      id: fe.environment.id,
+      name: fe.environment.name,
+      enabled: fe.enabled,
+      defaultValue: fe.defaultValue,
+    }));
+  }
+
+  async updateEnvironment(flagId: string, environmentId: string, data: { isEnabled?: boolean; defaultValue?: string }) {
+    const existing = await this.prisma.flagEnvironment.findFirst({
+      where: { flagId, environmentId, brandId: null },
+    });
+
+    if (existing) {
+      return this.prisma.flagEnvironment.update({
+        where: { id: existing.id },
+        data: {
+          enabled: data.isEnabled,
+          defaultValue: data.defaultValue,
+        },
+      });
+    }
+
+    return this.prisma.flagEnvironment.create({
+      data: {
+        flagId,
+        environmentId,
+        brandId: null,
+        enabled: data.isEnabled ?? false,
+        defaultValue: data.defaultValue ?? 'false',
+      },
+    });
   }
 
   async updateValue(flagId: string, environmentId: string, dto: UpdateFlagValueDto) {
     const brandId = dto.brandId || null;
     
-    // Check if record exists
     const existing = await this.prisma.flagEnvironment.findFirst({
       where: { flagId, environmentId, brandId },
     });

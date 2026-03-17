@@ -86,8 +86,8 @@ export default function ApiKeys() {
         api.get('/api-keys/my'),
         api.get('/organizations'),
       ]);
-      setApiKeys(keysRes.data || []);
-      setOrganizations(orgsRes.data || []);
+      setApiKeys(Array.isArray(keysRes.data) ? keysRes.data : keysRes.data.apiKeys || []);
+      setOrganizations(orgsRes.data.organizations || orgsRes.data || []);
     } catch (error) {
       console.error('Failed to fetch data:', error);
     } finally {

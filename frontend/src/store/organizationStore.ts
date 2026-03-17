@@ -81,8 +81,15 @@ export const useOrganizationStore = create<OrganizationState>((set) => ({
   fetchOrganizations: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await api.get('/organizations');
-      set({ organizations: response.data, isLoading: false });
+      const [orgsRes, statsRes] = await Promise.all([
+        api.get('/organizations'),
+        api.get('/organizations/stats'),
+      ]);
+      set({ 
+        organizations: orgsRes.data.organizations || orgsRes.data, 
+        stats: statsRes.data,
+        isLoading: false 
+      });
     } catch (error: any) {
       set({ error: error.response?.data?.error || 'Failed to fetch organizations', isLoading: false });
     }
@@ -97,8 +104,8 @@ export const useOrganizationStore = create<OrganizationState>((set) => ({
       ]);
       set({ 
         currentOrganization: {
-          ...orgResponse.data,
-          projects: projectsResponse.data,
+          ...(orgResponse.data.organization || orgResponse.data),
+          projects: projectsResponse.data.projects || projectsResponse.data,
         }, 
         isLoading: false 
       });
@@ -111,7 +118,7 @@ export const useOrganizationStore = create<OrganizationState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await api.post('/organizations', data);
-      const newOrg = response.data;
+      const newOrg = response.data.organization || response.data;
       set((state) => ({
         organizations: [...state.organizations, newOrg],
         isLoading: false,
@@ -129,10 +136,10 @@ export const useOrganizationStore = create<OrganizationState>((set) => ({
       const response = await api.patch(`/organizations/${id}`, data);
       set((state) => ({
         organizations: state.organizations.map((org) =>
-          org.id === id ? { ...org, ...response.data } : org
+          org.id === id ? { ...org, ...(response.data.organization || response.data) } : org
         ),
         currentOrganization: state.currentOrganization?.id === id 
-          ? { ...state.currentOrganization, ...response.data }
+          ? { ...state.currentOrganization, ...(response.data.organization || response.data) }
           : state.currentOrganization,
         isLoading: false,
       }));

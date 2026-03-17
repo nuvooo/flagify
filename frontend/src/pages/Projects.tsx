@@ -61,11 +61,7 @@ export default function Projects() {
       setIsLoading(true);
       setError(null);
       const response = await api.get('/projects');
-      // Handle both direct array and wrapped response
-      const projs = Array.isArray(response.data) 
-        ? response.data 
-        : response.data.projects || [];
-      setProjects(projs);
+      setProjects(response.data.projects || []);
     } catch (err) {
       console.error('Failed to fetch projects:', err);
       setError('Failed to load projects. Please try again later.');
@@ -77,10 +73,7 @@ export default function Projects() {
   const fetchOrganizations = async () => {
     try {
       const response = await api.get('/organizations');
-      const orgs = Array.isArray(response.data) 
-        ? response.data 
-        : response.data.organizations || [];
-      setOrganizations(orgs);
+      setOrganizations(response.data.organizations || []);
     } catch (err) {
       console.error('Failed to fetch organizations:', err);
     }
