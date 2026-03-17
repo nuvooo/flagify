@@ -194,8 +194,10 @@ export class TogglelyClient {
     // Fetch from server
     try {
       const params = new URLSearchParams();
+      // Send API key as query parameter (required by backend)
+      if (this.config.apiKey) params.set('apiKey', this.config.apiKey);
       const brandKey = this.context.tenantId || this.context.brandKey;
-      if (brandKey) params.set('brandKey', String(brandKey));
+      if (brandKey) params.set('tenantId', String(brandKey));
       // Always send context if available (needed for targeting rules)
       if (Object.keys(this.context).length > 0) {
         params.set('context', JSON.stringify(this.context));
@@ -205,14 +207,7 @@ export class TogglelyClient {
       
       console.log(`[Togglely SDK] Fetching: ${url}`);
       
-      const response = await this.fetchWithTimeout(url,
-        {
-          headers: {
-            'Authorization': `Bearer ${this.config.apiKey}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      const response = await this.fetchWithTimeout(url, { headers: { 'Content-Type': 'application/json' } });
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -339,21 +334,17 @@ export class TogglelyClient {
   async refresh(): Promise<void> {
     try {
       const params = new URLSearchParams();
+      // Send API key as query parameter (required by backend)
       if (this.config.apiKey) params.set('apiKey', this.config.apiKey);
       const brandKey = this.context.tenantId || this.context.brandKey;
-      if (brandKey) params.set('brandKey', String(brandKey));
+      if (brandKey) params.set('tenantId', String(brandKey));
       // Always send context if available (needed for targeting rules)
       if (Object.keys(this.context).length > 0) {
         params.set('context', JSON.stringify(this.context));
       }
       const response = await this.fetchWithTimeout(
         `${this.config.baseUrl}/sdk/flags/${this.config.project}/${this.config.environment}?${params.toString()}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${this.config.apiKey}`,
-            'Content-Type': 'application/json'
-          }
-        }
+        { headers: { 'Content-Type': 'application/json' } }
       );
 
       if (!response.ok) {
