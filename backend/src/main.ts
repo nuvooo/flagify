@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import cors from 'cors';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { SdkService } from './modules/sdk/sdk.service';
 
@@ -10,20 +12,21 @@ async function bootstrap() {
   
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   
-  app.enableCors({
+  // CORS for all routes including SDK
+  app.use(cors({
     origin: [
       process.env.FRONTEND_URL || 'http://localhost:3000',
       'http://localhost:5173',
       'https://togglely.de'
     ],
     credentials: true,
-  });
+  }));
   
   app.use(morgan('combined'));
   
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   
-  // Register standalone routes BEFORE global prefix
+  // Register standalone routes BEFORE global prefix and BEFORE CORS
   const httpAdapter = app.getHttpAdapter();
   const sdkService = app.get(SdkService);
   
@@ -91,6 +94,55 @@ async function bootstrap() {
   });
   
   app.setGlobalPrefix('api');
+  
+  // Swagger/OpenAPI Documentation
+  const config = new DocumentBuilder()
+    .setTitle('Togglely API')
+    .setDescription('Feature Flag Management API. SDK endpoints are available at /sdk/flags/...')
+    .setVersion('2.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  
+  // Manually add SDK endpoints to Swagger
+  document.paths['/sdk/flags/{projectKey}/{environmentKey}'] = {
+    get: {
+      tags: ['SDK'],
+      summary: 'Get all flags for project/environment',
+      parameters: [
+        { name: 'projectKey', in: 'path', required: true, schema: { type: 'string' } },
+        { name: 'environmentKey', in: 'path', required: true, schema: { type: 'string' } },
+        { name: 'tenantId', in: 'query', required: false, schema: { type: 'string' }, description: 'Brand key for multi-tenant projects' },
+        { name: 'brandKey', in: 'query', required: false, schema: { type: 'string' }, description: 'Alternative to tenantId' },
+        { name: 'apiKey', in: 'query', required: false, schema: { type: 'string' } },
+      ],
+      responses: {
+        '200': { description: 'Returns all flags with their values' },
+        '404': { description: 'Project or environment not found' },
+      },
+    },
+  };
+  
+  document.paths['/sdk/flags/{projectKey}/{environmentKey}/{flagKey}'] = {
+    get: {
+      tags: ['SDK'],
+      summary: 'Get single flag value',
+      parameters: [
+        { name: 'projectKey', in: 'path', required: true, schema: { type: 'string' } },
+        { name: 'environmentKey', in: 'path', required: true, schema: { type: 'string' } },
+        { name: 'flagKey', in: 'path', required: true, schema: { type: 'string' } },
+        { name: 'tenantId', in: 'query', required: false, schema: { type: 'string' } },
+        { name: 'brandKey', in: 'query', required: false, schema: { type: 'string' } },
+        { name: 'apiKey', in: 'query', required: false, schema: { type: 'string' } },
+      ],
+      responses: {
+        '200': { description: 'Returns flag value and status' },
+        '404': { description: 'Flag not found' },
+      },
+    },
+  };
+  
+  SwaggerModule.setup('docs', app, document);
   
   const port = process.env.PORT || 4000;
   await app.listen(port, '0.0.0.0');

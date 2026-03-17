@@ -10,7 +10,7 @@ RUN apt-get update && \
 
 # Copy package files
 COPY package*.json ./
-RUN npm install --include=dev
+RUN npm install --include=dev --legacy-peer-deps
 
 # Install nest CLI globally for build
 RUN npm install -g @nestjs/cli
