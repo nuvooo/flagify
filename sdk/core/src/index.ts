@@ -203,7 +203,7 @@ export class TogglelyClient {
         params.set('context', JSON.stringify(this.context));
       }
       const query = params.toString() ? `?${params.toString()}` : '';
-      const url = `${this.config.baseUrl}/sdk/flags/${this.config.project}/${this.config.environment}/${key}${query}`;
+      const url = `${this.config.baseUrl}/sdk/flags/${encodeURIComponent(this.config.project)}/${encodeURIComponent(this.config.environment)}/${encodeURIComponent(key)}${query}`;
       
       console.log(`[Togglely SDK] Fetching: ${url}`);
       
@@ -343,7 +343,7 @@ export class TogglelyClient {
         params.set('context', JSON.stringify(this.context));
       }
       const response = await this.fetchWithTimeout(
-        `${this.config.baseUrl}/sdk/flags/${this.config.project}/${this.config.environment}?${params.toString()}`,
+        `${this.config.baseUrl}/sdk/flags/${encodeURIComponent(this.config.project)}/${encodeURIComponent(this.config.environment)}?${params.toString()}`,
         { headers: { 'Content-Type': 'application/json' } }
       );
 
