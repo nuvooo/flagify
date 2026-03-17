@@ -33,10 +33,46 @@ async function bootstrap() {
   });
   
   // SDK endpoints
+  
+  // Get all flags for project/environment (for SDK initialization)
+  httpAdapter.get('/sdk/flags/:projectKey/:environmentKey', async (req, res) => {
+    try {
+      const { projectKey, environmentKey } = req.params;
+      const { brandKey, apiKey } = req.query;
+      
+      // Validate API key if provided
+      if (apiKey) {
+        const validKey = await sdkService.validateApiKey(apiKey as string, projectKey);
+        if (!validKey) {
+          return res.status(401).json({ error: 'Invalid API key' });
+        }
+      }
+      
+      const results = await sdkService.evaluateAllFlags(
+        projectKey,
+        environmentKey,
+        brandKey as string,
+      );
+      res.json(results);
+    } catch (error) {
+      res.status(404).json({ error: 'Project or environment not found' });
+    }
+  });
+  
+  // Get single flag
   httpAdapter.get('/sdk/flags/:projectKey/:environmentKey/:flagKey', async (req, res) => {
     try {
       const { projectKey, environmentKey, flagKey } = req.params;
-      const { brandKey } = req.query;
+      const { brandKey, apiKey } = req.query;
+      
+      // Validate API key if provided
+      if (apiKey) {
+        const validKey = await sdkService.validateApiKey(apiKey as string, projectKey);
+        if (!validKey) {
+          return res.status(401).json({ error: 'Invalid API key' });
+        }
+      }
+      
       const result = await sdkService.evaluateFlag(
         projectKey,
         environmentKey,
