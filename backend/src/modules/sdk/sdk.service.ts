@@ -39,13 +39,18 @@ export class SdkService {
       if (brand) brandId = brand.id;
     }
 
-    const flagEnv = await this.prisma.flagEnvironment.findFirst({
+    // Find flag environment - handle both null and undefined for brandId
+    const flagEnvs = await this.prisma.flagEnvironment.findMany({
       where: {
         flagId: flag.id,
         environmentId: environment.id,
-        brandId,
       },
     });
+    
+    // Find matching environment (check for brand match or default/no brand)
+    const flagEnv = flagEnvs.find(fe => 
+      brandId ? fe.brandId === brandId : !fe.brandId
+    );
 
     if (!flagEnv || !flagEnv.enabled) {
       return { value: false, enabled: false, flagType: flag.flagType };
