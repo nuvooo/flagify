@@ -5,7 +5,7 @@ import { SdkService } from './sdk.service';
 export class SdkController {
   constructor(private readonly sdkService: SdkService) {}
 
-  @Get(':projectKey/:environmentKey/:flagKey')
+  @Get('flags/:projectKey/:environmentKey/:flagKey')
   async evaluateFlag(
     @Param('projectKey') projectKey: string,
     @Param('environmentKey') environmentKey: string,
