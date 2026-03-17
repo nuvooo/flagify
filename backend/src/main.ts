@@ -15,7 +15,7 @@ async function bootstrap() {
     if (req.path && req.path.startsWith('/api/swagger')) {
       res.setHeader(
         'Content-Security-Policy',
-        "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; connect-src 'self'; font-src 'self' data:"
+        "default-src 'self'; style-src * 'unsafe-inline'; img-src * data:; script-src * 'unsafe-inline'; connect-src *; font-src * data:"
       );
       return next();
     }
@@ -192,8 +192,14 @@ Public SDK endpoints are available at /sdk/flags/ without authentication`)
     },
   };
   
-  // Setup Swagger at /api/swagger
-  SwaggerModule.setup('api/swagger', app, document);
+  // Setup Swagger at /api/swagger — use CDN assets to avoid local static file path issues
+  SwaggerModule.setup('api/swagger', app, document, {
+    customCssUrl: 'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css',
+    customJs: [
+      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js',
+      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js',
+    ],
+  });
   
   const port = process.env.PORT || 4000;
   await app.listen(port, '0.0.0.0');
