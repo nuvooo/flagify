@@ -98,11 +98,58 @@ async function bootstrap() {
   // Swagger/OpenAPI Documentation
   const config = new DocumentBuilder()
     .setTitle('Togglely API')
-    .setDescription('Feature Flag Management API. SDK endpoints are available at /sdk/flags/...')
+    .setDescription(`Feature Flag Management API
+
+## Authentication
+1. Login with POST /api/auth/login (email + password)
+2. Copy the token from the response
+3. Click "Authorize" button and enter: Bearer {token}
+
+## SDK Endpoints
+Public SDK endpoints are available at /sdk/flags/ without authentication`)
     .setVersion('2.0')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
+  
+  // Manually add Auth endpoint to Swagger
+  document.paths['/api/auth/login'] = {
+    post: {
+      tags: ['Auth'],
+      summary: 'Login with email and password',
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                email: { type: 'string', example: 'demo@togglely.io' },
+                password: { type: 'string', example: 'demo1234!' },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        '200': { 
+          description: 'Returns JWT token',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  token: { type: 'string' },
+                  user: { type: 'object' },
+                },
+              },
+            },
+          },
+        },
+        '401': { description: 'Invalid credentials' },
+      },
+    },
+  };
   
   // Manually add SDK endpoints to Swagger
   document.paths['/sdk/flags/{projectKey}/{environmentKey}'] = {
@@ -142,7 +189,7 @@ async function bootstrap() {
     },
   };
   
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('api/docs', app, document);
   
   const port = process.env.PORT || 4000;
   await app.listen(port, '0.0.0.0');

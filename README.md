@@ -5,7 +5,7 @@
 A complete, self-hosted Feature Toggle Management Platform. Manage feature flags, organizations, projects, and environments with a modern web interface and a powerful API.
 
 🌐 **Live Demo**: [togglely.de](https://togglely.de/)  
-📖 **Documentation**: [togglely.de/docs](https://togglely.de/docs)  
+📖 **API Documentation**: [togglely.de/api/docs](https://togglely.de/api/docs)  
 💻 **GitHub**: [github.com/nuvooo/togglely](https://github.com/nuvooo/togglely)
 
 ## ✨ Features

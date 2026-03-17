@@ -1,10 +1,12 @@
 import { Controller, Post, Get, Patch, Body, Req, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiBody, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '../../shared/auth.guard';
 import { PrismaService } from '../../shared/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import * as bcrypt from 'bcryptjs';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(
