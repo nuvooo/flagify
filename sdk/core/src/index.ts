@@ -150,9 +150,18 @@ export class TogglelyClient {
   // ==================== Toggle Accessors ====================
 
   async isEnabled(key: string, defaultValue: boolean = false): Promise<boolean> {
+    console.log(`[Togglely SDK] isEnabled("${key}", default=${defaultValue})`);
     const value = await this.getValue(key);
-    if (value === null) return defaultValue;
-    return value.enabled && value.value === true;
+    console.log(`[Togglely SDK] isEnabled result for "${key}":`, value);
+    
+    if (value === null) {
+      console.log(`[Togglely SDK] "${key}" not found, returning default: ${defaultValue}`);
+      return defaultValue;
+    }
+    
+    const result = value.enabled && value.value === true;
+    console.log(`[Togglely SDK] "${key}" enabled=${value.enabled}, value=${value.value} → returning ${result}`);
+    return result;
   }
 
   async getString(key: string, defaultValue: string = ''): Promise<string> {
@@ -187,6 +196,7 @@ export class TogglelyClient {
     if (Object.keys(this.context).length === 0) {
       const cached = this.toggles.get(key);
       if (cached) {
+        console.log(`[Togglely SDK] Cache hit for "${key}":`, cached);
         return cached;
       }
     }
@@ -209,14 +219,32 @@ export class TogglelyClient {
       
       const response = await this.fetchWithTimeout(url, { headers: { 'Content-Type': 'application/json' } });
 
+      console.log(`[Togglely SDK] Response status: ${response.status}`);
+
       if (!response.ok) {
+        // Try to get error details from response
+        let errorBody = '';
+        try {
+          errorBody = await response.text();
+          console.error(`[Togglely SDK] Error response body:`, errorBody);
+        } catch {}
+        
         if (response.status === 404) {
+          console.log(`[Togglely SDK] Flag "${key}" not found (404)`);
           return null;
         }
-        throw new Error(`HTTP ${response.status}`);
+        if (response.status === 401) {
+          console.error(`[Togglely SDK] Authentication failed (401) - Check your API key`);
+        }
+        if (response.status === 403) {
+          console.error(`[Togglely SDK] Forbidden (403) - Origin not allowed`);
+        }
+        throw new Error(`HTTP ${response.status}: ${errorBody || response.statusText}`);
       }
 
       const data: ToggleValue = await response.json();
+      console.log(`[Togglely SDK] Received data for "${key}":`, data);
+      
       this.toggles.set(key, data);
       
       // Update state if we were offline
@@ -226,15 +254,21 @@ export class TogglelyClient {
       }
       
       return data;
-    } catch (error) {
-      // Try offline fallback
-      const offlineValue = this.getOfflineToggle(key);
-      if (offlineValue !== null) {
-        return offlineValue;
+    } catch (error: any) {
+      console.error(`[Togglely SDK] Network/Error for "${key}":`, error.message);
+      
+      // Try offline fallback only if enabled
+      if (this.config.offlineFallback) {
+        const offlineValue = this.getOfflineToggle(key);
+        if (offlineValue !== null) {
+          console.log(`[Togglely SDK] Using offline fallback for "${key}":`, offlineValue);
+          return offlineValue;
+        }
       }
       
-      console.error(`[Togglely] Failed to fetch toggle "${key}":`, error);
-      return null;
+      // Return safe default instead of null
+      console.warn(`[Togglely SDK] Returning default (disabled) for "${key}" due to error`);
+      return { value: false, enabled: false };
     }
   }
 

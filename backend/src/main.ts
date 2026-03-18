@@ -24,24 +24,34 @@ async function bootstrap() {
   
   // CORS for all routes including SDK
   // Allow multiple origins via CORS_ORIGINS env variable
-  const corsOrigins = process.env.CORS_ORIGINS 
-    ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
-    : [
-        'http://localhost:3000',
-        'http://localhost:5173',
-        'https://togglely.de',
-        'https://app.togglely.de',
-        'https://api.togglely.de',
-      ];
+  const corsOriginsEnv = process.env.CORS_ORIGINS || '';
+  const corsOrigins = corsOriginsEnv
+    ? corsOriginsEnv.split(',').map(o => o.trim()).filter(o => o)
+    : [];
+  
+  console.log('[CORS] Configuration:');
+  console.log(`[CORS] CORS_ORIGINS env: "${corsOriginsEnv}"`);
+  console.log(`[CORS] Parsed origins:`, corsOrigins.length > 0 ? corsOrigins : 'ALLOWING ALL (*)');
+  
+  // Check if we should allow all origins
+  const allowAll = corsOrigins.length === 0 || corsOrigins.includes('*');
   
   app.use(cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, curl, etc.)
-      if (!origin) return callback(null, true);
+      // Allow requests with no origin (mobile apps, curl, server-side, etc.)
+      if (!origin) {
+        console.log(`[CORS] Allowing request with no origin (curl/mobile)`);
+        return callback(null, true);
+      }
       
-      // Check against allowed origins
+      // If CORS_ORIGINS is empty or contains *, allow all
+      if (allowAll) {
+        console.log(`[CORS] Allowing origin: ${origin} (wildcard mode)`);
+        return callback(null, true);
+      }
+      
+      // Check against allowed origins list
       const allowed = corsOrigins.some(allowed => {
-        if (allowed === '*') return true;
         if (allowed === origin) return true;
         // Wildcard support: *.example.com
         if (allowed.startsWith('*.')) {
@@ -52,13 +62,17 @@ async function bootstrap() {
       });
       
       if (allowed) {
+        console.log(`[CORS] Allowing origin: ${origin}`);
         callback(null, true);
       } else {
-        console.warn(`[CORS] Blocked origin: ${origin}`);
-        callback(new Error('Not allowed by CORS'));
+        console.warn(`[CORS] BLOCKED origin: ${origin}`);
+        console.warn(`[CORS] Allowed origins:`, corsOrigins);
+        callback(new Error(`Origin ${origin} not allowed`));
       }
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   }));
   
   app.use(morgan('combined'));
@@ -74,70 +88,106 @@ async function bootstrap() {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
   
-  // SDK endpoints
+  // SDK endpoints with DEBUG logging
   
   // Get single flag - MUST be registered BEFORE the list endpoint!
   httpAdapter.get('/sdk/flags/:projectKey/:environmentKey/:flagKey', async (req, res) => {
+    const { projectKey, environmentKey, flagKey } = req.params;
+    const { brandKey, tenantId, apiKey: queryApiKey } = req.query;
+    const effectiveBrandKey = brandKey || tenantId;
+    
+    // Accept apiKey from query param OR Authorization: Bearer header
+    const authHeader = req.headers['authorization'] as string | undefined;
+    const bearerKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const apiKey = (queryApiKey as string | undefined) || bearerKey;
+    const origin = req.headers['origin'] as string | undefined;
+    
+    console.log(`[SDK] Request: /sdk/flags/${projectKey}/${environmentKey}/${flagKey}`);
+    console.log(`[SDK] API Key present: ${!!apiKey}, Origin: ${origin || 'none'}`);
+    
     try {
-      const { projectKey, environmentKey, flagKey } = req.params;
-      const { brandKey, tenantId, apiKey: queryApiKey } = req.query;
-      const effectiveBrandKey = brandKey || tenantId;
-      
-      // Accept apiKey from query param OR Authorization: Bearer header
-      const authHeader = req.headers['authorization'] as string | undefined;
-      const bearerKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
-      const apiKey = (queryApiKey as string | undefined) || bearerKey;
-      const origin = req.headers['origin'] as string | undefined;
+      if (!apiKey) {
+        console.log('[SDK] ERROR: No API key provided');
+        return res.status(401).json({ error: 'API key required', code: 'MISSING_API_KEY' });
+      }
       
       const result = await sdkService.evaluateFlag(
         projectKey,
         environmentKey,
         flagKey,
-        apiKey as string,
+        apiKey,
         effectiveBrandKey as string,
         origin,
       );
+      
+      console.log(`[SDK] Success: ${flagKey} =`, result);
       res.json(result);
     } catch (error: any) {
-      if (error.status === 401) {
-        return res.status(401).json({ error: error.message || 'Unauthorized' });
+      console.error(`[SDK] Error for ${flagKey}:`, error.message);
+      
+      if (error.status === 401 || error.message?.includes('Invalid API key')) {
+        return res.status(401).json({ error: error.message || 'Invalid API key', code: 'INVALID_API_KEY' });
       }
-      if (error.status === 403) {
-        return res.status(403).json({ error: error.message || 'Forbidden' });
+      if (error.status === 403 || error.message?.includes('Origin not allowed')) {
+        return res.status(403).json({ error: error.message || 'Origin not allowed', code: 'ORIGIN_NOT_ALLOWED' });
       }
-      res.status(404).json({ error: 'Flag not found' });
+      if (error.message?.includes('Project not found')) {
+        return res.status(404).json({ error: 'Project not found', code: 'PROJECT_NOT_FOUND' });
+      }
+      if (error.message?.includes('Environment not found')) {
+        return res.status(404).json({ error: 'Environment not found', code: 'ENV_NOT_FOUND' });
+      }
+      res.status(500).json({ error: error.message || 'Internal error', code: 'INTERNAL_ERROR' });
     }
   });
   
   // Get all flags for project/environment
   httpAdapter.get('/sdk/flags/:projectKey/:environmentKey', async (req, res) => {
+    const { projectKey, environmentKey } = req.params;
+    const { brandKey, tenantId, apiKey: queryApiKey } = req.query;
+    const effectiveBrandKey = brandKey || tenantId;
+    
+    // Accept apiKey from query param OR Authorization: Bearer header
+    const authHeader = req.headers['authorization'] as string | undefined;
+    const bearerKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const apiKey = (queryApiKey as string | undefined) || bearerKey;
+    const origin = req.headers['origin'] as string | undefined;
+    
+    console.log(`[SDK] Request: /sdk/flags/${projectKey}/${environmentKey}`);
+    console.log(`[SDK] API Key present: ${!!apiKey}, Origin: ${origin || 'none'}`);
+    
     try {
-      const { projectKey, environmentKey } = req.params;
-      const { brandKey, tenantId, apiKey: queryApiKey } = req.query;
-      const effectiveBrandKey = brandKey || tenantId;
-      
-      // Accept apiKey from query param OR Authorization: Bearer header
-      const authHeader = req.headers['authorization'] as string | undefined;
-      const bearerKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
-      const apiKey = (queryApiKey as string | undefined) || bearerKey;
-      const origin = req.headers['origin'] as string | undefined;
+      if (!apiKey) {
+        console.log('[SDK] ERROR: No API key provided');
+        return res.status(401).json({ error: 'API key required', code: 'MISSING_API_KEY' });
+      }
       
       const results = await sdkService.getAllFlags(
         projectKey,
         environmentKey,
-        apiKey as string,
+        apiKey,
         effectiveBrandKey as string,
         origin,
       );
+      
+      console.log(`[SDK] Success: ${Object.keys(results).length} flags returned`);
       res.json(results);
     } catch (error: any) {
-      if (error.status === 401) {
-        return res.status(401).json({ error: error.message || 'Unauthorized' });
+      console.error(`[SDK] Error:`, error.message);
+      
+      if (error.status === 401 || error.message?.includes('Invalid API key')) {
+        return res.status(401).json({ error: error.message || 'Invalid API key', code: 'INVALID_API_KEY' });
       }
-      if (error.status === 403) {
-        return res.status(403).json({ error: error.message || 'Forbidden' });
+      if (error.status === 403 || error.message?.includes('Origin not allowed')) {
+        return res.status(403).json({ error: error.message || 'Origin not allowed', code: 'ORIGIN_NOT_ALLOWED' });
       }
-      res.status(404).json({ error: 'Project or environment not found' });
+      if (error.message?.includes('Project not found')) {
+        return res.status(404).json({ error: 'Project not found', code: 'PROJECT_NOT_FOUND' });
+      }
+      if (error.message?.includes('Environment not found')) {
+        return res.status(404).json({ error: 'Environment not found', code: 'ENV_NOT_FOUND' });
+      }
+      res.status(500).json({ error: error.message || 'Internal error', code: 'INTERNAL_ERROR' });
     }
   });
   
