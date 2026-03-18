@@ -253,42 +253,44 @@ export class FlagsService {
   }
 
   async toggle(flagId: string, environmentId: string, enabled?: boolean) {
-    // Try to find existing (checking both null and undefined for brandId)
     const allEnvs = await this.prisma.flagEnvironment.findMany({
       where: { flagId, environmentId },
     });
-    const existing = allEnvs.find(fe => !fe.brandId);
 
-    if (existing) {
-      const newEnabled = enabled !== undefined ? enabled : !existing.enabled;
-      return this.prisma.flagEnvironment.update({
-        where: { id: existing.id },
+    const globalEnv = allEnvs.find(fe => !fe.brandId);
+    const newEnabled = enabled !== undefined ? enabled : !(globalEnv?.enabled ?? false);
+
+    if (allEnvs.length > 0) {
+      // Update ALL records (global + all brands) so they stay in sync
+      await this.prisma.flagEnvironment.updateMany({
+        where: { flagId, environmentId },
         data: { enabled: newEnabled },
       });
+      return { flagId, environmentId, enabled: newEnabled };
     }
 
+    // No records exist yet — create the global one
     try {
       return await this.prisma.flagEnvironment.create({
         data: {
           flagId,
           environmentId,
           brandId: null,
-          enabled: enabled ?? true,
+          enabled: newEnabled,
           defaultValue: 'false',
         },
       });
     } catch (e: any) {
-      // If unique constraint, try to find and update instead
       if (e.code === 'P2002') {
-        const allEnvs = await this.prisma.flagEnvironment.findMany({
+        const allEnvs2 = await this.prisma.flagEnvironment.findMany({
           where: { flagId, environmentId },
         });
-        const found = allEnvs.find(fe => !fe.brandId);
-        if (found) {
-          return this.prisma.flagEnvironment.update({
-            where: { id: found.id },
-            data: { enabled: enabled ?? true },
+        if (allEnvs2.length > 0) {
+          await this.prisma.flagEnvironment.updateMany({
+            where: { flagId, environmentId },
+            data: { enabled: newEnabled },
           });
+          return { flagId, environmentId, enabled: newEnabled };
         }
       }
       throw e;

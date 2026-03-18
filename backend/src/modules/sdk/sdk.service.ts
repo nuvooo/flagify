@@ -160,19 +160,6 @@ export class SdkService {
     
     console.log(`[SDK Service] FlagEnvironment: enabled=${flagEnv.enabled}, value=${flagEnv.defaultValue}`);
 
-    // Global kill-switch: if a brand-specific record is used, also check the global (no-brand)
-    // record. If the global record is disabled, the flag is disabled for ALL brands.
-    let effectiveEnabled = flagEnv.enabled;
-    if (brandId && flagEnv.enabled) {
-      const globalFlagEnv = await this.prisma.flagEnvironment.findFirst({
-        where: { flagId: flag.id, environmentId: environment.id, brandId: null },
-      });
-      if (globalFlagEnv && !globalFlagEnv.enabled) {
-        console.log(`[SDK Service] Global kill-switch active: flag disabled globally`);
-        effectiveEnabled = false;
-      }
-    }
-
     const domainFlag = Flag.reconstitute({
       id: flag.id,
       key: flag.key,
@@ -188,7 +175,7 @@ export class SdkService {
 
     return {
       value: domainFlag.parseValue(flagEnv.defaultValue),
-      enabled: effectiveEnabled,
+      enabled: flagEnv.enabled,
       flagType: flag.flagType,
     };
   }
@@ -272,18 +259,9 @@ export class SdkService {
         updatedAt: flag.updatedAt,
       });
 
-      // Global kill-switch: brand-specific records inherit the global (no-brand) disabled state
-      let effectiveEnabled = flagEnv.enabled;
-      if (brandId && flagEnv.enabled) {
-        const globalFlagEnv = flagEnvs.find(fe => fe.flagId === flag.id && !fe.brandId);
-        if (globalFlagEnv && !globalFlagEnv.enabled) {
-          effectiveEnabled = false;
-        }
-      }
-
       results[flag.key] = {
         value: domainFlag.parseValue(flagEnv.defaultValue),
-        enabled: effectiveEnabled,
+        enabled: flagEnv.enabled,
         flagType: flag.flagType,
       };
     }
