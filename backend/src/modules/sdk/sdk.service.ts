@@ -161,8 +161,25 @@ export class SdkService {
     console.log(`[SDK Service] FlagEnvironment: enabled=${flagEnv.enabled}, value=${flagEnv.defaultValue}`);
 
     if (!flagEnv.enabled) {
-      console.log(`[SDK Service] Flag is disabled, returning false`);
-      return { value: false, enabled: false, flagType: flag.flagType };
+      console.log(`[SDK Service] Flag is disabled, returning default value`);
+      const domainFlag = Flag.reconstitute({
+        id: flag.id,
+        key: flag.key,
+        name: flag.name,
+        description: flag.description,
+        type: flag.flagType as any,
+        projectId: flag.projectId,
+        organizationId: project.organizationId,
+        createdById: flag.createdById || '',
+        createdAt: flag.createdAt,
+        updatedAt: flag.updatedAt,
+      });
+
+      return {
+        value: domainFlag.parseValue(flagEnv.defaultValue),
+        enabled: false,
+        flagType: flag.flagType,
+      };
     }
 
     const domainFlag = Flag.reconstitute({
@@ -252,26 +269,26 @@ export class SdkService {
         });
       }
 
+      const domainFlag = Flag.reconstitute({
+        id: flag.id,
+        key: flag.key,
+        name: flag.name,
+        description: flag.description,
+        type: flag.flagType as any,
+        projectId: flag.projectId,
+        organizationId: project.organizationId,
+        createdById: flag.createdById || '',
+        createdAt: flag.createdAt,
+        updatedAt: flag.updatedAt,
+      });
+
       if (!flagEnv.enabled) {
         results[flag.key] = {
-          value: false,
+          value: domainFlag.parseValue(flagEnv.defaultValue),
           enabled: false,
           flagType: flag.flagType,
         };
       } else {
-        const domainFlag = Flag.reconstitute({
-          id: flag.id,
-          key: flag.key,
-          name: flag.name,
-          description: flag.description,
-          type: flag.flagType as any,
-          projectId: flag.projectId,
-          organizationId: project.organizationId,
-          createdById: flag.createdById || '',
-          createdAt: flag.createdAt,
-          updatedAt: flag.updatedAt,
-        });
-
         results[flag.key] = {
           value: domainFlag.parseValue(flagEnv.defaultValue),
           enabled: flagEnv.enabled,
@@ -349,26 +366,26 @@ export class SdkService {
         });
       }
 
+      const domainFlag = Flag.reconstitute({
+        id: flag.id,
+        key: flag.key,
+        name: flag.name,
+        description: flag.description,
+        type: flag.flagType as any,
+        projectId: flag.projectId,
+        organizationId: project.organizationId,
+        createdById: flag.createdById || '',
+        createdAt: flag.createdAt,
+        updatedAt: flag.updatedAt,
+      });
+
       if (!flagEnv.enabled) {
         results[flag.key] = {
-          value: false,
+          value: domainFlag.parseValue(flagEnv.defaultValue),
           enabled: false,
           flagType: flag.flagType,
         };
       } else {
-        const domainFlag = Flag.reconstitute({
-          id: flag.id,
-          key: flag.key,
-          name: flag.name,
-          description: flag.description,
-          type: flag.flagType as any,
-          projectId: flag.projectId,
-          organizationId: project.organizationId,
-          createdById: flag.createdById || '',
-          createdAt: flag.createdAt,
-          updatedAt: flag.updatedAt,
-        });
-
         results[flag.key] = {
           value: domainFlag.parseValue(flagEnv.defaultValue),
           enabled: flagEnv.enabled,
