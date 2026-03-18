@@ -7,6 +7,8 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { SdkService } from './modules/sdk/sdk.service';
 
+
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
@@ -311,14 +313,36 @@ Public SDK endpoints are available at /sdk/flags/ without authentication`)
     },
   };
   
-  // Setup Swagger at /api/swagger — use CDN assets to avoid local static file path issues
-  SwaggerModule.setup('api/swagger', app, document, {
-    customCssUrl: 'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css',
-    customJs: [
-      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js',
-      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js',
-    ],
-  });
+SwaggerModule.setup('api/swagger', app, document, {
+  customSiteTitle: 'Togglely API Docs',
+  
+  swaggerOptions: {
+    url: '/api/swagger-json', // wichtig!
+  },
+
+  customCssUrl: 'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css',
+
+  customJs: [
+    'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js',
+    'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js',
+  ],
+
+  // 🔥 verhindert lokale swagger-ui-init.js Nutzung
+  customJsStr: `
+    window.onload = function() {
+      const ui = SwaggerUIBundle({
+        url: "/api/swagger-json",
+        dom_id: '#swagger-ui',
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        layout: "StandaloneLayout"
+      });
+      window.ui = ui;
+    };
+  `,
+});
   
   const port = process.env.PORT || 4000;
   await app.listen(port, '0.0.0.0');

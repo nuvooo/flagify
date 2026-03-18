@@ -65,7 +65,7 @@ describe('TogglelyClient', () => {
   });
 
   describe('API calls with brandKey and context', () => {
-    it('should send both brandKey and context when tenantId is set', async () => {
+    it('should send tenantId and context when tenantId is set', async () => {
       const client = new TogglelyClient(mockConfig);
       client.setContext({ userId: '123', tenantId: 'acme-corp' });
 
@@ -79,16 +79,15 @@ describe('TogglelyClient', () => {
       const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
       const url = fetchCall[0];
       
-      // Should contain both brandKey and context
-      expect(url).toContain('brandKey=acme-corp');
+      // Should contain tenantId and context
+      expect(url).toContain('tenantId=acme-corp');
       expect(url).toContain('context=');
-      expect(url).toContain('tenantId');
       expect(url).toContain('userId');
       
       client.destroy();
     });
 
-    it('should send context without brandKey when no tenantId/brandKey', async () => {
+    it('should send context without brandKey/tenantId when not set', async () => {
       const client = new TogglelyClient(mockConfig);
       client.setContext({ userId: '123', country: 'DE' });
 
@@ -102,8 +101,31 @@ describe('TogglelyClient', () => {
       const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
       const url = fetchCall[0];
       
-      // Should contain context but not brandKey
+      // Should contain context but not brandKey or tenantId
       expect(url).not.toContain('brandKey=');
+      expect(url).not.toContain('tenantId=');
+      expect(url).toContain('context=');
+      
+      client.destroy();
+    });
+
+    it('should send both brandKey and tenantId when both are set', async () => {
+      const client = new TogglelyClient(mockConfig);
+      client.setContext({ userId: '123', brandKey: 'my-brand', tenantId: 'my-tenant' });
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ value: true, enabled: true })
+      });
+
+      await client.getValue('test-flag');
+
+      const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
+      const url = fetchCall[0];
+      
+      // Should contain both brandKey and tenantId
+      expect(url).toContain('brandKey=my-brand');
+      expect(url).toContain('tenantId=my-tenant');
       expect(url).toContain('context=');
       
       client.destroy();
@@ -137,7 +159,7 @@ describe('TogglelyClient', () => {
       client.destroy();
     });
 
-    it('should include brandKey and context in refresh', async () => {
+    it('should include tenantId and context in refresh', async () => {
       const client = new TogglelyClient(mockConfig);
       client.setContext({ tenantId: 'acme', userId: '123' });
       
@@ -151,7 +173,7 @@ describe('TogglelyClient', () => {
       const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
       const url = fetchCall[0];
       
-      expect(url).toContain('brandKey=acme');
+      expect(url).toContain('tenantId=acme');
       expect(url).toContain('context=');
       
       client.destroy();
@@ -159,23 +181,27 @@ describe('TogglelyClient', () => {
   });
 
   describe('toggle accessors', () => {
-    it('should return boolean value from cache', async () => {
+    it('should always fetch fresh value from server', async () => {
       const client = new TogglelyClient(mockConfig);
       
-      // Pre-populate cache via refresh
+      // First call
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({
-          'bool-flag': { value: true, enabled: true }
-        })
+        json: async () => ({ value: true, enabled: true })
       });
-      await client.refresh();
-
-      const value = await client.isEnabled('bool-flag', false);
-      expect(value).toBe(true);
+      const value1 = await client.isEnabled('bool-flag', false);
+      expect(value1).toBe(true);
       
-      // Should not make another API call
-      expect(global.fetch).toHaveBeenCalledTimes(1);
+      // Second call should also fetch from server (no cache)
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ value: false, enabled: false })
+      });
+      const value2 = await client.isEnabled('bool-flag', false);
+      expect(value2).toBe(false);
+      
+      // Should have made 2 API calls
+      expect(global.fetch).toHaveBeenCalledTimes(2);
       
       client.destroy();
     });

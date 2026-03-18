@@ -250,18 +250,13 @@ export class TogglelyClient {
    * @returns Promise<ToggleValue | null>
    */
   async getValue(key: string): Promise<ToggleValue | null> {
-    // Try cache first - but only if no context is set
-    if (Object.keys(this.context).length === 0) {
-      const cached = this.toggles.get(key);
-      if (cached) {
-        return cached;
-      }
-    }
+    // Note: We intentionally do NOT use cache here to always get fresh values
+    // The cache is only used for offline fallback and getAllToggles()
+    // If you need cached values, use getAllToggles() instead
 
     // Fetch from server
     try {
       const params = new URLSearchParams();
-      if (this.config.apiKey) params.set('apiKey', this.config.apiKey);
       // Support both brandKey and tenantId for maximum compatibility
       if (this.context.brandKey) params.set('brandKey', String(this.context.brandKey));
       if (this.context.tenantId) params.set('tenantId', String(this.context.tenantId));
@@ -271,7 +266,14 @@ export class TogglelyClient {
       const query = params.toString() ? `?${params.toString()}` : '';
       const url = `${this.config.baseUrl}/sdk/flags/${encodeURIComponent(this.config.project)}/${encodeURIComponent(this.config.environment)}/${encodeURIComponent(key)}${query}`;
       
-      const response = await this.fetchWithTimeout(url, { headers: { 'Content-Type': 'application/json' } });
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (this.config.apiKey) {
+        headers['Authorization'] = `Bearer ${this.config.apiKey}`;
+      }
+      
+      const response = await this.fetchWithTimeout(url, { headers });
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -454,16 +456,23 @@ export class TogglelyClient {
   async refresh(): Promise<void> {
     try {
       const params = new URLSearchParams();
-      if (this.config.apiKey) params.set('apiKey', this.config.apiKey);
       // Support both brandKey and tenantId for maximum compatibility
       if (this.context.brandKey) params.set('brandKey', String(this.context.brandKey));
       if (this.context.tenantId) params.set('tenantId', String(this.context.tenantId));
       if (Object.keys(this.context).length > 0) {
         params.set('context', JSON.stringify(this.context));
       }
+      
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (this.config.apiKey) {
+        headers['Authorization'] = `Bearer ${this.config.apiKey}`;
+      }
+      
       const response = await this.fetchWithTimeout(
         `${this.config.baseUrl}/sdk/flags/${encodeURIComponent(this.config.project)}/${encodeURIComponent(this.config.environment)}?${params.toString()}`,
-        { headers: { 'Content-Type': 'application/json' } }
+        { headers }
       );
 
       if (!response.ok) {
