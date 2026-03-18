@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma.service';
 import { Flag } from '../../domain/flag.entity';
 
@@ -6,12 +6,67 @@ import { Flag } from '../../domain/flag.entity';
 export class SdkService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private async validateApiKeyAndOrigin(
+    apiKey: string,
+    projectKey: string,
+    origin?: string,
+  ): Promise<void> {
+    // Find API key
+    const keyRecord = await this.prisma.apiKey.findFirst({
+      where: {
+        key: apiKey,
+        isActive: true,
+      },
+      include: {
+        organization: {
+          include: {
+            projects: {
+              where: { key: projectKey },
+            },
+          },
+        },
+      },
+    });
+
+    if (!keyRecord) {
+      throw new UnauthorizedException('Invalid API key');
+    }
+
+    // Check if key belongs to project's organization
+    const project = keyRecord.organization.projects[0];
+    if (!project) {
+      throw new UnauthorizedException('API key does not have access to this project');
+    }
+
+    // Check origin if project has allowedOrigins
+    if (origin && project.allowedOrigins && project.allowedOrigins.length > 0) {
+      const allowed = project.allowedOrigins.some((allowed: string) => {
+        if (allowed === '*') return true;
+        if (allowed === origin) return true;
+        // Support wildcards like *.example.com
+        if (allowed.startsWith('*.')) {
+          const domain = allowed.slice(2);
+          return origin.endsWith(domain);
+        }
+        return false;
+      });
+
+      if (!allowed) {
+        throw new ForbiddenException('Origin not allowed');
+      }
+    }
+  }
+
   async evaluateFlag(
     projectKey: string,
     environmentKey: string,
     flagKey: string,
+    apiKey: string,
     brandKey?: string,
+    origin?: string,
   ) {
+    // Validate API key first
+    await this.validateApiKeyAndOrigin(apiKey, projectKey, origin);
     // Find project by key (need orgId, so we search)
     const project = await this.prisma.project.findFirst({
       where: { key: projectKey },
@@ -97,6 +152,103 @@ export class SdkService {
     environmentKey: string,
     brandKey?: string,
   ) {
+    // Find project by key
+    const project = await this.prisma.project.findFirst({
+      where: { key: projectKey },
+    });
+    
+    if (!project) throw new NotFoundException('Project not found');
+
+    const environment = await this.prisma.environment.findFirst({
+      where: { projectId: project.id, key: environmentKey },
+    });
+    
+    if (!environment) throw new NotFoundException('Environment not found');
+
+    // Get all flags for project
+    const flags = await this.prisma.featureFlag.findMany({
+      where: { projectId: project.id },
+    });
+
+    let brandId: string | null = null;
+    if (brandKey && project.type === 'MULTI') {
+      const brand = await this.prisma.brand.findFirst({
+        where: { projectId: project.id, key: brandKey },
+      });
+      if (brand) brandId = brand.id;
+    }
+
+    // Get all flag environments for this environment
+    const flagEnvs = await this.prisma.flagEnvironment.findMany({
+      where: {
+        environmentId: environment.id,
+      },
+    });
+
+    const results: Record<string, any> = {};
+
+    for (const flag of flags) {
+      // Find matching flag environment
+      let flagEnv = flagEnvs.find(fe => 
+        fe.flagId === flag.id && (brandId ? fe.brandId === brandId : !fe.brandId)
+      );
+      
+      // Auto-create if missing
+      if (!flagEnv) {
+        flagEnv = await this.prisma.flagEnvironment.create({
+          data: {
+            flagId: flag.id,
+            environmentId: environment.id,
+            brandId: brandId || null,
+            enabled: false,
+            defaultValue: flag.flagType === 'BOOLEAN' ? 'false' : 
+                         flag.flagType === 'NUMBER' ? '0' : 
+                         flag.flagType === 'JSON' ? '{}' : '',
+          },
+        });
+      }
+
+      if (!flagEnv.enabled) {
+        results[flag.key] = {
+          value: false,
+          enabled: false,
+          flagType: flag.flagType,
+        };
+      } else {
+        const domainFlag = Flag.reconstitute({
+          id: flag.id,
+          key: flag.key,
+          name: flag.name,
+          description: flag.description,
+          type: flag.flagType as any,
+          projectId: flag.projectId,
+          organizationId: project.organizationId,
+          createdById: flag.createdById || '',
+          createdAt: flag.createdAt,
+          updatedAt: flag.updatedAt,
+        });
+
+        results[flag.key] = {
+          value: domainFlag.parseValue(flagEnv.defaultValue),
+          enabled: flagEnv.enabled,
+          flagType: flag.flagType,
+        };
+      }
+    }
+
+    return results;
+  }
+
+  async getAllFlags(
+    projectKey: string,
+    environmentKey: string,
+    apiKey: string,
+    brandKey?: string,
+    origin?: string,
+  ): Promise<Record<string, any>> {
+    // Validate API key first
+    await this.validateApiKeyAndOrigin(apiKey, projectKey, origin);
+
     // Find project by key
     const project = await this.prisma.project.findFirst({
       where: { key: projectKey },

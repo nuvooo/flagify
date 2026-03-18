@@ -23,12 +23,41 @@ async function bootstrap() {
   });
   
   // CORS for all routes including SDK
+  // Allow multiple origins via CORS_ORIGINS env variable
+  const corsOrigins = process.env.CORS_ORIGINS 
+    ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+    : [
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'https://togglely.de',
+        'https://app.togglely.de',
+        'https://api.togglely.de',
+      ];
+  
   app.use(cors({
-    origin: [
-      process.env.FRONTEND_URL || 'http://localhost:3000',
-      'http://localhost:5173',
-      'https://togglely.de'
-    ],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+      
+      // Check against allowed origins
+      const allowed = corsOrigins.some(allowed => {
+        if (allowed === '*') return true;
+        if (allowed === origin) return true;
+        // Wildcard support: *.example.com
+        if (allowed.startsWith('*.')) {
+          const domain = allowed.slice(2);
+          return origin.endsWith(domain);
+        }
+        return false;
+      });
+      
+      if (allowed) {
+        callback(null, true);
+      } else {
+        console.warn(`[CORS] Blocked origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   }));
   

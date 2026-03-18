@@ -35,9 +35,13 @@ environment:
     default: "3000"
     description: "Frontend server port"
     
-  - name: CORS_ORIGIN
+  - name: CORS_ORIGINS
     default: "*"
-    description: "CORS allowed origins"
+    description: "Comma-separated list of allowed CORS origins (e.g., https://app.togglely.de,https://togglely.de)"
+    
+  - name: FRONTEND_URL
+    default: ""
+    description: "(Optional) URL of the frontend - used for redirects in auth flows if needed"
 
 # Port configuration
 ports:
