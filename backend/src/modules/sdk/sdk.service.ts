@@ -160,26 +160,17 @@ export class SdkService {
     
     console.log(`[SDK Service] FlagEnvironment: enabled=${flagEnv.enabled}, value=${flagEnv.defaultValue}`);
 
-    if (!flagEnv.enabled) {
-      console.log(`[SDK Service] Flag is disabled, returning default value`);
-      const domainFlag = Flag.reconstitute({
-        id: flag.id,
-        key: flag.key,
-        name: flag.name,
-        description: flag.description,
-        type: flag.flagType as any,
-        projectId: flag.projectId,
-        organizationId: project.organizationId,
-        createdById: flag.createdById || '',
-        createdAt: flag.createdAt,
-        updatedAt: flag.updatedAt,
+    // Global kill-switch: if a brand-specific record is used, also check the global (no-brand)
+    // record. If the global record is disabled, the flag is disabled for ALL brands.
+    let effectiveEnabled = flagEnv.enabled;
+    if (brandId && flagEnv.enabled) {
+      const globalFlagEnv = await this.prisma.flagEnvironment.findFirst({
+        where: { flagId: flag.id, environmentId: environment.id, brandId: null },
       });
-
-      return {
-        value: domainFlag.parseValue(flagEnv.defaultValue),
-        enabled: false,
-        flagType: flag.flagType,
-      };
+      if (globalFlagEnv && !globalFlagEnv.enabled) {
+        console.log(`[SDK Service] Global kill-switch active: flag disabled globally`);
+        effectiveEnabled = false;
+      }
     }
 
     const domainFlag = Flag.reconstitute({
@@ -195,12 +186,11 @@ export class SdkService {
       updatedAt: flag.updatedAt,
     });
 
-    const result = {
+    return {
       value: domainFlag.parseValue(flagEnv.defaultValue),
-      enabled: flagEnv.enabled,
+      enabled: effectiveEnabled,
       flagType: flag.flagType,
     };
-    return result;
   }
 
   async evaluateAllFlags(
@@ -282,19 +272,20 @@ export class SdkService {
         updatedAt: flag.updatedAt,
       });
 
-      if (!flagEnv.enabled) {
-        results[flag.key] = {
-          value: domainFlag.parseValue(flagEnv.defaultValue),
-          enabled: false,
-          flagType: flag.flagType,
-        };
-      } else {
-        results[flag.key] = {
-          value: domainFlag.parseValue(flagEnv.defaultValue),
-          enabled: flagEnv.enabled,
-          flagType: flag.flagType,
-        };
+      // Global kill-switch: brand-specific records inherit the global (no-brand) disabled state
+      let effectiveEnabled = flagEnv.enabled;
+      if (brandId && flagEnv.enabled) {
+        const globalFlagEnv = flagEnvs.find(fe => fe.flagId === flag.id && !fe.brandId);
+        if (globalFlagEnv && !globalFlagEnv.enabled) {
+          effectiveEnabled = false;
+        }
       }
+
+      results[flag.key] = {
+        value: domainFlag.parseValue(flagEnv.defaultValue),
+        enabled: effectiveEnabled,
+        flagType: flag.flagType,
+      };
     }
 
     return results;
