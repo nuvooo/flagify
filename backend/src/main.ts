@@ -50,6 +50,12 @@ async function bootstrap() {
         return callback(null, true);
       }
       
+      // Always allow localhost origins for development
+      if (origin.match(/^https?:\/\/localhost(:\d+)?$/)) {
+        console.log(`[CORS] Allowing localhost origin: ${origin}`);
+        return callback(null, true);
+      }
+      
       // Check against allowed origins list
       const allowed = corsOrigins.some(allowed => {
         if (allowed === origin) return true;
@@ -88,7 +94,29 @@ async function bootstrap() {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
   
+  // SDK OPTIONS endpoints for CORS preflight
+  httpAdapter.options('/sdk/flags/:projectKey/:environmentKey', (req, res) => {
+    const origin = req.headers['origin'] as string | undefined;
+    setSdkCorsHeaders(res, origin);
+    res.status(200).send();
+  });
+  httpAdapter.options('/sdk/flags/:projectKey/:environmentKey/:flagKey', (req, res) => {
+    const origin = req.headers['origin'] as string | undefined;
+    setSdkCorsHeaders(res, origin);
+    res.status(200).send();
+  });
+  
   // SDK endpoints with DEBUG logging
+  
+  // Helper function to set CORS headers for SDK responses
+  const setSdkCorsHeaders = (res: any, origin?: string) => {
+    const allowedOrigin = origin || '*';
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Vary', 'Origin');
+  };
   
   // Get single flag - MUST be registered BEFORE the list endpoint!
   httpAdapter.get('/sdk/flags/:projectKey/:environmentKey/:flagKey', async (req, res) => {
@@ -101,6 +129,9 @@ async function bootstrap() {
     const bearerKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
     const apiKey = (queryApiKey as string | undefined) || bearerKey;
     const origin = req.headers['origin'] as string | undefined;
+    
+    // Always set CORS headers first
+    setSdkCorsHeaders(res, origin);
     
     console.log(`[SDK] Request: /sdk/flags/${projectKey}/${environmentKey}/${flagKey}`);
     console.log(`[SDK] API Key present: ${!!apiKey}, Origin: ${origin || 'none'}`);
@@ -152,6 +183,9 @@ async function bootstrap() {
     const bearerKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
     const apiKey = (queryApiKey as string | undefined) || bearerKey;
     const origin = req.headers['origin'] as string | undefined;
+    
+    // Always set CORS headers first
+    setSdkCorsHeaders(res, origin);
     
     console.log(`[SDK] Request: /sdk/flags/${projectKey}/${environmentKey}`);
     console.log(`[SDK] API Key present: ${!!apiKey}, Origin: ${origin || 'none'}`);
