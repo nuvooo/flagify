@@ -87,22 +87,24 @@ async function bootstrap() {
       const authHeader = req.headers['authorization'] as string | undefined;
       const bearerKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
       const apiKey = (queryApiKey as string | undefined) || bearerKey;
-      
-      if (apiKey) {
-        const validKey = await sdkService.validateApiKey(apiKey, projectKey);
-        if (!validKey) {
-          return res.status(401).json({ error: 'Invalid API key' });
-        }
-      }
+      const origin = req.headers['origin'] as string | undefined;
       
       const result = await sdkService.evaluateFlag(
         projectKey,
         environmentKey,
         flagKey,
+        apiKey as string,
         effectiveBrandKey as string,
+        origin,
       );
       res.json(result);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.status === 401) {
+        return res.status(401).json({ error: error.message || 'Unauthorized' });
+      }
+      if (error.status === 403) {
+        return res.status(403).json({ error: error.message || 'Forbidden' });
+      }
       res.status(404).json({ error: 'Flag not found' });
     }
   });
@@ -118,21 +120,23 @@ async function bootstrap() {
       const authHeader = req.headers['authorization'] as string | undefined;
       const bearerKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
       const apiKey = (queryApiKey as string | undefined) || bearerKey;
+      const origin = req.headers['origin'] as string | undefined;
       
-      if (apiKey) {
-        const validKey = await sdkService.validateApiKey(apiKey, projectKey);
-        if (!validKey) {
-          return res.status(401).json({ error: 'Invalid API key' });
-        }
-      }
-      
-      const results = await sdkService.evaluateAllFlags(
+      const results = await sdkService.getAllFlags(
         projectKey,
         environmentKey,
+        apiKey as string,
         effectiveBrandKey as string,
+        origin,
       );
       res.json(results);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.status === 401) {
+        return res.status(401).json({ error: error.message || 'Unauthorized' });
+      }
+      if (error.status === 403) {
+        return res.status(403).json({ error: error.message || 'Forbidden' });
+      }
       res.status(404).json({ error: 'Project or environment not found' });
     }
   });

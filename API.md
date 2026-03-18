@@ -10,9 +10,10 @@
 | SDK | `http://localhost:4000/sdk` | `https://api.deine-domain.de/sdk` |
 | Frontend | `http://localhost:3000` | `https://app.deine-domain.de` |
 
-### Architektur-Optionen
+## Empfohlene Architektur: Getrennte Domains
 
-#### Option A: Getrennte Domains (Empfohlen für Production)
+Wir empfehlen ein **Supabase-ähnliches Setup** mit getrennten Domains:
+
 ```
 ┌─────────────────┐      ┌─────────────────┐
 │   SDK Client    │──────►│ api.togglely.de │
@@ -26,58 +27,40 @@
 ```
 
 **Vorteile:**
-- Backend direkt für SDK erreichbar (bessere Performance)
-- Klare Trennung der Services
-- Einfacheres Scaling
+- ✅ Backend direkt für SDK erreichbar (bessere Performance)
+- ✅ Klare Trennung der Services
+- ✅ Unabhängiges Scaling
+- ✅ Einfachere CORS-Konfiguration
 
-**Coolify Setup:**
-1. Erstelle zwei Domains in Coolify:
+### Coolify Setup (Empfohlen)
+
+1. **Zwei Domains in Coolify anlegen:**
    - `api.deine-domain.de` → Backend Service (Port 4000)
-   - `app.deine-domain.de` → Frontend Service (Port 3000)
-2. Setze Environment Variables:
+   - `app.deine-domain.de` → Frontend Service (Port 80)
+
+2. **Environment Variables:**
+
+   **Backend:**
+   ```env
+   CORS_ORIGINS=https://app.deine-domain.de
    ```
-   CORS_ORIGINS=https://app.deine-domain.de,https://deine-app.de
-   FRONTEND_URL=https://app.deine-domain.de
+
+   **Frontend:**
+   ```env
+   VITE_API_URL=https://api.deine-domain.de/api
    ```
-3. SDK Config:
+
+3. **SDK Client Config:**
    ```typescript
    const client = new TogglelyClient({
-     baseUrl: 'https://api.deine-domain.de',  // Backend direkt!
-     apiKey: 'xxx',
+     baseUrl: 'https://api.deine-domain.de',  // Direkt zum Backend!
+     apiKey: 'togglely_sdk_xxx',
      project: 'my-project',
      environment: 'production'
    });
    ```
 
-#### Option B: Single Domain (Einfacher)
-```
-┌─────────────────┐      ┌─────────────────┐
-│   SDK Client    │──────►│ togglely.de/sdk │
-│   (deine App)   │      │   (Frontend)    │
-└─────────────────┘      └────────┬────────┘
-                                  │
-                           ┌──────┴────────┐
-                           │   Backend     │
-                           │   (intern)    │
-                           └───────────────┘
-```
-
-**Vorteile:**
-- Nur eine Domain nötig
-- Backend bleibt intern
-
-**Coolify Setup:**
-1. Erstelle eine Domain:
-   - `togglely.de` → Frontend Service
-2. SDK Config:
-   ```typescript
-   const client = new TogglelyClient({
-     baseUrl: 'https://togglely.de',  // Frontend URL!
-     apiKey: 'xxx',
-     project: 'my-project',
-     environment: 'production'
-   });
-   ```
+Siehe [COOLIFY_DOMAINS.md](./COOLIFY_DOMAINS.md) für detaillierte Anleitung.
 
 ## Authentifizierung
 
