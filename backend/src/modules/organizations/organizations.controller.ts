@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Req, UseGuards, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Req, UseGuards, ForbiddenException, Inject } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { OrganizationsService } from './organizations.service';
 import { AuthGuard } from '../../shared/auth.guard';
 import { PrismaService } from '../../shared/prisma.service';
@@ -13,6 +14,7 @@ export class OrganizationsController {
     private readonly orgsService: OrganizationsService,
     private readonly prisma: PrismaService,
     private readonly mailService: MailService,
+    private readonly config: ConfigService,
   ) {}
 
   @Get()
@@ -135,7 +137,7 @@ export class OrganizationsController {
     });
 
     // Send invite email
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const baseUrl = this.config.get('FRONTEND_URL') || 'https://togglely.de';
     await this.mailService.sendInviteEmail(
       body.email,
       token,
