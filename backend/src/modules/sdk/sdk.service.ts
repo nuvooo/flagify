@@ -208,36 +208,60 @@ export class SdkService {
       const brand = await this.prisma.brand.findFirst({
         where: { projectId: project.id, key: brandKey },
       });
-      if (brand) brandId = brand.id;
+      if (brand) {
+        brandId = brand.id;
+      }
     }
 
-    // Get all flag environments for this environment
+    // Get all flag environments for this environment and brand
     const flagEnvs = await this.prisma.flagEnvironment.findMany({
       where: {
         environmentId: environment.id,
+        OR: [
+          { brandId: brandId },
+          { brandId: null }
+        ]
       },
     });
 
     const results: Record<string, any> = {};
 
     console.log(`[SDK getAllFlags] Processing ${flags.length} flags, brandId: ${brandId}, envId: ${environment.id}`);
-    console.log(`[SDK getAllFlags] Found ${flagEnvs.length} flagEnvironments:`, flagEnvs.map(fe => ({ flagId: fe.flagId, brandId: fe.brandId, enabled: fe.enabled })));
-
+    
     for (const flag of flags) {
-      // Find matching flag environment
-      let flagEnv = flagEnvs.find(fe => {
-        const matches = fe.flagId === flag.id && (brandId ? fe.brandId === brandId : !fe.brandId);
-        console.log(`[SDK] Checking flagEnv for flag ${flag.key}: fe.flagId=${fe.flagId}, flag.id=${flag.id}, fe.brandId=${fe.brandId}, brandId=${brandId}, matches=${matches}`);
-        return matches;
-      });
+      // Find matching flag environment for this brand
+      let flagEnv = flagEnvs.find(fe => fe.flagId === flag.id && fe.brandId === brandId);
       
-      // Auto-create if missing
-      if (!flagEnv) {
+      // If we are in a MULTI project but no brand-specific env exists yet, 
+      // check if a global (null brand) one exists to inherit from, or create brand-specific
+      if (!flagEnv && brandId) {
+        const globalEnv = flagEnvs.find(fe => fe.flagId === flag.id && !fe.brandId);
+        
+        // Auto-create brand-specific from global if available, or from defaults
+        // Note: enabled is ALWAYS true for brand-specific entries because if it's in the DB 
+        // as brand-specific, it means the user specifically set it for this brand.
+        // If it doesn't exist yet, it "doesn't matter" for the frontends UI, but for the SDK 
+        // we check the global state.
         flagEnv = await this.prisma.flagEnvironment.create({
           data: {
             flagId: flag.id,
             environmentId: environment.id,
-            brandId: brandId || null,
+            brandId: brandId,
+            enabled: globalEnv?.enabled ?? false,
+            defaultValue: globalEnv?.defaultValue ?? (
+              flag.flagType === 'BOOLEAN' ? 'false' : 
+              flag.flagType === 'NUMBER' ? '0' : 
+              flag.flagType === 'JSON' ? '{}' : ''
+            ),
+          },
+        });
+      } else if (!flagEnv && !brandId) {
+        // Simple case: no brand, no env found (shouldn't happen often with findMany above, but for safety)
+        flagEnv = await this.prisma.flagEnvironment.create({
+          data: {
+            flagId: flag.id,
+            environmentId: environment.id,
+            brandId: null,
             enabled: false,
             defaultValue: flag.flagType === 'BOOLEAN' ? 'false' : 
                          flag.flagType === 'NUMBER' ? '0' : 
