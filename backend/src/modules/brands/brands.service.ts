@@ -83,6 +83,8 @@ export class BrandsService {
   }
 
   async delete(brandId: string) {
+    // Delete all flag environments for this brand first (cascading delete for MongoDB)
+    await this.prisma.flagEnvironment.deleteMany({ where: { brandId } });
     await this.prisma.brand.delete({ where: { id: brandId } });
   }
 

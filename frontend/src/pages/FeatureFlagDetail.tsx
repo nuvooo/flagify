@@ -160,14 +160,23 @@ export default function FeatureFlagDetail() {
       console.error('Invalid flagId or envId:', flagId, envId);
       return;
     }
+    const newEnabled = !currentValue;
     try {
       await api.patch(`/feature-flags/${flagId}/environments/${envId}`, {
-        isEnabled: !currentValue,
+        isEnabled: newEnabled,
       });
       setEnvironmentStates((prev) =>
-        prev.map((env) =>
-          env.id === envId ? { ...env, isEnabled: !currentValue } : env
-        )
+        prev.map((env) => {
+          if (env.id === envId) {
+            // For BOOLEAN flags, sync defaultValue with enabled state
+            const updates: Partial<EnvironmentState> = { isEnabled: newEnabled };
+            if (flag?.type === 'BOOLEAN') {
+              updates.defaultValue = newEnabled;
+            }
+            return { ...env, ...updates };
+          }
+          return env;
+        })
       );
     } catch (error) {
       console.error('Failed to toggle environment:', error);

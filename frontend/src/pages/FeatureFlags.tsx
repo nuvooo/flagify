@@ -173,16 +173,26 @@ export default function FeatureFlags() {
       return;
     }
     
+    const newEnabled = !currentValue;
+    
     setTogglingFlags((prev) => new Set(prev).add(flagId));
     try {
       await api.post(`/feature-flags/${flagId}/toggle`, {
         environmentId: effectiveEnvId,
-        enabled: !currentValue,
+        enabled: newEnabled,
       });
       setFeatureFlags((prev) =>
-        prev.map((flag) =>
-          flag.id === flagId ? { ...flag, isEnabled: !currentValue } : flag
-        )
+        prev.map((flag) => {
+          if (flag.id === flagId) {
+            // For BOOLEAN flags, sync defaultValue with enabled state
+            const updates: Partial<FeatureFlag> = { isEnabled: newEnabled };
+            if (flag.type === 'BOOLEAN') {
+              updates.defaultValue = newEnabled;
+            }
+            return { ...flag, ...updates };
+          }
+          return flag;
+        })
       );
     } catch (error) {
       console.error('Failed to toggle feature flag:', error);

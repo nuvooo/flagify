@@ -253,6 +253,13 @@ export class FlagsService {
   }
 
   async toggle(flagId: string, environmentId: string, enabled?: boolean) {
+    // Find the flag to check its type
+    const flag = await this.prisma.featureFlag.findUnique({
+      where: { id: flagId },
+    });
+    
+    if (!flag) throw new NotFoundException('Flag not found');
+
     const allEnvs = await this.prisma.flagEnvironment.findMany({
       where: { flagId, environmentId },
     });
@@ -260,11 +267,17 @@ export class FlagsService {
     const globalEnv = allEnvs.find(fe => !fe.brandId);
     const newEnabled = enabled !== undefined ? enabled : !(globalEnv?.enabled ?? false);
 
+    // Prepare update data - for BOOLEAN flags, sync defaultValue with enabled
+    const updateData: any = { enabled: newEnabled };
+    if (flag.flagType === 'BOOLEAN') {
+      updateData.defaultValue = String(newEnabled);
+    }
+
     if (allEnvs.length > 0) {
       // Update ALL records (global + all brands) so they stay in sync
       await this.prisma.flagEnvironment.updateMany({
         where: { flagId, environmentId },
-        data: { enabled: newEnabled },
+        data: updateData,
       });
       return { flagId, environmentId, enabled: newEnabled };
     }
@@ -277,7 +290,7 @@ export class FlagsService {
           environmentId,
           brandId: null,
           enabled: newEnabled,
-          defaultValue: 'false',
+          defaultValue: flag.flagType === 'BOOLEAN' ? String(newEnabled) : 'false',
         },
       });
     } catch (e: any) {
@@ -288,7 +301,7 @@ export class FlagsService {
         if (allEnvs2.length > 0) {
           await this.prisma.flagEnvironment.updateMany({
             where: { flagId, environmentId },
-            data: { enabled: newEnabled },
+            data: updateData,
           });
           return { flagId, environmentId, enabled: newEnabled };
         }
@@ -313,6 +326,13 @@ export class FlagsService {
 
   async updateEnvironment(flagId: string, envId: string, data: { isEnabled?: boolean; defaultValue?: string }) {
     console.log(`[updateEnvironment] flagId: ${flagId}, envId: ${envId}, data:`, data);
+    
+    // Find the flag to check its type
+    const flag = await this.prisma.featureFlag.findUnique({
+      where: { id: flagId },
+    });
+    
+    if (!flag) throw new NotFoundException('Flag not found');
     
     // Try 1: Find by flagEnvironment.id directly (most likely case)
     let existing = await this.prisma.flagEnvironment.findFirst({
@@ -344,12 +364,26 @@ export class FlagsService {
 
     if (existing) {
       console.log(`[updateEnvironment] Updating id=${existing.id} with:`, data);
+      
+      // For BOOLEAN flags, sync enabled and defaultValue
+      let updateData: any = {
+        enabled: data.isEnabled,
+        defaultValue: data.defaultValue,
+      };
+      
+      if (flag.flagType === 'BOOLEAN') {
+        if (data.isEnabled !== undefined && data.defaultValue === undefined) {
+          // Only enabled changed, sync defaultValue
+          updateData.defaultValue = String(data.isEnabled);
+        } else if (data.defaultValue !== undefined && data.isEnabled === undefined) {
+          // Only value changed, sync enabled
+          updateData.enabled = data.defaultValue === 'true';
+        }
+      }
+      
       return this.prisma.flagEnvironment.update({
         where: { id: existing.id },
-        data: {
-          enabled: data.isEnabled,
-          defaultValue: data.defaultValue,
-        },
+        data: updateData,
       });
     }
 
@@ -360,16 +394,37 @@ export class FlagsService {
   async updateValue(flagId: string, environmentId: string, dto: UpdateFlagValueDto) {
     const brandId = dto.brandId || null;
     
+    // Find the flag to check its type
+    const flag = await this.prisma.featureFlag.findUnique({
+      where: { id: flagId },
+    });
+    
+    if (!flag) throw new NotFoundException('Flag not found');
+    
     const existing = await this.prisma.flagEnvironment.findFirst({
       where: { flagId, environmentId, brandId },
     });
+
+    // For BOOLEAN flags, sync enabled and value
+    let enabled = dto.enabled;
+    let defaultValue = dto.value;
+    
+    if (flag.flagType === 'BOOLEAN') {
+      if (dto.enabled !== undefined && dto.value === undefined) {
+        // Only enabled provided, sync value
+        defaultValue = String(dto.enabled);
+      } else if (dto.value !== undefined && dto.enabled === undefined) {
+        // Only value provided, sync enabled
+        enabled = dto.value === 'true';
+      }
+    }
 
     if (existing) {
       return this.prisma.flagEnvironment.update({
         where: { id: existing.id },
         data: {
-          enabled: dto.enabled,
-          defaultValue: dto.value,
+          enabled: enabled,
+          defaultValue: defaultValue,
         },
       });
     }
@@ -379,13 +434,15 @@ export class FlagsService {
         flagId,
         environmentId,
         brandId,
-        enabled: dto.enabled ?? false,
-        defaultValue: dto.value ?? 'false',
+        enabled: enabled ?? false,
+        defaultValue: defaultValue ?? 'false',
       },
     });
   }
 
   async delete(flagId: string) {
+    // Delete all flag environments first (cascading delete for MongoDB)
+    await this.prisma.flagEnvironment.deleteMany({ where: { flagId } });
     await this.prisma.featureFlag.delete({ where: { id: flagId } });
   }
 }

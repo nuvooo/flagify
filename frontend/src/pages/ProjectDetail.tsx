@@ -201,7 +201,10 @@ export default function ProjectDetail() {
     }
   };
 
-  const handleToggleFlag = async (flagId: string, environmentId: string, enabled: boolean) => {
+  const handleToggleFlag = async (flagId: string, environmentId: string, enabled: boolean, flagType?: string) => {
+    const newEnabled = !enabled;
+    const newValue = flagType === 'BOOLEAN' ? String(newEnabled) : undefined;
+    
     // Optimistic UI update
     const previousFlags = [...featureFlags];
     setFeatureFlags((prev) =>
@@ -210,7 +213,9 @@ export default function ProjectDetail() {
           return {
             ...f,
             environments: f.environments.map((e) =>
-              e.environmentId === environmentId ? { ...e, enabled: !enabled } : e
+              e.environmentId === environmentId 
+                ? { ...e, enabled: newEnabled, ...(newValue && { defaultValue: newValue }) } 
+                : e
             ),
           };
         }
@@ -221,9 +226,8 @@ export default function ProjectDetail() {
     try {
       await api.post(`/feature-flags/${flagId}/toggle`, {
         environmentId,
-        enabled: !enabled,
+        enabled: newEnabled,
       });
-      // Refresh data to ensure consistency (without loading state to prevent scroll)
     } catch (error) {
       console.error('Failed to toggle flag:', error);
       // Rollback on error
@@ -235,8 +239,12 @@ export default function ProjectDetail() {
     brandId: string,
     flagId: string,
     environmentId: string,
-    enabled: boolean
+    enabled: boolean,
+    flagType?: string
   ) => {
+    const newEnabled = !enabled;
+    const newValue = flagType === 'BOOLEAN' ? String(newEnabled) : undefined;
+    
     // Optimistic UI update
     const previousFlags = [...featureFlags];
     setFeatureFlags((prev) =>
@@ -249,7 +257,9 @@ export default function ProjectDetail() {
                 return {
                   ...e,
                   brandValues: e.brandValues?.map((bv) =>
-                    bv.brandId === brandId ? { ...bv, enabled: !enabled } : bv
+                    bv.brandId === brandId 
+                      ? { ...bv, enabled: newEnabled, ...(newValue && { defaultValue: newValue }) } 
+                      : bv
                   ),
                 };
               }
@@ -267,9 +277,8 @@ export default function ProjectDetail() {
     try {
       await api.post(`/brands/${brandId}/flags/${flagId}/toggle`, {
         environmentId,
-        enabled: !enabled,
+        enabled: newEnabled,
       });
-      // Refresh data to ensure consistency (without loading state to prevent scroll)
     } catch (error) {
       console.error('Failed to toggle brand flag:', error);
       // Rollback on error
@@ -581,7 +590,7 @@ export default function ProjectDetail() {
                                   </Badge>
                                 </div>
                                 <button
-                                  onClick={() => handleToggleBrandFlag(brand.brandId, flag.id, env.environmentId, brand.enabled)}
+                                  onClick={() => handleToggleBrandFlag(brand.brandId, flag.id, env.environmentId, brand.enabled, flag.flagType)}
                                   disabled={isToggling}
                                   className={clsx(
                                     "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
@@ -642,7 +651,7 @@ export default function ProjectDetail() {
                         <div className="flex items-center justify-between">
                           <span className="font-medium text-foreground">{env.environmentName}</span>
                           <button
-                            onClick={() => handleToggleFlag(flag.id, env.environmentId, env.enabled)}
+                            onClick={() => handleToggleFlag(flag.id, env.environmentId, env.enabled, flag.flagType)}
                             className={clsx(
                               "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
                               env.enabled ? "bg-green-500 dark:bg-green-600" : "bg-gray-300 dark:bg-gray-600"

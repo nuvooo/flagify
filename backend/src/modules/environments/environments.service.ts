@@ -30,6 +30,8 @@ export class EnvironmentsService {
   }
 
   async delete(envId: string) {
+    // Delete all flag environments for this environment first (cascading delete for MongoDB)
+    await this.prisma.flagEnvironment.deleteMany({ where: { environmentId: envId } });
     await this.prisma.environment.delete({ where: { id: envId } });
   }
 }

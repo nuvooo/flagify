@@ -124,6 +124,52 @@ export class OrganizationsService {
   }
 
   async delete(id: string) {
+    // Get all projects for this organization
+    const projects = await this.prisma.project.findMany({
+      where: { organizationId: id },
+      select: { id: true },
+    });
+
+    // Delete each project with all its dependencies
+    for (const project of projects) {
+      const flags = await this.prisma.featureFlag.findMany({
+        where: { projectId: project.id },
+        select: { id: true },
+      });
+      const flagIds = flags.map(f => f.id);
+
+      // Delete flag environments
+      if (flagIds.length > 0) {
+        await this.prisma.flagEnvironment.deleteMany({
+          where: { flagId: { in: flagIds } },
+        });
+      }
+
+      const envs = await this.prisma.environment.findMany({
+        where: { projectId: project.id },
+        select: { id: true },
+      });
+      const envIds = envs.map(e => e.id);
+      if (envIds.length > 0) {
+        await this.prisma.flagEnvironment.deleteMany({
+          where: { environmentId: { in: envIds } },
+        });
+      }
+
+      // Delete project data
+      await this.prisma.featureFlag.deleteMany({ where: { projectId: project.id } });
+      await this.prisma.brand.deleteMany({ where: { projectId: project.id } });
+      await this.prisma.environment.deleteMany({ where: { projectId: project.id } });
+      await this.prisma.auditLog.deleteMany({ where: { projectId: project.id } });
+      await this.prisma.project.delete({ where: { id: project.id } });
+    }
+
+    // Delete organization-level data
+    await this.prisma.auditLog.deleteMany({ where: { organizationId: id } });
+    await this.prisma.apiKey.deleteMany({ where: { organizationId: id } });
+    await this.prisma.environment.deleteMany({ where: { organizationId: id } });
+    await this.prisma.featureFlag.deleteMany({ where: { organizationId: id } });
+    await this.prisma.organizationMember.deleteMany({ where: { organizationId: id } });
     await this.prisma.organization.delete({ where: { id } });
   }
 

@@ -308,6 +308,46 @@ export class ProjectsService {
       throw new ForbiddenException('Access denied');
     }
 
+    // Delete all dependent data first (cascading delete for MongoDB)
+    // 1. Get all flags for this project
+    const flags = await this.prisma.featureFlag.findMany({
+      where: { projectId },
+      select: { id: true },
+    });
+    const flagIds = flags.map(f => f.id);
+
+    // 2. Delete flag environments for all project flags
+    if (flagIds.length > 0) {
+      await this.prisma.flagEnvironment.deleteMany({
+        where: { flagId: { in: flagIds } },
+      });
+    }
+
+    // 3. Delete flag environments for project environments (brand-specific)
+    const envs = await this.prisma.environment.findMany({
+      where: { projectId },
+      select: { id: true },
+    });
+    const envIds = envs.map(e => e.id);
+    if (envIds.length > 0) {
+      await this.prisma.flagEnvironment.deleteMany({
+        where: { environmentId: { in: envIds } },
+      });
+    }
+
+    // 4. Delete feature flags
+    await this.prisma.featureFlag.deleteMany({ where: { projectId } });
+
+    // 5. Delete brands
+    await this.prisma.brand.deleteMany({ where: { projectId } });
+
+    // 6. Delete environments
+    await this.prisma.environment.deleteMany({ where: { projectId } });
+
+    // 7. Delete audit logs
+    await this.prisma.auditLog.deleteMany({ where: { projectId } });
+
+    // 8. Finally delete the project
     await this.prisma.project.delete({ where: { id: projectId } });
   }
 }
