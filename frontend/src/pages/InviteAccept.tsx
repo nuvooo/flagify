@@ -220,7 +220,7 @@ export default function InviteAccept() {
                     </AlertDescription>
                   </Alert>
                   <Button 
-                    onClick={() => navigate('/login', { state: { redirectTo: `/invite/${token}` } })} 
+                    onClick={() => navigate('/login', { state: { redirectTo: `/invite/${inviteToken}` } }) 
                     className="w-full"
                   >
                     Sign In to Accept
