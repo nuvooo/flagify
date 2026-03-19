@@ -2,6 +2,7 @@ import { Controller, Get, Post, Patch, Delete, Body, Param, Req, UseGuards, Forb
 import { OrganizationsService } from './organizations.service';
 import { AuthGuard } from '../../shared/auth.guard';
 import { PrismaService } from '../../shared/prisma.service';
+import { MailService } from '../../shared/mail.service';
 import { randomUUID } from 'crypto';
 import * as bcrypt from 'bcryptjs';
 
@@ -11,6 +12,7 @@ export class OrganizationsController {
   constructor(
     private readonly orgsService: OrganizationsService,
     private readonly prisma: PrismaService,
+    private readonly mailService: MailService,
   ) {}
 
   @Get()
@@ -123,13 +125,26 @@ export class OrganizationsController {
       },
     });
 
-    // TODO: Send email with invite link
-    // For now, return the token
+    // Get organization name
+    const organization = await this.prisma.organization.findUnique({
+      where: { id },
+      select: { name: true },
+    });
+
+    // Send invite email
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    await this.mailService.sendInviteEmail(
+      body.email,
+      token,
+      organization?.name || 'Organization',
+      baseUrl
+    );
+
     return {
       success: true,
       inviteToken: token,
       inviteUrl: `/invite/${token}`,
-      message: 'Invite created. Send the invite URL to the user.',
+      message: 'Invite created and email sent.',
     };
   }
 

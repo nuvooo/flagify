@@ -1,8 +1,9 @@
-import { Controller, Post, Get, Patch, Body, Param, Req, UseGuards, NotFoundException, ConflictException } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, Param, Req, UseGuards, NotFoundException, ConflictException, Inject } from '@nestjs/common';
 import { ApiTags, ApiBody, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '../../shared/auth.guard';
 import { PrismaService } from '../../shared/prisma.service';
+import { MailService } from '../../shared/mail.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import * as bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
@@ -13,6 +14,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly prisma: PrismaService,
+    private readonly mailService: MailService,
   ) {}
 
   @Post('login')
@@ -21,10 +23,25 @@ export class AuthController {
   }
 
   @Post('register')
-  async register(@Body() body: { email: string; password: string; name: string; firstName?: string; lastName?: string }) {
+  async register(
+    @Body() body: { email: string; password: string; name: string; firstName?: string; lastName?: string },
+    @Req() req: any
+  ) {
     // Support both name and firstName/lastName
     const name = body.name || `${body.firstName} ${body.lastName}`;
-    return this.authService.register(body.email, body.password, name);
+    const result = await this.authService.register(body.email, body.password, name);
+    
+    // Send verification email
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    if (result.user.emailVerifyToken) {
+      await this.mailService.sendVerificationEmail(
+        body.email,
+        result.user.emailVerifyToken,
+        baseUrl
+      );
+    }
+    
+    return result;
   }
 
   @Get('me')
@@ -206,7 +223,7 @@ export class AuthController {
   }
 
   @Post('resend-verification')
-  async resendVerification(@Body() body: { email: string }) {
+  async resendVerification(@Body() body: { email: string }, @Req() req: any) {
     const user = await this.prisma.user.findUnique({
       where: { email: body.email },
     });
@@ -221,8 +238,10 @@ export class AuthController {
       data: { emailVerifyToken: token },
     });
 
-    // TODO: Send email with verification link
-    // For now, just return the token (in production, send via email)
+    // Send verification email
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    await this.mailService.sendVerificationEmail(body.email, token, baseUrl);
+
     return { success: true, message: 'Verification email sent' };
   }
 }

@@ -12,12 +12,15 @@ import { PasswordResetModule } from './modules/password-reset/password-reset.mod
 import { EnvironmentsModule } from './modules/environments/environments.module';
 import { ApiKeysModule } from './modules/api-keys/api-keys.module';
 import { PrismaModule } from './shared/prisma.module';
+import { MailerModule } from './shared/mailer.module';
+import { MailService } from './shared/mail.service';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     PrismaModule,
+    MailerModule,
     AuthModule,
     PasswordResetModule,
     OrganizationsModule,
@@ -28,5 +31,7 @@ import { PrismaModule } from './shared/prisma.module';
     BrandsModule,
     SdkModule,
   ],
+  providers: [MailService],
+  exports: [MailService],
 })
 export class AppModule {}
