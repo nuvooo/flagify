@@ -180,10 +180,14 @@ export class OrganizationsService {
     });
 
     return members.map(m => ({
-      id: m.user.id,
+      id: m.id,
+      userId: m.user.id,
       email: m.user.email,
-      name: `${m.user.firstName} ${m.user.lastName}`,
+      firstName: m.user.firstName,
+      lastName: m.user.lastName,
+      name: `${m.user.firstName ?? ''} ${m.user.lastName ?? ''}`.trim() || m.user.email,
       role: m.role,
+      joinedAt: m.createdAt,
     }));
   }
 
