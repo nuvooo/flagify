@@ -16,7 +16,7 @@ interface InviteInfo {
 }
 
 export default function InviteAccept() {
-  const { token } = useParams<{ token: string }>();
+  const { token: inviteToken } = useParams<{ token: string }>();
   const navigate = useNavigate();
   
   const [inviteInfo, setInviteInfo] = useState<InviteInfo | null>(null);
@@ -37,12 +37,17 @@ export default function InviteAccept() {
 
   useEffect(() => {
     // Check if user is logged in
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
+    const authToken = localStorage.getItem('token');
+    setIsLoggedIn(!!authToken);
 
     const fetchInviteInfo = async () => {
+      if (!inviteToken) {
+        setError('Invalid invite link');
+        setIsLoading(false);
+        return;
+      }
       try {
-        const response = await api.get(`/auth/invite/${token}`);
+        const response = await api.get(`/auth/invite/${inviteToken}`);
         setInviteInfo(response.data);
       } catch (err: any) {
         setError(err.response?.data?.message || 'Invalid or expired invite link');
@@ -51,17 +56,15 @@ export default function InviteAccept() {
       }
     };
 
-    if (token) {
-      fetchInviteInfo();
-    }
-  }, [token]);
+    fetchInviteInfo();
+  }, [inviteToken]);
 
   const handleAcceptAsExisting = async () => {
     setIsSubmitting(true);
     setError(null);
 
     try {
-      await api.post(`/auth/invite/${token}/accept`);
+      await api.post(`/auth/invite/${inviteToken}/accept`);
       setSuccess(true);
       
       // Redirect to dashboard after 2 seconds
@@ -92,7 +95,7 @@ export default function InviteAccept() {
     setError(null);
 
     try {
-      await api.post(`/auth/invite/${token}/register`, {
+      await api.post(`/auth/invite/${inviteToken}/register`, {
         firstName,
         lastName,
         password,
