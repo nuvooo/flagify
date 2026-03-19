@@ -327,4 +327,196 @@ export class SdkService {
     // Check if any active key matches the provided key
     return keys.some(k => k.key === apiKey);
   }
+
+  // ==================== EXPERIMENTS ====================
+
+  async getExperimentVariant(
+    projectKey: string,
+    environmentKey: string,
+    experimentKey: string,
+    userId: string,
+    apiKey: string,
+    origin?: string,
+  ) {
+    console.log(`[SDK Service] getExperimentVariant: ${experimentKey} for user ${userId}`);
+    
+    // Validate API key
+    await this.validateApiKeyAndOrigin(apiKey, projectKey, origin);
+    
+    // Find project
+    const project = await this.prisma.project.findFirst({
+      where: { key: projectKey },
+    });
+    
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    // Find environment
+    const environment = await this.prisma.environment.findFirst({
+      where: { projectId: project.id, key: environmentKey },
+    });
+    
+    if (!environment) {
+      throw new NotFoundException('Environment not found');
+    }
+
+    // Find running experiment
+    const experiment = await this.prisma.experiment.findFirst({
+      where: {
+        key: experimentKey,
+        projectId: project.id,
+        environmentId: environment.id,
+        status: 'RUNNING'
+      },
+      include: { 
+        variants: true,
+        flag: { select: { flagType: true } }
+      }
+    });
+
+    if (!experiment) {
+      return null;
+    }
+
+    // Deterministic variant assignment based on userId
+    const hash = this.hashString(`${experiment.id}:${userId}`);
+    const bucket = hash % 100;
+
+    let cumulative = 0;
+    let assignedVariant = null;
+
+    for (const variant of experiment.variants) {
+      cumulative += variant.trafficPercent;
+      if (bucket < cumulative) {
+        assignedVariant = variant;
+        break;
+      }
+    }
+
+    // Fallback to control if no variant assigned
+    if (!assignedVariant) {
+      assignedVariant = experiment.variants.find(v => v.isControl);
+    }
+
+    if (!assignedVariant) {
+      return null;
+    }
+
+    // Track exposure asynchronously (don't await)
+    this.trackExperimentExposure(experiment.id, assignedVariant.id, userId).catch(() => {});
+
+    const flagType = experiment.flag?.flagType || 'STRING';
+    
+    return {
+      experimentId: experiment.id,
+      experimentKey: experiment.key,
+      variantId: assignedVariant.id,
+      variantKey: assignedVariant.key,
+      variantName: assignedVariant.name,
+      value: this.parseExperimentValue(assignedVariant.value, flagType),
+      flagType
+    };
+  }
+
+  async trackExperimentEvent(
+    projectKey: string,
+    experimentKey: string,
+    eventType: string,
+    userId: string,
+    value?: number,
+    metadata?: Record<string, any>
+  ) {
+    const project = await this.prisma.project.findFirst({
+      where: { key: projectKey },
+    });
+
+    if (!project) return;
+
+    const experiment = await this.prisma.experiment.findFirst({
+      where: {
+        key: experimentKey,
+        projectId: project.id,
+        status: 'RUNNING'
+      }
+    });
+
+    if (!experiment) return;
+
+    // Find the variant this user was assigned to
+    const exposure = await this.prisma.experimentEvent.findFirst({
+      where: {
+        experimentId: experiment.id,
+        userId,
+        eventType: 'exposure'
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (!exposure) return;
+
+    await this.prisma.experimentEvent.create({
+      data: {
+        experimentId: experiment.id,
+        variantId: exposure.variantId,
+        userId,
+        eventType,
+        value,
+        metadata
+      }
+    });
+  }
+
+  private async trackExperimentExposure(
+    experimentId: string,
+    variantId: string,
+    userId: string
+  ) {
+    // Only track first exposure per user per experiment
+    const existing = await this.prisma.experimentEvent.findFirst({
+      where: {
+        experimentId,
+        userId,
+        eventType: 'exposure'
+      }
+    });
+
+    if (!existing) {
+      await this.prisma.experimentEvent.create({
+        data: {
+          experimentId,
+          variantId,
+          userId,
+          eventType: 'exposure'
+        }
+      });
+    }
+  }
+
+  private hashString(str: string): number {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash);
+  }
+
+  private parseExperimentValue(value: string, flagType: string): any {
+    switch (flagType) {
+      case 'BOOLEAN':
+        return value === 'true';
+      case 'NUMBER':
+        return parseFloat(value);
+      case 'JSON':
+        try {
+          return JSON.parse(value);
+        } catch {
+          return {};
+        }
+      default:
+        return value;
+    }
+  }
 }

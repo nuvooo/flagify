@@ -19,6 +19,11 @@ import CreateOrganization from './pages/organizations/CreateOrganization';
 import ProjectDetail from './pages/ProjectDetail';
 import ProjectSettings from './pages/projects/ProjectSettings';
 import BrandFlags from './pages/projects/BrandFlags';
+import SegmentList from './pages/segments/SegmentList';
+import SegmentForm from './pages/segments/SegmentForm';
+import ExperimentList from './pages/experiments/ExperimentList';
+import ExperimentForm from './pages/experiments/ExperimentForm';
+import ExperimentResults from './pages/experiments/ExperimentResults';
 import FeatureFlags from './pages/FeatureFlags';
 import FeatureFlagDetail from './pages/FeatureFlagDetail';
 import SDKTester from './pages/SDKTester';
@@ -59,6 +64,16 @@ function App() {
         <Route path="projects/:projectId" element={<ProjectDetail />} />
         <Route path="projects/:projectId/settings" element={<ProjectSettings />} />
         <Route path="projects/:projectId/brands/:brandId/flags" element={<BrandFlags />} />
+        
+        {/* Segments */}
+        <Route path="organizations/:orgId/projects/:projectId/segments" element={<SegmentList />} />
+        <Route path="organizations/:orgId/projects/:projectId/segments/new" element={<SegmentForm />} />
+        <Route path="organizations/:orgId/projects/:projectId/segments/:segmentId/edit" element={<SegmentForm />} />
+        
+        {/* Experiments */}
+        <Route path="organizations/:orgId/projects/:projectId/experiments" element={<ExperimentList />} />
+        <Route path="organizations/:orgId/projects/:projectId/experiments/new" element={<ExperimentForm />} />
+        <Route path="organizations/:orgId/projects/:projectId/experiments/:experimentId" element={<ExperimentResults />} />
         
         {/* Feature Flags */}
         <Route path="feature-flags" element={<FeatureFlags />} />

@@ -49,6 +49,8 @@ model Organization {
   environments Environment[]
   featureFlags FeatureFlag[]
   invites      OrganizationInvite[]
+  segments     Segment[]
+  experiments  Experiment[]
 
   @@map("organizations")
 }
@@ -100,6 +102,8 @@ model Project {
   featureFlags FeatureFlag[]
   brands       Brand[]
   auditLogs    AuditLog[]
+  segments     Segment[]
+  experiments  Experiment[]
 
   @@unique([organizationId, key])
   @@index([organizationId])
@@ -164,6 +168,7 @@ model FeatureFlag {
   createdBy        User              @relation("CreatedFlags", fields: [createdById], references: [id])
   updatedBy        User?             @relation("UpdatedFlags", fields: [updatedById], references: [id])
   flagEnvironments FlagEnvironment[]
+  experiments      Experiment[]      // A/B tests using this flag
 
   @@unique([projectId, key])
   @@index([organizationId])
@@ -216,8 +221,11 @@ model TargetingRule {
   // Relations
   flagEnvironment FlagEnvironment @relation(fields: [flagEnvId], references: [id])
   conditions      RuleCondition[]
+  segmentId       String?         @db.ObjectId // Optional: link to reusable segment
+  segment         Segment?        @relation(fields: [segmentId], references: [id])
 
   @@index([flagEnvId])
+  @@index([segmentId])
   @@map("targeting_rules")
 }
 
@@ -254,6 +262,159 @@ enum ConditionOperator {
   ENDS_WITH
   MATCHES_REGEX
 }
+
+// ==================== SEGMENTS ====================
+
+model Segment {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  key            String
+  description    String?
+  organizationId String   @db.ObjectId
+  projectId      String   @db.ObjectId
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  organization    Organization    @relation(fields: [organizationId], references: [id])
+  project         Project         @relation(fields: [projectId], references: [id])
+  conditions      SegmentCondition[]
+  targetingRules  TargetingRule[] // Rules using this segment
+
+  @@unique([projectId, key])
+  @@index([organizationId])
+  @@index([projectId])
+  @@map("segments")
+}
+
+model SegmentCondition {
+  id        String            @id @default(auto()) @map("_id") @db.ObjectId
+  segmentId String            @db.ObjectId
+  attribute String
+  operator  ConditionOperator
+  value     String
+  createdAt DateTime          @default(now())
+
+  // Relations
+  segment Segment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+
+  @@index([segmentId])
+  @@map("segment_conditions")
+}
+
+// ==================== A/B TESTING (EXPERIMENTS) ====================
+
+model Experiment {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  key            String
+  description    String?
+  hypothesis     String?          // Test hypothesis
+  organizationId String           @db.ObjectId
+  projectId      String           @db.ObjectId
+  flagId         String           @db.ObjectId // The flag being tested
+  environmentId  String           @db.ObjectId // Environment where test runs
+  status         ExperimentStatus @default(DRAFT)
+  startDate      DateTime?
+  endDate        DateTime?
+  trafficAllocation Int           @default(100) // % of traffic in experiment
+  createdById    String           @db.ObjectId
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  // Relations
+  organization Organization      @relation(fields: [organizationId], references: [id])
+  project      Project           @relation(fields: [projectId], references: [id])
+  flag         FeatureFlag       @relation(fields: [flagId], references: [id])
+  variants     ExperimentVariant[]
+  metrics      ExperimentMetric[]
+  events       ExperimentEvent[]
+
+  @@unique([projectId, key])
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([flagId])
+  @@index([status])
+  @@map("experiments")
+}
+
+enum ExperimentStatus {
+  DRAFT
+  RUNNING
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+model ExperimentVariant {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  experimentId  String   @db.ObjectId
+  name          String   // e.g., "Control", "Variant A"
+  key           String   // e.g., "control", "variant-a"
+  description   String?
+  value         String   // The flag value for this variant
+  trafficPercent Int     @default(50) // 0-100
+  isControl     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  // Relations
+  experiment Experiment       @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  events     ExperimentEvent[]
+
+  @@unique([experimentId, key])
+  @@index([experimentId])
+  @@map("experiment_variants")
+}
+
+model ExperimentMetric {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  experimentId String        @db.ObjectId
+  name         String
+  type         MetricType
+  eventName    String        // Event to track (e.g., "purchase", "signup")
+  targetValue  Float?        // Target conversion rate, revenue, etc.
+  isPrimary    Boolean       @default(false) // Primary success metric
+  createdAt    DateTime      @default(now())
+
+  // Relations
+  experiment Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+
+  @@index([experimentId])
+  @@map("experiment_metrics")
+}
+
+enum MetricType {
+  CONVERSION    // Binary: did convert or not
+  COUNT         // Number of events
+  SUM           // Sum of values (e.g., revenue)
+  AVERAGE       // Average value
+  UNIQUE_COUNT  // Unique users who performed action
+}
+
+model ExperimentEvent {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  experimentId String  @db.ObjectId
+  variantId   String   @db.ObjectId
+  userId      String?  // Anonymous or identified user
+  sessionId   String?  // For session-based tracking
+  eventType   String   // "exposure" (saw variant) or metric event name
+  value       Float?   // For SUM/AVERAGE metrics
+  metadata    Json?    // Additional context
+  createdAt   DateTime @default(now())
+
+  // Relations
+  experiment Experiment        @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  variant    ExperimentVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@index([experimentId])
+  @@index([variantId])
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("experiment_events")
+}
+
+// ==================== API KEYS & AUDIT ====================
 
 model ApiKey {
   id            String     @id @default(auto()) @map("_id") @db.ObjectId

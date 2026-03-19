@@ -14,6 +14,8 @@ import { ApiKeysModule } from './modules/api-keys/api-keys.module';
 import { PrismaModule } from './shared/prisma.module';
 import { MailerModule } from './shared/mailer.module';
 import { MailService } from './shared/mail.service';
+import { SegmentsModule } from './modules/segments/segments.module';
+import { ExperimentsModule } from './modules/experiments/experiments.module';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { MailService } from './shared/mail.service';
     FlagsModule,
     ProjectsModule,
     BrandsModule,
+    SegmentsModule,
+    ExperimentsModule,
     SdkModule,
   ],
   providers: [MailService],

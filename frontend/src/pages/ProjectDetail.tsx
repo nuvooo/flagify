@@ -8,6 +8,8 @@ import {
   FlagIcon,
   Cog6ToothIcon,
   TrashIcon,
+  UsersIcon,
+  BeakerIcon,
 } from '@heroicons/react/24/outline';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -418,6 +420,14 @@ export default function ProjectDetail() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => navigate(`/organizations/${orgId}/projects/${projectId}/segments`)}>
+            <UsersIcon className="w-4 h-4 mr-2" />
+            Segments
+          </Button>
+          <Button variant="outline" onClick={() => navigate(`/organizations/${orgId}/projects/${projectId}/experiments`)}>
+            <BeakerIcon className="w-4 h-4 mr-2" />
+            A/B Tests
+          </Button>
           <Button variant="outline" onClick={() => navigate(`/projects/${projectId}/settings`)}>
             <Cog6ToothIcon className="w-4 h-4 mr-2" />
             Settings
