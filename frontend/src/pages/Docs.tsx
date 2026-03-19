@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   FlagIcon,
-  BookOpen,
   Code2,
   Server,
   ChevronRight,
@@ -11,9 +10,7 @@ import {
   Copy,
   Check,
   Shield,
-  Users,
-  Settings,
-  Globe
+  Users
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
@@ -149,7 +146,7 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
 export default function Docs() {
   const [activeSection, setActiveSection] = useState('introduction');
   const [expandedSections, setExpandedSections] = useState<string[]>(['Getting Started']);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [_mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
