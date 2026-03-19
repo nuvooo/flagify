@@ -89,6 +89,13 @@ export class BrandsService {
   async toggleFlag(brandId: string, flagId: string, environmentId: string, enabled?: boolean) {
     console.log(`[BrandsService.toggleFlag] brandId=${brandId}, flagId=${flagId}, environmentId=${environmentId}, enabled=${enabled}`);
     
+    // Find the flag to check its type
+    const flag = await this.prisma.featureFlag.findUnique({
+      where: { id: flagId },
+    });
+    
+    if (!flag) throw new NotFoundException('Flag not found');
+
     // Try to find existing brand-specific flag environment
     const existing = await this.prisma.flagEnvironment.findFirst({
       where: { flagId, environmentId, brandId },
@@ -99,22 +106,31 @@ export class BrandsService {
     if (existing) {
       const newEnabled = enabled !== undefined ? enabled : !existing.enabled;
       console.log(`[BrandsService.toggleFlag] Updating existing to enabled=${newEnabled}`);
+      
+      const updateData: any = { enabled: newEnabled };
+      // If it's a BOOLEAN flag, also update the defaultValue to match the new enabled state
+      if (flag.flagType === 'BOOLEAN') {
+        updateData.defaultValue = String(newEnabled);
+      }
+      
       return this.prisma.flagEnvironment.update({
         where: { id: existing.id },
-        data: { enabled: newEnabled },
+        data: updateData,
       });
     }
 
     // Create new brand-specific flag environment
     console.log(`[BrandsService.toggleFlag] Creating new brand-specific flagEnv`);
     try {
+      const newEnabled = enabled ?? true;
       const created = await this.prisma.flagEnvironment.create({
         data: {
           flagId,
           environmentId,
           brandId,
-          enabled: enabled ?? true,
-          defaultValue: 'false',
+          enabled: newEnabled,
+          // If it's a BOOLEAN flag, the value should match the enabled state
+          defaultValue: flag.flagType === 'BOOLEAN' ? String(newEnabled) : 'false',
         },
       });
       console.log(`[BrandsService.toggleFlag] Created: id=${created.id}, enabled=${created.enabled}`);

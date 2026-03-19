@@ -278,15 +278,13 @@ export default function BrandFlags() {
                         </div>
                         <div className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
                           Value: <code className="bg-background px-1 rounded">{env.defaultValue}</code>
-                          {flag.flagType !== 'BOOLEAN' && (
-                            <button
-                              onClick={() => openEditValue(flag, env)}
-                              className="text-xs text-primary hover:underline flex items-center gap-1"
-                            >
-                              <Edit2 className="w-3 h-3" />
-                              Edit
-                            </button>
-                          )}
+                          <button
+                            onClick={() => openEditValue(flag, env)}
+                            className="text-xs text-primary hover:underline flex items-center gap-1"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                            Edit
+                          </button>
                         </div>
                       </div>
                     );
@@ -295,22 +293,49 @@ export default function BrandFlags() {
               </CardContent>
             </Card>
           ))
-        )}
+        }
       </div>
 
       {/* Edit Value Dialog */}
       <Dialog open={!!editingFlag} onOpenChange={() => setEditingFlag(null)}>
-        <DialogContent>
+        <DialogContent aria-describedby="dialog-description">
           <DialogHeader>
             <DialogTitle>Edit Brand Flag Value</DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="dialog-description">
               Update the value for <strong>{editingFlag?.name}</strong> in {editingEnv?.environmentName} for brand <strong>{brand.name}</strong>
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="flagValue">Value ({editingFlag?.flagType})</Label>
-              {editingFlag?.flagType === 'JSON' ? (
+              {editingFlag?.flagType === 'BOOLEAN' ? (
+                <div className="flex items-center gap-4 py-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditValue('true')}
+                    className={clsx(
+                      "flex-1 py-2 px-4 rounded-md border text-sm font-medium transition-colors",
+                      editValue === 'true' 
+                        ? "bg-primary text-primary-foreground border-primary" 
+                        : "bg-background text-foreground border-input hover:bg-accent"
+                    )}
+                  >
+                    true
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditValue('false')}
+                    className={clsx(
+                      "flex-1 py-2 px-4 rounded-md border text-sm font-medium transition-colors",
+                      editValue === 'false' 
+                        ? "bg-primary text-primary-foreground border-primary" 
+                        : "bg-background text-foreground border-input hover:bg-accent"
+                    )}
+                  >
+                    false
+                  </button>
+                </div>
+              ) : editingFlag?.flagType === 'JSON' ? (
                 <textarea
                   id="flagValue"
                   value={editValue}
