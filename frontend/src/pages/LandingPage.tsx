@@ -61,7 +61,81 @@ const highlights = [
   { label: 'Unlimited', desc: 'No usage limits' },
 ];
 
-const codeExample = `import { TogglelyClient } from '@togglely/sdk-core';
+const codeExamples = {
+  react: `import { useEffect, useState } from 'react';
+import { TogglelyClient } from '@togglely/sdk-core';
+
+const togglely = new TogglelyClient({
+  apiKey: process.env.REACT_APP_TOGGLELY_KEY,
+  project: 'my-app',
+  environment: 'production'
+});
+
+function FeatureFlag({ flagKey, children }) {
+  const [isEnabled, setIsEnabled] = useState(false);
+
+  useEffect(() => {
+    togglely.init().then(() => {
+      setIsEnabled(togglely.getValueSync(flagKey));
+    });
+  }, [flagKey]);
+
+  return isEnabled ? children : null;
+}
+
+// Usage
+<FeatureFlag flagKey="new-dashboard">
+  <NewDashboard />
+</FeatureFlag>`,
+
+  vue: `<script setup>
+import { ref, onMounted } from 'vue';
+import { TogglelyClient } from '@togglely/sdk-core';
+
+const togglely = new TogglelyClient({
+  apiKey: import.meta.env.VITE_TOGGLELY_KEY,
+  project: 'my-app',
+  environment: 'production'
+});
+
+const showFeature = ref(false);
+
+onMounted(async () => {
+  await togglely.init();
+  showFeature.value = togglely.getValueSync('new-dashboard');
+});
+</script>
+
+<template>
+  <NewDashboard v-if="showFeature" />
+  <OldDashboard v-else />
+</template>`,
+
+  svelte: `<script>
+  import { onMount } from 'svelte';
+  import { TogglelyClient } from '@togglely/sdk-core';
+
+  const togglely = new TogglelyClient({
+    apiKey: import.meta.env.VITE_TOGGLELY_KEY,
+    project: 'my-app',
+    environment: 'production'
+  });
+
+  let showFeature = false;
+
+  onMount(async () => {
+    await togglely.init();
+    showFeature = togglely.getValueSync('new-dashboard');
+  });
+</script>
+
+{#if showFeature}
+  <NewDashboard />
+{:else}
+  <OldDashboard />
+{/if}`,
+
+  vanilla: `import { TogglelyClient } from '@togglely/sdk-core';
 
 const client = new TogglelyClient({
   apiKey: process.env.TOGGLELY_API_KEY,
@@ -69,23 +143,35 @@ const client = new TogglelyClient({
   environment: 'production'
 });
 
-// Simple boolean check
-const isEnabled = await client.getValue('new-dashboard');
+// Initialize
+await client.init();
 
-// With context for targeting
-const theme = await client.getValue('theme', {
-  userId: user.id,
-  plan: user.subscription
-});`;
+// Check if feature is enabled
+const isEnabled = client.getValueSync('new-dashboard');
+
+if (isEnabled) {
+  showNewDashboard();
+} else {
+  showOldDashboard();
+}`
+};
 
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [activeFramework, setActiveFramework] = useState<'react' | 'vue' | 'svelte' | 'vanilla'>('react');
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const frameworkTabs = [
+    { key: 'react', label: 'React', color: 'text-blue-400' },
+    { key: 'vue', label: 'Vue', color: 'text-green-400' },
+    { key: 'svelte', label: 'Svelte', color: 'text-orange-400' },
+    { key: 'vanilla', label: 'Vanilla JS', color: 'text-yellow-400' },
+  ] as const;
 
   return (
     <div className="min-h-screen bg-background">
@@ -191,17 +277,34 @@ export default function LandingPage() {
           <div className="mt-20 relative mx-auto max-w-4xl">
             <div className="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-2xl blur opacity-30" />
             <div className="relative rounded-2xl bg-gray-950 border border-gray-800 shadow-2xl overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-800 bg-gray-900/50">
+              {/* Tabs */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 bg-gray-900/50">
                 <div className="flex gap-1.5">
                   <div className="h-3 w-3 rounded-full bg-red-500" />
                   <div className="h-3 w-3 rounded-full bg-yellow-500" />
                   <div className="h-3 w-3 rounded-full bg-green-500" />
                 </div>
-                <div className="ml-4 text-xs text-gray-500 font-mono">example.js</div>
+                <div className="flex gap-1">
+                  {frameworkTabs.map((tab) => (
+                    <button
+                      key={tab.key}
+                      onClick={() => setActiveFramework(tab.key)}
+                      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                        activeFramework === tab.key
+                          ? 'bg-gray-800 text-white'
+                          : 'text-gray-500 hover:text-gray-300'
+                      }`}
+                    >
+                      <span className={activeFramework === tab.key ? tab.color : ''}>
+                        {tab.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="p-6 overflow-x-auto">
                 <pre className="text-sm leading-relaxed text-gray-300 font-mono">
-                  <code>{codeExample}</code>
+                  <code>{codeExamples[activeFramework]}</code>
                 </pre>
               </div>
             </div>
