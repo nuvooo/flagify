@@ -93,6 +93,10 @@ export default function OrganizationDetail() {
       setNewProjectName('');
       setNewProjectKey('');
       setNewProjectType('SINGLE');
+      
+      // Refresh organization data to get complete project list with all fields
+      await fetchOrganizationById(orgId);
+      
       // Navigate to the new project (handle both wrapped and unwrapped responses)
       const projectId = (newProject as any).project?.id || newProject.id;
       if (projectId) {

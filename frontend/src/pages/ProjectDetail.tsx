@@ -173,7 +173,7 @@ export default function ProjectDetail() {
                           newFlagType === 'NUMBER' ? '0' :
                           newFlagType === 'JSON' ? '{}' : '';
       
-      const response = await api.post(`/feature-flags/project/${validProjectId}`, {
+      await api.post(`/feature-flags/project/${validProjectId}`, {
         name: newFlagName,
         key: newFlagKey,
         type: newFlagType,
@@ -182,14 +182,10 @@ export default function ProjectDetail() {
           production: { enabled: false, value: defaultValue },
         },
       });
-      // Response includes flag with environments from backend
-      const newFlag = response.data.featureFlag || response.data;
-      if (newFlag.environments) {
-        setFeatureFlags((prev) => [newFlag, ...prev]);
-      } else {
-        // If no environments, fetch them
-        await fetchData();
-      }
+      
+      // Refresh flags to get complete data (including environments, brandValues, etc.)
+      await fetchData();
+      
       setShowCreateFlagDialog(false);
       setNewFlagName('');
       setNewFlagKey('');

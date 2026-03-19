@@ -91,14 +91,14 @@ export default function Projects() {
     setCreateSuccess(null);
     
     try {
-      const response = await api.post(`/projects/organization/${newProjectData.organizationId}`, {
+      await api.post(`/projects/organization/${newProjectData.organizationId}`, {
         name: newProjectData.name,
         key: newProjectData.slug || undefined,
         description: newProjectData.description || undefined,
       });
       
-      const newProject = response.data.project || response.data;
-      setProjects((prev) => [newProject, ...prev]);
+      // Refresh projects to get complete data (including organizationName, counts, etc.)
+      await fetchProjects();
       setCreateSuccess('Project created successfully!');
       
       // Reset form and close modal after a brief delay
