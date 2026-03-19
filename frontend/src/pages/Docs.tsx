@@ -2,18 +2,18 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   FlagIcon,
-  BookOpenIcon,
-  CodeBracketIcon,
-  ServerIcon,
-  ChevronRightIcon,
-  ChevronDownIcon,
-  PlayIcon,
-  CopyIcon,
-  CheckIcon,
-  ShieldIcon,
-  UsersIcon,
-  SettingsIcon,
-  GlobeIcon
+  BookOpen,
+  Code2,
+  Server,
+  ChevronRight,
+  ChevronDown,
+  Play,
+  Copy,
+  Check,
+  Shield,
+  Users,
+  Settings,
+  Globe
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
@@ -135,7 +135,7 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
           onClick={copyToClipboard}
           className="h-8 text-gray-400 hover:text-white"
         >
-          {copied ? <CheckIcon className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
+          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           <span className="ml-2 text-xs">{copied ? 'Copied!' : 'Copy'}</span>
         </Button>
       </div>
@@ -210,7 +210,7 @@ export default function Docs() {
           <div className="flex items-center gap-4">
             <ThemeToggle />
             <Link to="/login?demo=true" className="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
-              <PlayIcon className="h-4 w-4" />
+              <Play className="h-4 w-4" />
               Live Demo
             </Link>
             <Link 
@@ -236,9 +236,9 @@ export default function Docs() {
                   >
                     {section.title}
                     {expandedSections.includes(section.title) ? (
-                      <ChevronDownIcon className="h-4 w-4" />
+                      <ChevronDown className="h-4 w-4" />
                     ) : (
-                      <ChevronRightIcon className="h-4 w-4" />
+                      <ChevronRight className="h-4 w-4" />
                     )}
                   </button>
                   {expandedSections.includes(section.title) && (
@@ -277,22 +277,22 @@ export default function Docs() {
                 
                 <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 not-prose">
                   <div className="p-4 rounded-lg border border-border bg-card">
-                    <ShieldIcon className="h-6 w-6 text-primary mb-2" />
+                    <Shield className="h-6 w-6 text-primary mb-2" />
                     <h3 className="font-semibold">Self-Hosted</h3>
                     <p className="text-sm text-muted-foreground">Your data stays in your infrastructure</p>
                   </div>
                   <div className="p-4 rounded-lg border border-border bg-card">
-                    <CodeBracketIcon className="h-6 w-6 text-primary mb-2" />
+                    <Code2 className="h-6 w-6 text-primary mb-2" />
                     <h3 className="font-semibold">Open Source</h3>
                     <p className="text-sm text-muted-foreground">MIT Licensed, fully customizable</p>
                   </div>
                   <div className="p-4 rounded-lg border border-border bg-card">
-                    <UsersIcon className="h-6 w-6 text-primary mb-2" />
+                    <Users className="h-6 w-6 text-primary mb-2" />
                     <h3 className="font-semibold">Multi-Tenant</h3>
                     <p className="text-sm text-muted-foreground">Organizations & Brands support</p>
                   </div>
                   <div className="p-4 rounded-lg border border-border bg-card">
-                    <ServerIcon className="h-6 w-6 text-primary mb-2" />
+                    <Server className="h-6 w-6 text-primary mb-2" />
                     <h3 className="font-semibold">Enterprise Ready</h3>
                     <p className="text-sm text-muted-foreground">RBAC, audit logs, API keys</p>
                   </div>
