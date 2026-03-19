@@ -293,7 +293,7 @@ export default function BrandFlags() {
               </CardContent>
             </Card>
           ))
-        }
+        )}
       </div>
 
       {/* Edit Value Dialog */}
@@ -336,6 +336,41 @@ export default function BrandFlags() {
                   </button>
                 </div>
               ) : editingFlag?.flagType === 'JSON' ? (
+                <textarea
+                  id="flagValue"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 font-mono text-sm"
+                  placeholder='{"enabled": true}'
+                />
+              ) : editingFlag?.flagType === 'NUMBER' ? (
+                <Input
+                  id="flagValue"
+                  type="number"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                />
+              ) : (
+                <Input
+                  id="flagValue"
+                  type="text"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                />
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingFlag(null)}>Cancel</Button>
+            <Button onClick={handleSaveValue} disabled={isSavingValue}>
+              {isSavingValue ? 'Saving...' : 'Save Value'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
                 <textarea
                   id="flagValue"
                   value={editValue}
