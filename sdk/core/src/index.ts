@@ -88,6 +88,12 @@ export class TogglelyClient {
   };
   private eventHandlers: Map<TogglelyEventType, Set<TogglelyEventHandler>> = new Map();
   private offlineTogglesLoaded: boolean = false;
+  
+  // Request batching
+  private pendingKeys: Set<string> = new Set();
+  private pendingPromises: Map<string, Array<{ resolve: (value: ToggleValue | null) => void; reject: (error: any) => void }>> = new Map();
+  private batchTimeout: ReturnType<typeof setTimeout> | null = null;
+  private readonly BATCH_DELAY = 10; // ms to wait for batching requests
 
   constructor(config: TogglelyConfig) {
     this.config = {
@@ -257,91 +263,110 @@ export class TogglelyClient {
   /**
    * Get raw toggle value
    * Uses stale-while-revalidate pattern: returns cached value immediately if available,
-   * then refreshes from server in background
+   * then refreshes from server in background.
+   * Uses request batching: multiple getValue() calls within a short timeframe are batched into a single request.
    * @param key - The flag key
    * @returns Promise<ToggleValue | null>
    */
   async getValue(key: string): Promise<ToggleValue | null> {
-    // Check if we have a cached/offline value first (stale-while-revalidate pattern)
+    // Check if we have a cached value first (stale-while-revalidate pattern)
     const cachedValue = this.toggles.get(key);
-    
-    // Fetch from server in background (don't await if we have cached data)
-    const fetchFromServer = async (): Promise<ToggleValue | null> => {
-      try {
-        const data = await this.fetchValueFromServer(key);
-        if (data !== null) {
-          this.toggles.set(key, data);
-        }
-        return data;
-      } catch {
-        // Silently fail - we already returned the cached value or will handle below
-        return null;
-      }
-    };
-
-    // If we have a cached value, return it immediately and update in background
     if (cachedValue !== undefined) {
-      // Trigger the fetch in background without awaiting
-      fetchFromServer().catch(() => {});
+      // Trigger a background refresh without awaiting
+      this.scheduleBatchRefresh();
       return cachedValue;
     }
 
-    // No cached value - we need to wait for the server response
-    const result = await fetchFromServer();
-    if (result !== null) {
-      return result;
+    // Check if there's already a pending promise for this key (deduplication)
+    const existingPromise = this.pendingPromises.get(key);
+    if (existingPromise) {
+      return new Promise((resolve, reject) => {
+        existingPromise.push({ resolve, reject });
+      });
     }
 
-    // Try offline fallback
-    if (this.config.offlineFallback) {
-      const offlineValue = this.getOfflineToggle(key);
-      if (offlineValue !== null) {
-        return offlineValue;
-      }
-    }
+    // Add key to batch and create a promise
+    this.pendingKeys.add(key);
     
-    // Return safe default
-    return { value: false, enabled: false };
+    return new Promise((resolve, reject) => {
+      // Store the promise callbacks
+      const promises = this.pendingPromises.get(key) || [];
+      promises.push({ resolve, reject });
+      this.pendingPromises.set(key, promises);
+
+      // Schedule the batch execution
+      this.scheduleBatchExecution();
+    });
   }
 
   /**
-   * Internal method to fetch a single toggle value from the server
+   * Schedule a background refresh of all toggles (for stale-while-revalidate)
    */
-  private async fetchValueFromServer(key: string): Promise<ToggleValue | null> {
-    const params = new URLSearchParams();
-    // Support both brandKey and tenantId for maximum compatibility
-    if (this.context.brandKey) params.set('brandKey', String(this.context.brandKey));
-    if (this.context.tenantId) params.set('tenantId', String(this.context.tenantId));
-    if (Object.keys(this.context).length > 0) {
-      params.set('context', JSON.stringify(this.context));
-    }
-    const query = params.toString() ? `?${params.toString()}` : '';
-    const url = `${this.config.baseUrl}/sdk/flags/${encodeURIComponent(this.config.project)}/${encodeURIComponent(this.config.environment)}/${encodeURIComponent(key)}${query}`;
-    
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json'
-    };
-    if (this.config.apiKey) {
-      headers['Authorization'] = `Bearer ${this.config.apiKey}`;
+  private scheduleBatchRefresh(): void {
+    if (this.batchTimeout) {
+      return; // Already scheduled
     }
     
-    const response = await this.fetchWithTimeout(url, { headers });
+    this.batchTimeout = setTimeout(() => {
+      this.batchTimeout = null;
+      // Refresh all toggles in background
+      this.refresh().catch(() => {});
+    }, this.BATCH_DELAY);
+  }
 
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null;
+  /**
+   * Schedule the batch execution for pending keys
+   */
+  private scheduleBatchExecution(): void {
+    if (this.batchTimeout) {
+      return; // Already scheduled
+    }
+    
+    this.batchTimeout = setTimeout(() => {
+      this.executeBatch();
+    }, this.BATCH_DELAY);
+  }
+
+  /**
+   * Execute the batch: fetch all pending keys in a single request
+   */
+  private async executeBatch(): Promise<void> {
+    this.batchTimeout = null;
+    
+    const keys = Array.from(this.pendingKeys);
+    const promises = new Map(this.pendingPromises);
+    
+    // Clear pending collections
+    this.pendingKeys.clear();
+    this.pendingPromises.clear();
+
+    if (keys.length === 0) {
+      return;
+    }
+
+    try {
+      // Fetch all toggles at once (more efficient than individual requests)
+      await this.refresh();
+      
+      // Resolve all pending promises with the fetched values
+      for (const key of keys) {
+        const keyPromises = promises.get(key) || [];
+        const value = this.toggles.get(key) || null;
+        
+        for (const { resolve } of keyPromises) {
+          resolve(value);
+        }
       }
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    } catch (error) {
+      // Reject all pending promises
+      for (const key of keys) {
+        const keyPromises = promises.get(key) || [];
+        
+        for (const { reject } of keyPromises) {
+          reject(error);
+        }
+      }
     }
-
-    const data: ToggleValue = await response.json();
-    
-    if (this.state.isOffline) {
-      this.state.isOffline = false;
-      this.emit('online');
-    }
-    
-    return data;
   }
 
   /**

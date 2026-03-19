@@ -181,87 +181,155 @@ describe('TogglelyClient', () => {
   });
 
   describe('toggle accessors', () => {
-    it('should use stale-while-revalidate pattern', async () => {
-      const client = new TogglelyClient(mockConfig);
+    it('should use stale-while-revalidate pattern with batching', async () => {
+      jest.useFakeTimers();
+      const client = new TogglelyClient({ ...mockConfig, autoFetch: false });
       
-      // First call - no cache, wait for server
+      // Mock the bulk endpoint (refresh) that returns all flags
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ value: true, enabled: true })
+        json: async () => ({ 
+          'bool-flag': { value: true, enabled: true }
+        })
       });
-      const value1 = await client.isEnabled('bool-flag', false);
+      
+      // First call - no cache, waits for batch
+      const promise1 = client.isEnabled('bool-flag', false);
+      
+      // Advance timers to trigger the batch
+      jest.advanceTimersByTime(20);
+      
+      const value1 = await promise1;
       expect(value1).toBe(true);
       
       // Second call - should return cached value immediately (stale-while-revalidate)
-      // Server returns different value, but we get cached value first
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ value: false, enabled: false })
-      });
       const value2 = await client.isEnabled('bool-flag', false);
-      // Returns cached value (true) while updating in background
+      // Returns cached value immediately
       expect(value2).toBe(true);
       
-      // Should have made 2 API calls
-      expect(global.fetch).toHaveBeenCalledTimes(2);
+      // Should have made only 1 API call (batching)
+      expect(global.fetch).toHaveBeenCalledTimes(1);
       
       client.destroy();
+      jest.useRealTimers();
+    });
+
+    it('should batch multiple flag requests into single request', async () => {
+      jest.useFakeTimers();
+      const client = new TogglelyClient({ ...mockConfig, autoFetch: false });
+      
+      // Mock the bulk endpoint
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ 
+          'flag-a': { value: true, enabled: true },
+          'flag-b': { value: 'hello', enabled: true },
+          'flag-c': { value: 42, enabled: true }
+        })
+      });
+      
+      // Make multiple requests simultaneously (before timer fires)
+      const promiseA = client.isEnabled('flag-a', false);
+      const promiseB = client.getString('flag-b', 'default');
+      const promiseC = client.getNumber('flag-c', 0);
+      
+      // Advance timers to trigger the batch execution
+      jest.advanceTimersByTime(20);
+      
+      const [valueA, valueB, valueC] = await Promise.all([promiseA, promiseB, promiseC]);
+      
+      expect(valueA).toBe(true);
+      expect(valueB).toBe('hello');
+      expect(valueC).toBe(42);
+      
+      // Should have made only 1 API call (batching)
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      
+      client.destroy();
+      jest.useRealTimers();
     });
 
     it('should return default value when toggle not found', async () => {
-      const client = new TogglelyClient(mockConfig);
+      jest.useFakeTimers();
+      const client = new TogglelyClient({ ...mockConfig, autoFetch: false });
       
+      // Mock empty response
       (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: 404,
-        status: 404
+        ok: true,
+        json: async () => ({})
       });
 
-      const value = await client.isEnabled('missing-flag', false);
+      const promise = client.isEnabled('missing-flag', false);
+      jest.advanceTimersByTime(20);
+      const value = await promise;
+      
       expect(value).toBe(false);
       
       client.destroy();
+      jest.useRealTimers();
     });
 
     it('should return string value', async () => {
-      const client = new TogglelyClient(mockConfig);
+      jest.useFakeTimers();
+      const client = new TogglelyClient({ ...mockConfig, autoFetch: false });
       
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ value: 'hello', enabled: true })
+        json: async () => ({ 
+          'msg-flag': { value: 'hello', enabled: true }
+        })
       });
 
-      const value = await client.getString('msg-flag', 'default');
+      const promise = client.getString('msg-flag', 'default');
+      jest.advanceTimersByTime(20);
+      const value = await promise;
+      
       expect(value).toBe('hello');
       
       client.destroy();
+      jest.useRealTimers();
     });
 
     it('should return number value', async () => {
-      const client = new TogglelyClient(mockConfig);
+      jest.useFakeTimers();
+      const client = new TogglelyClient({ ...mockConfig, autoFetch: false });
       
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ value: 42, enabled: true })
+        json: async () => ({ 
+          'limit-flag': { value: 42, enabled: true }
+        })
       });
 
-      const value = await client.getNumber('limit-flag', 0);
+      const promise = client.getNumber('limit-flag', 0);
+      jest.advanceTimersByTime(20);
+      const value = await promise;
+      
       expect(value).toBe(42);
       
       client.destroy();
+      jest.useRealTimers();
     });
 
     it('should return JSON value', async () => {
-      const client = new TogglelyClient(mockConfig);
+      jest.useFakeTimers();
+      const client = new TogglelyClient({ ...mockConfig, autoFetch: false });
       
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ value: '{"theme":"dark"}', enabled: true })
+        json: async () => ({ 
+          'config-flag': { value: '{"theme":"dark"}', enabled: true }
+        })
       });
 
-      const value = await client.getJSON('config-flag', {});
+      const promise = client.getJSON('config-flag', {});
+      jest.advanceTimersByTime(20);
+      const value = await promise;
+      
       expect(value).toEqual({ theme: 'dark' });
       
       client.destroy();
+      jest.useRealTimers();
     });
   });
 
