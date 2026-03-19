@@ -93,7 +93,10 @@ export class TogglelyClient {
   private pendingKeys: Set<string> = new Set();
   private pendingPromises: Map<string, Array<{ resolve: (value: ToggleValue | null) => void; reject: (error: any) => void }>> = new Map();
   private batchTimeout: ReturnType<typeof setTimeout> | null = null;
+  private refreshTimeout: ReturnType<typeof setTimeout> | null = null;
+  private lastRefreshTime: number = 0;
   private readonly BATCH_DELAY = 10; // ms to wait for batching requests
+  private readonly MIN_REFRESH_INTERVAL = 5000; // Minimum 5s between background refreshes
 
   constructor(config: TogglelyConfig) {
     this.config = {
@@ -272,8 +275,11 @@ export class TogglelyClient {
     // Check if we have a cached value first (stale-while-revalidate pattern)
     const cachedValue = this.toggles.get(key);
     if (cachedValue !== undefined) {
-      // Trigger a background refresh without awaiting
-      this.scheduleBatchRefresh();
+      // Only trigger background refresh if enough time has passed
+      const now = Date.now();
+      if (now - this.lastRefreshTime > this.MIN_REFRESH_INTERVAL) {
+        this.scheduleBackgroundRefresh();
+      }
       return cachedValue;
     }
 
@@ -301,14 +307,16 @@ export class TogglelyClient {
 
   /**
    * Schedule a background refresh of all toggles (for stale-while-revalidate)
+   * Throttled to prevent too frequent updates
    */
-  private scheduleBatchRefresh(): void {
-    if (this.batchTimeout) {
+  private scheduleBackgroundRefresh(): void {
+    if (this.refreshTimeout) {
       return; // Already scheduled
     }
     
-    this.batchTimeout = setTimeout(() => {
-      this.batchTimeout = null;
+    this.refreshTimeout = setTimeout(() => {
+      this.refreshTimeout = null;
+      this.lastRefreshTime = Date.now();
       // Refresh all toggles in background
       this.refresh().catch(() => {});
     }, this.BATCH_DELAY);
@@ -347,6 +355,9 @@ export class TogglelyClient {
     try {
       // Fetch all toggles at once (more efficient than individual requests)
       await this.refresh();
+      
+      // Update last refresh time to prevent immediate background refresh
+      this.lastRefreshTime = Date.now();
       
       // Resolve all pending promises with the fetched values
       for (const key of keys) {
@@ -551,6 +562,7 @@ export class TogglelyClient {
       
       this.state.lastFetch = new Date();
       this.state.lastError = null;
+      this.lastRefreshTime = Date.now();
       
       if (!this.state.isReady) {
         this.state.isReady = true;
