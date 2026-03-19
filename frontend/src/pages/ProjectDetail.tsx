@@ -185,7 +185,7 @@ export default function ProjectDetail() {
       // Response includes flag with environments from backend
       const newFlag = response.data.featureFlag || response.data;
       if (newFlag.environments) {
-        setFeatureFlags([newFlag, ...featureFlags]);
+        setFeatureFlags((prev) => [newFlag, ...prev]);
       } else {
         // If no environments, fetch them
         await fetchData();
@@ -294,7 +294,7 @@ export default function ProjectDetail() {
     setIsDeletingFlag(true);
     try {
       await api.delete(`/feature-flags/${flagToDelete.id}`);
-      setFeatureFlags(featureFlags.filter(f => f.id !== flagToDelete.id));
+      setFeatureFlags((prev) => prev.filter(f => f.id !== flagToDelete.id));
       setFlagToDelete(null);
     } catch (error) {
       console.error('Failed to delete flag:', error);

@@ -192,7 +192,7 @@ export const useOrganizationStore = create<OrganizationState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await api.post(`/projects/organization/${orgId}`, data);
-      const newProject = response.data;
+      const newProject = response.data.project || response.data;
       set((state) => ({
         currentOrganization: state.currentOrganization
           ? {
