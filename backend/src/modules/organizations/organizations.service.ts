@@ -216,8 +216,18 @@ export class OrganizationsService {
   }
 
   async removeMember(orgId: string, userId: string) {
-    await this.prisma.organizationMember.deleteMany({
+    // Find the member first to ensure it exists
+    const member = await this.prisma.organizationMember.findFirst({
       where: { organizationId: orgId, userId },
+    });
+
+    if (!member) {
+      throw new NotFoundException('Member not found in organization');
+    }
+
+    // Delete by unique ID for MongoDB compatibility
+    await this.prisma.organizationMember.delete({
+      where: { id: member.id },
     });
   }
 }
