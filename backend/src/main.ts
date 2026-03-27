@@ -16,6 +16,7 @@ import {
   setSdkCorsHeaders,
 } from './modules/sdk/sdk-http.utils'
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter'
+import { MetricsService } from './shared/metrics/metrics.service'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
@@ -123,6 +124,15 @@ async function bootstrap() {
   // Health endpoint
   httpAdapter.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() })
+  })
+
+  // Prometheus metrics endpoint (outside /api prefix)
+  const metricsService = app.get(MetricsService)
+  httpAdapter.get('/metrics', async (_req, res) => {
+    const metrics = await metricsService.getMetrics()
+    res.set('Content-Type', metricsService.getContentType())
+    res.set('Cache-Control', 'no-store')
+    res.send(metrics)
   })
 
   // SDK OPTIONS endpoints for CORS preflight
