@@ -15,6 +15,7 @@ import clsx from 'clsx'
 import { Fragment, useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import api from '@/lib/api'
+import { toast } from 'sonner'
 
 // Helper to validate MongoDB ObjectID format (24-char hex)
 const isValidObjectId = (id: string | undefined | null): id is string => {
@@ -183,7 +184,7 @@ export default function FeatureFlags() {
     // Get the effective environment ID
     const effectiveEnvId = environmentId || selectedEnvironment
     if (!effectiveEnvId || effectiveEnvId === 'all') {
-      alert('Please select a specific environment to toggle flags')
+      toast.error('Please select a specific environment to toggle flags')
       return
     }
 
@@ -210,7 +211,7 @@ export default function FeatureFlags() {
       )
     } catch (error) {
       console.error('Failed to toggle feature flag:', error)
-      alert('Failed to toggle feature flag. Please try again.')
+      toast.error('Failed to toggle feature flag. Please try again.')
     } finally {
       setTogglingFlags((prev) => {
         const next = new Set(prev)
@@ -235,7 +236,7 @@ export default function FeatureFlags() {
       setFeatureFlags((prev) => prev.filter((flag) => flag.id !== flagId))
     } catch (err: any) {
       console.error('Failed to delete feature flag:', err)
-      alert(
+      toast.error(
         err.response?.data?.message ||
           'Failed to delete feature flag. Please try again.'
       )

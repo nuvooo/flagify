@@ -13,6 +13,7 @@ import clsx from 'clsx'
 import { Fragment, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '@/lib/api'
+import { toast } from 'sonner'
 
 interface Organization {
   id: string
@@ -127,7 +128,7 @@ export default function Organizations() {
       setOrganizations((prev) => prev.filter((org) => org.id !== orgId))
     } catch (err: any) {
       console.error('Failed to delete organization:', err)
-      alert(
+      toast.error(
         err.response?.data?.message ||
           'Failed to delete organization. Please try again.'
       )

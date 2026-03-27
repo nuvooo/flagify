@@ -2,6 +2,7 @@ import { Building2, Check, Shield, User, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import api from '@/lib/axios'
+import { toast } from 'sonner'
 
 interface PendingInvite {
   id: string
@@ -41,7 +42,7 @@ export default function PendingInvitesBanner() {
       window.location.reload()
     } catch (error: any) {
       console.error('Failed to accept invite:', error)
-      alert(error.response?.data?.error || 'Failed to accept invite')
+      toast.error(error.response?.data?.error || 'Failed to accept invite')
     } finally {
       setAcceptingId(null)
     }

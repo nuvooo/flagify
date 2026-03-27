@@ -35,6 +35,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import api from '@/lib/axios'
+import { toast } from 'sonner'
 
 interface ApiKey {
   id: string
@@ -164,7 +165,7 @@ export default function ApiKeys() {
       setApiKeys(apiKeys.filter((k) => k.id !== keyId))
     } catch (err: any) {
       console.error('Failed to revoke API key:', err)
-      alert(err.response?.data?.error || 'Failed to revoke API key')
+      toast.error(err.response?.data?.error || 'Failed to revoke API key')
     } finally {
       setIsRevoking(null)
     }
