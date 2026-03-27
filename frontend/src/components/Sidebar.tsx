@@ -1,20 +1,20 @@
-import { NavLink, useLocation } from 'react-router-dom';
 import {
-  HomeIcon,
-  BuildingOfficeIcon,
-  FolderIcon,
-  FlagIcon,
-  KeyIcon,
-  DocumentTextIcon,
-  Cog6ToothIcon,
-  XMarkIcon,
   BeakerIcon,
-} from '@heroicons/react/24/outline';
-import clsx from 'clsx';
+  BuildingOfficeIcon,
+  Cog6ToothIcon,
+  DocumentTextIcon,
+  FlagIcon,
+  FolderIcon,
+  HomeIcon,
+  KeyIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
+import clsx from 'clsx'
+import { NavLink, useLocation } from 'react-router-dom'
 
 interface SidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
 }
 
 const navigation = [
@@ -26,10 +26,10 @@ const navigation = [
   { name: 'API Keys', href: '/api-keys', icon: KeyIcon },
   { name: 'Audit Logs', href: '/audit-logs', icon: DocumentTextIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
-];
+]
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const location = useLocation();
+  const location = useLocation()
 
   return (
     <>
@@ -49,7 +49,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         )}
       >
         <div className="flex items-center justify-between h-16 px-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
-          <span className="text-xl font-bold text-gray-900 dark:text-white">Togglely</span>
+          <span className="text-xl font-bold text-gray-900 dark:text-white">
+            Togglely
+          </span>
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
@@ -59,8 +61,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
         <nav className="px-2 py-4 space-y-1">
           {navigation.map((item) => {
-            const isActive = location.pathname === item.href || 
-              (item.href !== '/' && location.pathname.startsWith(item.href));
+            const isActive =
+              location.pathname === item.href ||
+              (item.href !== '/' && location.pathname.startsWith(item.href))
             return (
               <NavLink
                 key={item.name}
@@ -83,7 +86,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 />
                 {item.name}
               </NavLink>
-            );
+            )
           })}
         </nav>
       </div>
@@ -91,12 +94,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Desktop sidebar */}
       <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:bg-white dark:lg:bg-gray-900 lg:border-r lg:border-gray-200 dark:lg:border-gray-800">
         <div className="flex items-center h-16 px-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
-          <span className="text-xl font-bold text-gray-900 dark:text-white">Togglely</span>
+          <span className="text-xl font-bold text-gray-900 dark:text-white">
+            Togglely
+          </span>
         </div>
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
           {navigation.map((item) => {
-            const isActive = location.pathname === item.href || 
-              (item.href !== '/' && location.pathname.startsWith(item.href));
+            const isActive =
+              location.pathname === item.href ||
+              (item.href !== '/' && location.pathname.startsWith(item.href))
             return (
               <NavLink
                 key={item.name}
@@ -118,13 +124,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 />
                 {item.name}
               </NavLink>
-            );
+            )
           })}
         </nav>
         <div className="p-4 border-t border-gray-200 dark:border-gray-800">
-          <p className="text-xs text-gray-500 dark:text-gray-500">Togglely v1.0.0</p>
+          <p className="text-xs text-gray-500 dark:text-gray-500">
+            Togglely v1.0.0
+          </p>
         </div>
       </div>
     </>
-  );
+  )
 }

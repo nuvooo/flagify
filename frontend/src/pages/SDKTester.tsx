@@ -1,110 +1,119 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import {
-  CodeBracketIcon,
   ArrowLeftIcon,
-  PlayIcon,
-  DocumentDuplicateIcon,
-  CheckIcon,
   BeakerIcon,
-} from '@heroicons/react/24/outline';
-import api from '@/lib/api';
-import clsx from 'clsx';
+  CheckIcon,
+  CodeBracketIcon,
+  DocumentDuplicateIcon,
+  PlayIcon,
+} from '@heroicons/react/24/outline'
+import clsx from 'clsx'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import api from '@/lib/api'
 
 interface Project {
-  id: string;
-  name: string;
-  key: string;
-  environments: { id: string; name: string; key: string }[];
+  id: string
+  name: string
+  key: string
+  environments: { id: string; name: string; key: string }[]
 }
 
 interface TestResult {
-  flagKey: string;
-  value: any;
-  enabled: boolean;
+  flagKey: string
+  value: any
+  enabled: boolean
 }
 
 export default function SDKTester() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [selectedProject, setSelectedProject] = useState<string>('');
-  const [selectedEnvironment, setSelectedEnvironment] = useState<string>('');
+  const [projects, setProjects] = useState<Project[]>([])
+  const [selectedProject, setSelectedProject] = useState<string>('')
+  const [selectedEnvironment, setSelectedEnvironment] = useState<string>('')
   // Note: apiKey is used in generated code example only
-  const [apiKey, setApiKey] = useState<string>('');
-  
+  const [apiKey, setApiKey] = useState<string>('')
+
   // Context attributes
-  const [contextAttrs, setContextAttrs] = useState<{key: string; value: string}[]>([
+  const [contextAttrs, setContextAttrs] = useState<
+    { key: string; value: string }[]
+  >([
     { key: 'userId', value: '' },
     { key: 'tenantId', value: '' },
-  ]);
-  
-  const [isLoading, setIsLoading] = useState(false);
-  const [testResults, setTestResults] = useState<TestResult[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  ])
+
+  const [isLoading, setIsLoading] = useState(false)
+  const [testResults, setTestResults] = useState<TestResult[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   // Demo API keys for generated code examples
   const getDemoApiKey = (projectKey: string) => {
-    if (projectKey === 'simple-web-app') return 'togglely_demo_simple_key';
-    if (projectKey === 'multi-tenant-saas') return 'togglely_demo_saas_key';
-    return 'your-api-key';
-  };
+    if (projectKey === 'simple-web-app') return 'togglely_demo_simple_key'
+    if (projectKey === 'multi-tenant-saas') return 'togglely_demo_saas_key'
+    return 'your-api-key'
+  }
 
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    fetchProjects()
+  }, [])
 
   const fetchProjects = async () => {
     try {
-      const response = await api.get('/projects');
+      const response = await api.get('/projects')
       const projectsWithEnvs = await Promise.all(
         response.data.projects.map(async (p: Project) => {
-          const envRes = await api.get(`/projects/${p.id}/environments`);
-          return { ...p, environments: envRes.data.environments };
+          const envRes = await api.get(`/projects/${p.id}/environments`)
+          return { ...p, environments: envRes.data.environments }
         })
-      );
-      setProjects(projectsWithEnvs);
+      )
+      setProjects(projectsWithEnvs)
     } catch (error) {
-      console.error('Failed to fetch projects:', error);
+      console.error('Failed to fetch projects:', error)
     }
-  };
+  }
 
-  const selectedProjectData = projects.find(p => p.id === selectedProject);
-  const environments = selectedProjectData?.environments || [];
+  const selectedProjectData = projects.find((p) => p.id === selectedProject)
+  const environments = selectedProjectData?.environments || []
 
   const addContextAttr = () => {
-    setContextAttrs([...contextAttrs, { key: '', value: '' }]);
-  };
+    setContextAttrs([...contextAttrs, { key: '', value: '' }])
+  }
 
   const removeContextAttr = (index: number) => {
-    setContextAttrs(contextAttrs.filter((_, i) => i !== index));
-  };
+    setContextAttrs(contextAttrs.filter((_, i) => i !== index))
+  }
 
-  const updateContextAttr = (index: number, field: 'key' | 'value', value: string) => {
-    const newAttrs = [...contextAttrs];
-    newAttrs[index][field] = value;
-    setContextAttrs(newAttrs);
-  };
+  const updateContextAttr = (
+    index: number,
+    field: 'key' | 'value',
+    value: string
+  ) => {
+    const newAttrs = [...contextAttrs]
+    newAttrs[index][field] = value
+    setContextAttrs(newAttrs)
+  }
 
   const buildContext = () => {
-    const context: Record<string, any> = {};
+    const context: Record<string, any> = {}
     contextAttrs.forEach(({ key, value }) => {
       if (key.trim()) {
         // Try to parse as number or boolean
-        if (value === 'true') context[key] = true;
-        else if (value === 'false') context[key] = false;
-        else if (!isNaN(Number(value)) && value !== '') context[key] = Number(value);
-        else context[key] = value;
+        if (value === 'true') context[key] = true
+        else if (value === 'false') context[key] = false
+        else if (!isNaN(Number(value)) && value !== '')
+          context[key] = Number(value)
+        else context[key] = value
       }
-    });
-    return context;
-  };
+    })
+    return context
+  }
 
   const generateCode = () => {
-    const context = buildContext();
-    const projectKey = selectedProjectData?.key || 'simple-web-app';
-    const envKey = environments.find(e => e.id === selectedEnvironment)?.key || 'development';
-    const demoKey = apiKey || getDemoApiKey(projectKey);
-    
+    const context = buildContext()
+    const projectKey = selectedProjectData?.key || 'simple-web-app'
+    const envKey =
+      environments.find((e) => e.id === selectedEnvironment)?.key ||
+      'development'
+    const demoKey = apiKey || getDemoApiKey(projectKey)
+
     return `import { TogglelyClient } from '@togglely/sdk-core';
 
 const client = new TogglelyClient({
@@ -119,30 +128,30 @@ client.setContext(${JSON.stringify(context, null, 2)});
 
 // Check if feature is enabled
 const isEnabled = await client.isEnabled('new-dashboard', false);
-console.log('Feature enabled:', isEnabled);`;
-  };
+console.log('Feature enabled:', isEnabled);`
+  }
 
   const runTest = async () => {
     if (!selectedProject || !selectedEnvironment) {
-      setError('Please select a project and environment');
-      return;
+      setError('Please select a project and environment')
+      return
     }
 
-    setIsLoading(true);
-    setError(null);
-    setTestResults([]);
+    setIsLoading(true)
+    setError(null)
+    setTestResults([])
 
     try {
-      const context = buildContext();
-      const projectKey = selectedProjectData?.key;
-      const envKey = environments.find(e => e.id === selectedEnvironment)?.key;
+      const context = buildContext()
+      const projectKey = selectedProjectData?.key
+      const envKey = environments.find((e) => e.id === selectedEnvironment)?.key
 
       // Get all flags for this project/environment
       const flagsRes = await api.get(`/feature-flags`, {
-        params: { projectId: selectedProject }
-      });
+        params: { projectId: selectedProject },
+      })
 
-      const results: TestResult[] = [];
+      const results: TestResult[] = []
 
       for (const flag of flagsRes.data.featureFlags || []) {
         try {
@@ -150,41 +159,41 @@ console.log('Feature enabled:', isEnabled);`;
           const evalRes = await api.get(
             `/sdk/flags/${projectKey}/${envKey}/${flag.key}`,
             {
-              params: { 
-                context: JSON.stringify(context) 
+              params: {
+                context: JSON.stringify(context),
               },
-              headers: { 
-                'X-API-Key': apiKey || getDemoApiKey(projectKey!)
-              }
+              headers: {
+                'X-API-Key': apiKey || getDemoApiKey(projectKey!),
+              },
             }
-          );
+          )
           results.push({
             flagKey: flag.key,
             value: evalRes.data.value,
-            enabled: evalRes.data.enabled
-          });
+            enabled: evalRes.data.enabled,
+          })
         } catch (e) {
           results.push({
             flagKey: flag.key,
             value: null,
-            enabled: false
-          });
+            enabled: false,
+          })
         }
       }
 
-      setTestResults(results);
+      setTestResults(results)
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to run test');
+      setError(err.response?.data?.error || 'Failed to run test')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const copyCode = () => {
-    navigator.clipboard.writeText(generateCode());
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+    navigator.clipboard.writeText(generateCode())
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   return (
     <div className="space-y-6">
@@ -223,23 +232,29 @@ console.log('Feature enabled:', isEnabled);`;
           {/* Project & Environment */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-foreground">Project</label>
+              <label className="block text-sm font-medium text-foreground">
+                Project
+              </label>
               <select
                 value={selectedProject}
                 onChange={(e) => {
-                  setSelectedProject(e.target.value);
-                  setSelectedEnvironment('');
+                  setSelectedProject(e.target.value)
+                  setSelectedEnvironment('')
                 }}
                 className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
               >
                 <option value="">Select project</option>
                 {projects.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground">Environment</label>
+              <label className="block text-sm font-medium text-foreground">
+                Environment
+              </label>
               <select
                 value={selectedEnvironment}
                 onChange={(e) => setSelectedEnvironment(e.target.value)}
@@ -248,7 +263,9 @@ console.log('Feature enabled:', isEnabled);`;
               >
                 <option value="">Select environment</option>
                 {environments.map((e) => (
-                  <option key={e.id} value={e.id}>{e.name}</option>
+                  <option key={e.id} value={e.id}>
+                    {e.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -267,7 +284,9 @@ console.log('Feature enabled:', isEnabled);`;
               className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Uses demo API key if empty (simple-web-app: togglely_demo_simple_key, multi-tenant-saas: togglely_demo_saas_key)
+              Uses demo API key if empty (simple-web-app:
+              togglely_demo_simple_key, multi-tenant-saas:
+              togglely_demo_saas_key)
             </p>
           </div>
 
@@ -285,23 +304,28 @@ console.log('Feature enabled:', isEnabled);`;
               </button>
             </div>
             <p className="text-xs text-muted-foreground mb-3">
-              These attributes are used for targeting rules (e.g., userId, tenantId, plan, country)
+              These attributes are used for targeting rules (e.g., userId,
+              tenantId, plan, country)
             </p>
-            
+
             <div className="space-y-3">
               {contextAttrs.map((attr, index) => (
                 <div key={index} className="flex items-center space-x-2">
                   <input
                     type="text"
                     value={attr.key}
-                    onChange={(e) => updateContextAttr(index, 'key', e.target.value)}
+                    onChange={(e) =>
+                      updateContextAttr(index, 'key', e.target.value)
+                    }
                     placeholder="Attribute name"
                     className="flex-1 rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   />
                   <input
                     type="text"
                     value={attr.value}
-                    onChange={(e) => updateContextAttr(index, 'value', e.target.value)}
+                    onChange={(e) =>
+                      updateContextAttr(index, 'value', e.target.value)
+                    }
                     placeholder="Value"
                     className="flex-1 rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   />
@@ -338,13 +362,19 @@ console.log('Feature enabled:', isEnabled);`;
           {/* Generated Code */}
           <div className="bg-card shadow rounded-lg border border-border">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-              <h3 className="text-sm font-medium text-foreground">Generated SDK Code</h3>
+              <h3 className="text-sm font-medium text-foreground">
+                Generated SDK Code
+              </h3>
               <button
                 onClick={copyCode}
                 className="text-muted-foreground hover:text-foreground"
                 title="Copy to clipboard"
               >
-                {copied ? <CheckIcon className="h-4 w-4 text-green-500" /> : <DocumentDuplicateIcon className="h-4 w-4" />}
+                {copied ? (
+                  <CheckIcon className="h-4 w-4 text-green-500" />
+                ) : (
+                  <DocumentDuplicateIcon className="h-4 w-4" />
+                )}
               </button>
             </div>
             <pre className="p-4 overflow-x-auto text-xs text-foreground bg-muted">
@@ -356,19 +386,28 @@ console.log('Feature enabled:', isEnabled);`;
           {testResults.length > 0 && (
             <div className="bg-card shadow rounded-lg border border-border">
               <div className="px-4 py-3 border-b border-border">
-                <h3 className="text-sm font-medium text-foreground">Test Results</h3>
+                <h3 className="text-sm font-medium text-foreground">
+                  Test Results
+                </h3>
               </div>
               <div className="divide-y divide-border">
                 {testResults.map((result) => (
-                  <div key={result.flagKey} className="px-4 py-3 flex items-center justify-between">
-                    <code className="text-sm font-medium">{result.flagKey}</code>
+                  <div
+                    key={result.flagKey}
+                    className="px-4 py-3 flex items-center justify-between"
+                  >
+                    <code className="text-sm font-medium">
+                      {result.flagKey}
+                    </code>
                     <div className="flex items-center space-x-4">
-                      <span className={clsx(
-                        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                        result.enabled 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-400' 
-                          : 'bg-muted text-muted-foreground'
-                      )}>
+                      <span
+                        className={clsx(
+                          'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                          result.enabled
+                            ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-400'
+                            : 'bg-muted text-muted-foreground'
+                        )}
+                      >
                         {result.enabled ? 'Enabled' : 'Disabled'}
                       </span>
                       <code className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
@@ -383,5 +422,5 @@ console.log('Feature enabled:', isEnabled);`;
         </div>
       </div>
     </div>
-  );
+  )
 }

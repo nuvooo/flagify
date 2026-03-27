@@ -2,135 +2,139 @@
 
 /**
  * Togglely CLI - Build-time JSON generator
- * 
+ *
  * Usage:
  *   togglely-pull --apiKey=xxx --project=xxx --environment=xxx --output=./toggles.json
  *   togglely-pull --config=./togglely.config.js
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'fs'
+import * as path from 'path'
 
 interface CliConfig {
-  apiKey: string;
-  project: string;
-  environment: string;
-  baseUrl: string;
-  tenantId?: string;
-  output: string;
-  format: 'json' | 'env' | 'js';
+  apiKey: string
+  project: string
+  environment: string
+  baseUrl: string
+  tenantId?: string
+  output: string
+  format: 'json' | 'env' | 'js'
 }
 
 function parseArgs(): Partial<CliConfig> {
-  const args = process.argv.slice(2);
-  const config: Partial<CliConfig> = {};
+  const args = process.argv.slice(2)
+  const config: Partial<CliConfig> = {}
 
   for (const arg of args) {
     if (arg.startsWith('--apiKey=')) {
-      config.apiKey = arg.split('=')[1];
+      config.apiKey = arg.split('=')[1]
     } else if (arg.startsWith('--project=')) {
-      config.project = arg.split('=')[1];
+      config.project = arg.split('=')[1]
     } else if (arg.startsWith('--environment=')) {
-      config.environment = arg.split('=')[1];
+      config.environment = arg.split('=')[1]
     } else if (arg.startsWith('--baseUrl=')) {
-      config.baseUrl = arg.split('=')[1];
+      config.baseUrl = arg.split('=')[1]
     } else if (arg.startsWith('--tenantId=')) {
-      config.tenantId = arg.split('=')[1];
+      config.tenantId = arg.split('=')[1]
     } else if (arg.startsWith('--output=')) {
-      config.output = arg.split('=')[1];
+      config.output = arg.split('=')[1]
     } else if (arg.startsWith('--format=')) {
-      config.format = arg.split('=')[1] as CliConfig['format'];
+      config.format = arg.split('=')[1] as CliConfig['format']
     } else if (arg.startsWith('--config=')) {
-      const configPath = arg.split('=')[1];
+      const configPath = arg.split('=')[1]
       if (fs.existsSync(configPath)) {
-        const fileConfig = require(path.resolve(configPath));
-        Object.assign(config, fileConfig);
+        const fileConfig = require(path.resolve(configPath))
+        Object.assign(config, fileConfig)
       } else {
-        console.error(`Config file not found: ${configPath}`);
-        process.exit(1);
+        console.error(`Config file not found: ${configPath}`)
+        process.exit(1)
       }
     }
   }
 
-  return config;
+  return config
 }
 
 function loadEnvFile(): Partial<CliConfig> {
-  const envConfig: Partial<CliConfig> = {};
-  
+  const envConfig: Partial<CliConfig> = {}
+
   // Try to load from .env file
-  const envPaths = ['.env', '.env.local', '.env.production', '.env.development'];
-  
+  const envPaths = ['.env', '.env.local', '.env.production', '.env.development']
+
   for (const envPath of envPaths) {
     if (fs.existsSync(envPath)) {
-      const content = fs.readFileSync(envPath, 'utf-8');
-      const lines = content.split('\n');
-      
+      const content = fs.readFileSync(envPath, 'utf-8')
+      const lines = content.split('\n')
+
       for (const line of lines) {
-        const match = line.match(/^TOGGLELY_(\w+)=(.+)$/);
+        const match = line.match(/^TOGGLELY_(\w+)=(.+)$/)
         if (match) {
-          const key = match[1].toLowerCase();
-          const value = match[2].replace(/^["']|["']$/g, '');
-          
-          if (key === 'apikey') envConfig.apiKey = value;
-          if (key === 'project') envConfig.project = value;
-          if (key === 'environment') envConfig.environment = value;
-          if (key === 'baseurl') envConfig.baseUrl = value;
-          if (key === 'tenantid') envConfig.tenantId = value;
+          const key = match[1].toLowerCase()
+          const value = match[2].replace(/^["']|["']$/g, '')
+
+          if (key === 'apikey') envConfig.apiKey = value
+          if (key === 'project') envConfig.project = value
+          if (key === 'environment') envConfig.environment = value
+          if (key === 'baseurl') envConfig.baseUrl = value
+          if (key === 'tenantid') envConfig.tenantId = value
         }
       }
     }
   }
-  
-  return envConfig;
+
+  return envConfig
 }
 
 async function fetchToggles(config: CliConfig): Promise<Record<string, any>> {
-  const params = new URLSearchParams();
-  params.set('apiKey', config.apiKey);
-  if (config.tenantId) params.set('tenantId', config.tenantId);
-  
-  const url = `${config.baseUrl}/sdk/flags/${config.project}/${config.environment}?${params.toString()}`;
-  
-  console.log(`Fetching toggles from: ${url.replace(config.apiKey, '***')}`);
-  
-  const response = await fetch(url);
-  
+  const params = new URLSearchParams()
+  params.set('apiKey', config.apiKey)
+  if (config.tenantId) params.set('tenantId', config.tenantId)
+
+  const url = `${config.baseUrl}/sdk/flags/${config.project}/${config.environment}?${params.toString()}`
+
+  console.log(`Fetching toggles from: ${url.replace(config.apiKey, '***')}`)
+
+  const response = await fetch(url)
+
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
   }
-  
-  return response.json();
+
+  return response.json()
 }
 
-function generateOutput(data: Record<string, any>, format: CliConfig['format']): string {
+function generateOutput(
+  data: Record<string, any>,
+  format: CliConfig['format']
+): string {
   switch (format) {
     case 'env':
       return Object.entries(data)
         .map(([key, value]) => {
-          const envKey = `TOGGLELY_${key.toUpperCase().replace(/-/g, '_')}`;
-          const envValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
-          return `${envKey}=${envValue}`;
+          const envKey = `TOGGLELY_${key.toUpperCase().replace(/-/g, '_')}`
+          const envValue =
+            typeof value === 'object' ? JSON.stringify(value) : String(value)
+          return `${envKey}=${envValue}`
         })
-        .join('\n');
-    
+        .join('\n')
+
     case 'js':
       return `// Auto-generated by Togglely CLI
 module.exports = ${JSON.stringify(data, null, 2)};
-`;
-    
+`
+
     case 'json':
     default:
-      return JSON.stringify(data, null, 2);
+      return JSON.stringify(data, null, 2)
   }
 }
 
 async function main() {
-  console.log('🚀 Togglely CLI - Build-time JSON Generator\n');
-  
-  const argsConfig = parseArgs();
-  const envConfig = loadEnvFile();
-  
+  console.log('🚀 Togglely CLI - Build-time JSON Generator\n')
+
+  const argsConfig = parseArgs()
+  const envConfig = loadEnvFile()
+
   // Merge configs (args > env > defaults)
   const config: CliConfig = {
     baseUrl: 'https://togglely.de',
@@ -138,44 +142,45 @@ async function main() {
     format: 'json',
     ...envConfig,
     ...argsConfig,
-  } as CliConfig;
-  
+  } as CliConfig
+
   // Validate required fields
   if (!config.apiKey || !config.project || !config.environment) {
-    console.error('❌ Missing required parameters:');
-    console.error('   --apiKey=<key>');
-    console.error('   --project=<project-key>');
-    console.error('   --environment=<environment-key>');
-    console.error('\nOr use environment variables:');
-    console.error('   TOGGLELY_APIKEY, TOGGLELY_PROJECT, TOGGLELY_ENVIRONMENT');
-    console.error('\nOr use a config file:');
-    console.error('   --config=./togglely.config.js');
-    process.exit(1);
+    console.error('❌ Missing required parameters:')
+    console.error('   --apiKey=<key>')
+    console.error('   --project=<project-key>')
+    console.error('   --environment=<environment-key>')
+    console.error('\nOr use environment variables:')
+    console.error('   TOGGLELY_APIKEY, TOGGLELY_PROJECT, TOGGLELY_ENVIRONMENT')
+    console.error('\nOr use a config file:')
+    console.error('   --config=./togglely.config.js')
+    process.exit(1)
   }
-  
+
   try {
-    const data = await fetchToggles(config);
-    const output = generateOutput(data, config.format);
-    
+    const data = await fetchToggles(config)
+    const output = generateOutput(data, config.format)
+
     // Ensure directory exists
-    const dir = path.dirname(config.output);
+    const dir = path.dirname(config.output)
     if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+      fs.mkdirSync(dir, { recursive: true })
     }
-    
-    fs.writeFileSync(config.output, output);
-    
-    console.log(`✅ Successfully saved ${Object.keys(data).length} toggles to: ${config.output}`);
-    console.log(`\nToggles found:`);
+
+    fs.writeFileSync(config.output, output)
+
+    console.log(
+      `✅ Successfully saved ${Object.keys(data).length} toggles to: ${config.output}`
+    )
+    console.log(`\nToggles found:`)
     Object.entries(data).forEach(([key, value]: [string, any]) => {
-      const status = value.enabled ? '✅' : '❌';
-      console.log(`   ${status} ${key}: ${JSON.stringify(value.value)}`);
-    });
-    
+      const status = value.enabled ? '✅' : '❌'
+      console.log(`   ${status} ${key}: ${JSON.stringify(value.value)}`)
+    })
   } catch (error: any) {
-    console.error(`❌ Error: ${error.message}`);
-    process.exit(1);
+    console.error(`❌ Error: ${error.message}`)
+    process.exit(1)
   }
 }
 
-main();
+main()

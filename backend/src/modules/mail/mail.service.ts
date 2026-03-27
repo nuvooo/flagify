@@ -1,17 +1,20 @@
-import { Injectable } from '@nestjs/common';
-import { MailerService } from '@nestjs-modules/mailer';
-import { ConfigService } from '@nestjs/config';
+import { Injectable } from '@nestjs/common'
+import type { ConfigService } from '@nestjs/config'
+import type { MailerService } from '@nestjs-modules/mailer'
 
 @Injectable()
 export class MailService {
   constructor(
     private readonly mailerService: MailerService,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService
   ) {}
 
   async sendPasswordResetEmail(email: string, token: string) {
-    const frontendUrl = this.configService.get('FRONTEND_URL', 'http://localhost:3000');
-    const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
+    const frontendUrl = this.configService.get(
+      'FRONTEND_URL',
+      'http://localhost:3000'
+    )
+    const resetUrl = `${frontendUrl}/reset-password?token=${token}`
 
     await this.mailerService.sendMail({
       to: email,
@@ -29,6 +32,6 @@ export class MailService {
           <p style="font-size: 12px; color: #666;">Togglely Feature Flags - Powerful and simple.</p>
         </div>
       `,
-    });
+    })
   }
 }

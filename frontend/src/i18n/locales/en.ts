@@ -94,7 +94,8 @@ export const en = {
 
   // Dashboard
   'dashboard.title': 'Dashboard',
-  'dashboard.welcome': 'Welcome back! Here\'s an overview of your feature flags.',
+  'dashboard.welcome':
+    "Welcome back! Here's an overview of your feature flags.",
   'dashboard.new-organization': 'New Organization',
   'dashboard.stats.organizations': 'Organizations',
   'dashboard.stats.organizations-description': 'Active organizations',
@@ -107,7 +108,8 @@ export const en = {
   'dashboard.organizations.title': 'Your Organizations',
   'dashboard.organizations.view-all': 'View all',
   'dashboard.organizations.no-organizations': 'No organizations yet',
-  'dashboard.organizations.create-first': 'Create your first organization to start managing feature flags',
+  'dashboard.organizations.create-first':
+    'Create your first organization to start managing feature flags',
   'dashboard.organizations.create-cta': 'Create Organization',
   'dashboard.organizations.projects-count': '{{count}} projects',
   'dashboard.organizations.members-count': '{{count}} members',
@@ -119,7 +121,8 @@ export const en = {
   'dashboard.quick-actions.feature-flags': 'Feature Flags',
   'dashboard.quick-actions.feature-flags-desc': 'Manage feature toggles',
   'dashboard.activity.title': 'Recent Activity',
-  'dashboard.activity.coming-soon': 'Coming soon - Track all changes to your feature flags',
+  'dashboard.activity.coming-soon':
+    'Coming soon - Track all changes to your feature flags',
 
   // Organizations
   'organizations.title': 'Organizations',
@@ -127,7 +130,8 @@ export const en = {
   'organizations.new-organization': 'New Organization',
   'organizations.search-placeholder': 'Search organizations...',
   'organizations.no-organizations': 'No organizations yet',
-  'organizations.no-organizations-description': 'Get started by creating your first organization. Organizations help you organize projects and collaborate with your team.',
+  'organizations.no-organizations-description':
+    'Get started by creating your first organization. Organizations help you organize projects and collaborate with your team.',
   'organizations.create-cta': 'Create Organization',
   'organizations.card.projects': '{{count}} projects',
   'organizations.card.members': '{{count}} members',
@@ -144,17 +148,20 @@ export const en = {
   'organization-detail.projects.title': 'Projects',
   'organization-detail.projects.search-placeholder': 'Search projects...',
   'organization-detail.projects.no-projects': 'No projects yet',
-  'organization-detail.projects.create-first': 'Create your first project to start managing feature flags',
+  'organization-detail.projects.create-first':
+    'Create your first project to start managing feature flags',
   'organization-detail.projects.create-cta': 'Create Project',
   'organization-detail.projects.no-results': 'No projects match your search',
   'organization-detail.projects.environments-count': '{{count}} environments',
   'organization-detail.projects.flags-count': '{{count}} flags',
   'organization-detail.projects.view': 'View Project',
   'organization-detail.danger-zone.title': 'Danger Zone',
-  'organization-detail.danger-zone.description': 'Once you delete an organization, there is no going back. Please be certain.',
+  'organization-detail.danger-zone.description':
+    'Once you delete an organization, there is no going back. Please be certain.',
   'organization-detail.danger-zone.delete-button': 'Delete Organization',
   'organization-detail.delete-dialog.title': 'Are you absolutely sure?',
-  'organization-detail.delete-dialog.description': 'This action cannot be undone. This will permanently delete the organization <strong>{{name}}</strong> and all of its projects, feature flags, and data.',
+  'organization-detail.delete-dialog.description':
+    'This action cannot be undone. This will permanently delete the organization <strong>{{name}}</strong> and all of its projects, feature flags, and data.',
   'organization-detail.delete-dialog.cancel': 'Cancel',
   'organization-detail.delete-dialog.confirm': 'Delete Organization',
 
@@ -162,19 +169,24 @@ export const en = {
   'create-organization.title': 'Create Organization',
   'create-organization.subtitle': 'Set up a new organization workspace',
   'create-organization.details.title': 'Organization Details',
-  'create-organization.details.description': 'Enter the basic information for your organization',
+  'create-organization.details.description':
+    'Enter the basic information for your organization',
   'create-organization.name-label': 'Organization Name',
   'create-organization.name-placeholder': 'Acme Inc.',
-  'create-organization.name-help': 'This is the display name for your organization',
+  'create-organization.name-help':
+    'This is the display name for your organization',
   'create-organization.slug-label': 'Organization Slug',
   'create-organization.slug-placeholder': 'acme-inc',
-  'create-organization.slug-help': 'Used in URLs. Only lowercase letters, numbers, and hyphens.',
+  'create-organization.slug-help':
+    'Used in URLs. Only lowercase letters, numbers, and hyphens.',
   'create-organization.preview.title': 'Preview',
   'create-organization.preview.url': 'togglely.io/{{slug}}',
   'create-organization.tips.what-next.title': 'What happens next?',
-  'create-organization.tips.what-next.description': 'After creating your organization, you can add projects, invite team members, and start managing feature flags.',
+  'create-organization.tips.what-next.description':
+    'After creating your organization, you can add projects, invite team members, and start managing feature flags.',
   'create-organization.tips.best-practices.title': 'Best Practices',
-  'create-organization.tips.best-practices.description': 'Use a clear, descriptive name that your team will recognize. The slug should be short and memorable.',
+  'create-organization.tips.best-practices.description':
+    'Use a clear, descriptive name that your team will recognize. The slug should be short and memorable.',
   'create-organization.submit': 'Create Organization',
   'create-organization.creating': 'Creating...',
 
@@ -184,4 +196,4 @@ export const en = {
   'language.en': 'English',
   'language.switch-to-de': 'Zu Deutsch wechseln',
   'language.switch-to-en': 'Switch to English',
-};
+}

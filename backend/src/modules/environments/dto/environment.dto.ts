@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, IsEnum, IsBoolean, IsOptional } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator'
 
 export enum EnvironmentType {
   DEVELOPMENT = 'DEVELOPMENT',
@@ -9,27 +15,27 @@ export enum EnvironmentType {
 export class CreateEnvironmentDto {
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name: string
 
   @IsString()
   @IsNotEmpty()
-  key: string;
+  key: string
 
   @IsString()
   @IsNotEmpty()
-  projectId: string;
+  projectId: string
 
   @IsString()
   @IsNotEmpty()
-  organizationId: string;
+  organizationId: string
 }
 
 export class UpdateEnvironmentDto {
   @IsString()
   @IsOptional()
-  name?: string;
+  name?: string
 
   @IsString()
   @IsOptional()
-  key?: string;
+  key?: string
 }

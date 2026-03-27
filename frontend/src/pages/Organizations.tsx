@@ -1,141 +1,158 @@
-import { useEffect, useState, Fragment } from 'react';
-import { Link } from 'react-router-dom';
+import { Dialog, Menu, Transition } from '@headlessui/react'
 import {
   BuildingOfficeIcon,
-  PlusIcon,
-  EllipsisVerticalIcon,
-  UsersIcon,
-  ExclamationTriangleIcon,
-  XMarkIcon,
   CheckCircleIcon,
+  EllipsisVerticalIcon,
+  ExclamationTriangleIcon,
+  PlusIcon,
   TrashIcon,
-} from '@heroicons/react/24/outline';
-import { Menu, Transition, Dialog } from '@headlessui/react';
-import api from '@/lib/api';
-import clsx from 'clsx';
+  UsersIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
+import clsx from 'clsx'
+import { Fragment, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import api from '@/lib/api'
 
 interface Organization {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  memberCount: number;
-  projectCount: number;
-  role: string;
-  createdAt: string;
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  memberCount: number
+  projectCount: number
+  role: string
+  createdAt: string
 }
 
 export default function Organizations() {
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  
+  const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+
   // Modal state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
-  const [createSuccess, setCreateSuccess] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
+  const [createSuccess, setCreateSuccess] = useState<string | null>(null)
   const [newOrgData, setNewOrgData] = useState({
     name: '',
     slug: '',
     description: '',
-  });
-  
+  })
+
   // Delete state
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null)
 
   const fetchOrganizations = async () => {
     try {
-      setIsLoading(true);
-      setError(null);
-      const response = await api.get('/organizations');
-      console.log('Organizations response:', response.data);
+      setIsLoading(true)
+      setError(null)
+      const response = await api.get('/organizations')
+      console.log('Organizations response:', response.data)
       // Handle both direct array and wrapped response
-      let orgs = [];
+      let orgs = []
       if (Array.isArray(response.data)) {
-        orgs = response.data;
+        orgs = response.data
       } else if (response.data && Array.isArray(response.data.organizations)) {
-        orgs = response.data.organizations;
+        orgs = response.data.organizations
       } else if (response.data) {
         // If it's a single object, wrap in array
-        orgs = [response.data];
+        orgs = [response.data]
       }
-      setOrganizations(orgs);
+      setOrganizations(orgs)
     } catch (err: any) {
-      console.error('Failed to fetch organizations:', err);
-      console.error('Error response:', err.response?.data);
-      setError(err.response?.data?.error || 'Failed to load organizations. Please try again later.');
+      console.error('Failed to fetch organizations:', err)
+      console.error('Error response:', err.response?.data)
+      setError(
+        err.response?.data?.error ||
+          'Failed to load organizations. Please try again later.'
+      )
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchOrganizations();
-  }, []);
+    fetchOrganizations()
+  }, [])
 
   const createOrganization = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsCreating(true);
-    setCreateError(null);
-    setCreateSuccess(null);
-    
+    e.preventDefault()
+    setIsCreating(true)
+    setCreateError(null)
+    setCreateSuccess(null)
+
     try {
       const response = await api.post('/organizations', {
         name: newOrgData.name,
         slug: newOrgData.slug || undefined,
         description: newOrgData.description || undefined,
-      });
-      
-      const newOrg = response.data.organization || response.data;
-      setOrganizations((prev) => [newOrg, ...prev]);
-      setCreateSuccess('Organization created successfully!');
-      
+      })
+
+      const newOrg = response.data.organization || response.data
+      setOrganizations((prev) => [newOrg, ...prev])
+      setCreateSuccess('Organization created successfully!')
+
       // Reset form and close modal after a brief delay
       setTimeout(() => {
-        setNewOrgData({ name: '', slug: '', description: '' });
-        setIsModalOpen(false);
-        setCreateSuccess(null);
-      }, 1500);
+        setNewOrgData({ name: '', slug: '', description: '' })
+        setIsModalOpen(false)
+        setCreateSuccess(null)
+      }, 1500)
     } catch (err: any) {
-      console.error('Failed to create organization:', err);
-      setCreateError(err.response?.data?.message || 'Failed to create organization. Please try again.');
+      console.error('Failed to create organization:', err)
+      setCreateError(
+        err.response?.data?.message ||
+          'Failed to create organization. Please try again.'
+      )
     } finally {
-      setIsCreating(false);
+      setIsCreating(false)
     }
-  };
+  }
 
   const deleteOrganization = async (orgId: string) => {
-    if (!confirm('Are you sure you want to delete this organization? This action cannot be undone.')) {
-      return;
+    if (
+      !confirm(
+        'Are you sure you want to delete this organization? This action cannot be undone.'
+      )
+    ) {
+      return
     }
-    
-    setIsDeleting(orgId);
+
+    setIsDeleting(orgId)
     try {
-      await api.delete(`/organizations/${orgId}`);
-      setOrganizations((prev) => prev.filter((org) => org.id !== orgId));
+      await api.delete(`/organizations/${orgId}`)
+      setOrganizations((prev) => prev.filter((org) => org.id !== orgId))
     } catch (err: any) {
-      console.error('Failed to delete organization:', err);
-      alert(err.response?.data?.message || 'Failed to delete organization. Please try again.');
+      console.error('Failed to delete organization:', err)
+      alert(
+        err.response?.data?.message ||
+          'Failed to delete organization. Please try again.'
+      )
     } finally {
-      setIsDeleting(null);
+      setIsDeleting(null)
     }
-  };
+  }
 
   // Auto-generate slug from name
   const handleNameChange = (name: string) => {
     setNewOrgData((prev) => ({
       ...prev,
       name,
-      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-    }));
-  };
+      slug: name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, ''),
+    }))
+  }
 
-  const filteredOrganizations = organizations.filter((org) =>
-    org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    org.slug.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOrganizations = organizations.filter(
+    (org) =>
+      org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      org.slug.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   return (
     <div className="space-y-6">
@@ -180,10 +197,15 @@ export default function Organizations() {
         <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
           <div className="flex">
             <div className="flex-shrink-0">
-              <ExclamationTriangleIcon className="h-5 w-5 text-red-400" aria-hidden="true" />
+              <ExclamationTriangleIcon
+                className="h-5 w-5 text-red-400"
+                aria-hidden="true"
+              />
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-400">Error</h3>
+              <h3 className="text-sm font-medium text-red-800 dark:text-red-400">
+                Error
+              </h3>
               <div className="mt-2 text-sm text-red-700 dark:text-red-300">
                 <p>{error}</p>
               </div>
@@ -194,7 +216,11 @@ export default function Organizations() {
 
       {/* Create Organization Modal */}
       <Transition appear show={isModalOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={() => !isCreating && setIsModalOpen(false)}>
+        <Dialog
+          as="div"
+          className="relative z-10"
+          onClose={() => !isCreating && setIsModalOpen(false)}
+        >
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -237,21 +263,29 @@ export default function Organizations() {
 
                   {createError && (
                     <div className="mb-4 rounded-md bg-red-50 dark:bg-red-900/20 p-3">
-                      <p className="text-sm text-red-700 dark:text-red-300">{createError}</p>
+                      <p className="text-sm text-red-700 dark:text-red-300">
+                        {createError}
+                      </p>
                     </div>
                   )}
 
                   {createSuccess && (
                     <div className="mb-4 rounded-md bg-green-50 dark:bg-green-900/20 p-3 flex items-center">
                       <CheckCircleIcon className="h-5 w-5 text-green-400 mr-2" />
-                      <p className="text-sm text-green-700 dark:text-green-300">{createSuccess}</p>
+                      <p className="text-sm text-green-700 dark:text-green-300">
+                        {createSuccess}
+                      </p>
                     </div>
                   )}
 
                   <form onSubmit={createOrganization} className="space-y-4">
                     <div>
-                      <label htmlFor="org-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Organization Name <span className="text-red-500">*</span>
+                      <label
+                        htmlFor="org-name"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        Organization Name{' '}
+                        <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -266,14 +300,19 @@ export default function Organizations() {
                     </div>
 
                     <div>
-                      <label htmlFor="org-slug" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <label
+                        htmlFor="org-slug"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
                         Slug
                       </label>
                       <input
                         type="text"
                         id="org-slug"
                         value={newOrgData.slug}
-                        onChange={(e) => setNewOrgData({ ...newOrgData, slug: e.target.value })}
+                        onChange={(e) =>
+                          setNewOrgData({ ...newOrgData, slug: e.target.value })
+                        }
                         className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                         placeholder="acme-corporation"
                         disabled={isCreating}
@@ -284,13 +323,21 @@ export default function Organizations() {
                     </div>
 
                     <div>
-                      <label htmlFor="org-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <label
+                        htmlFor="org-description"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
                         Description
                       </label>
                       <textarea
                         id="org-description"
                         value={newOrgData.description}
-                        onChange={(e) => setNewOrgData({ ...newOrgData, description: e.target.value })}
+                        onChange={(e) =>
+                          setNewOrgData({
+                            ...newOrgData,
+                            description: e.target.value,
+                          })
+                        }
                         rows={3}
                         className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                         placeholder="Brief description of your organization"
@@ -327,7 +374,10 @@ export default function Organizations() {
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="rounded-lg bg-white dark:bg-gray-800 shadow animate-pulse">
+            <div
+              key={i}
+              className="rounded-lg bg-white dark:bg-gray-800 shadow animate-pulse"
+            >
               <div className="p-6">
                 <div className="h-6 w-32 bg-gray-200 rounded" />
                 <div className="mt-2 h-4 w-48 bg-gray-200 rounded" />
@@ -342,7 +392,9 @@ export default function Organizations() {
       ) : filteredOrganizations.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700 p-12 text-center">
           <BuildingOfficeIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
-          <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">No organizations</h3>
+          <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+            No organizations
+          </h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Get started by creating a new organization.
           </p>
@@ -371,14 +423,22 @@ export default function Organizations() {
                     </div>
                     <div className="ml-4">
                       <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                        <Link to={`/organizations/${org.id}`} className="hover:text-primary-600">
+                        <Link
+                          to={`/organizations/${org.id}`}
+                          className="hover:text-primary-600"
+                        >
                           {org.name}
                         </Link>
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{org.slug}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {org.slug}
+                      </p>
                     </div>
                   </div>
-                  <Menu as="div" className="relative ml-2 inline-block text-left">
+                  <Menu
+                    as="div"
+                    className="relative ml-2 inline-block text-left"
+                  >
                     <Menu.Button className="flex items-center rounded-full bg-white dark:bg-gray-800 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
                       <span className="sr-only">Open options</span>
                       <EllipsisVerticalIcon className="h-5 w-5" />
@@ -398,7 +458,9 @@ export default function Organizations() {
                               <Link
                                 to={`/organizations/${org.id}`}
                                 className={clsx(
-                                  active ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300',
+                                  active
+                                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                                    : 'text-gray-700 dark:text-gray-300',
                                   'block px-4 py-2 text-sm'
                                 )}
                               >
@@ -411,7 +473,9 @@ export default function Organizations() {
                               <Link
                                 to={`/organizations/${org.id}/settings`}
                                 className={clsx(
-                                  active ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300',
+                                  active
+                                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                                    : 'text-gray-700 dark:text-gray-300',
                                   'block px-4 py-2 text-sm'
                                 )}
                               >
@@ -427,13 +491,17 @@ export default function Organizations() {
                                     onClick={() => deleteOrganization(org.id)}
                                     disabled={isDeleting === org.id}
                                     className={clsx(
-                                      active ? 'bg-gray-100 dark:bg-gray-800 text-red-900 dark:text-red-400' : 'text-red-700 dark:text-red-400',
+                                      active
+                                        ? 'bg-gray-100 dark:bg-gray-800 text-red-900 dark:text-red-400'
+                                        : 'text-red-700 dark:text-red-400',
                                       'block w-full px-4 py-2 text-left text-sm disabled:opacity-50'
                                     )}
                                   >
                                     <span className="flex items-center">
                                       <TrashIcon className="mr-2 h-4 w-4" />
-                                      {isDeleting === org.id ? 'Deleting...' : 'Delete'}
+                                      {isDeleting === org.id
+                                        ? 'Deleting...'
+                                        : 'Delete'}
                                     </span>
                                   </button>
                                 )}
@@ -467,9 +535,12 @@ export default function Organizations() {
                   <span
                     className={clsx(
                       'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-                      org.role === 'OWNER' && 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-                      org.role === 'ADMIN' && 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-                      org.role === 'MEMBER' && 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                      org.role === 'OWNER' &&
+                        'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+                      org.role === 'ADMIN' &&
+                        'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+                      org.role === 'MEMBER' &&
+                        'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
                     )}
                   >
                     {org.role}
@@ -481,5 +552,5 @@ export default function Organizations() {
         </div>
       )}
     </div>
-  );
+  )
 }

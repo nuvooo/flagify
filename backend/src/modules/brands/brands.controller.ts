@@ -1,6 +1,15 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common';
-import { BrandsService } from './brands.service';
-import { AuthGuard } from '../../shared/auth.guard';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common'
+import { AuthGuard } from '../../shared/auth.guard'
+import type { BrandsService } from './brands.service'
 
 @Controller('brands')
 @UseGuards(AuthGuard)
@@ -22,27 +31,32 @@ export class BrandsController {
   async toggleFlag(
     @Param('brandId') brandId: string,
     @Param('flagId') flagId: string,
-    @Body() body: { environmentId: string; enabled?: boolean },
+    @Body() body: { environmentId: string; enabled?: boolean }
   ) {
-    return this.brandsService.toggleFlag(brandId, flagId, body.environmentId, body.enabled);
+    return this.brandsService.toggleFlag(
+      brandId,
+      flagId,
+      body.environmentId,
+      body.enabled
+    )
   }
 
   @Post('project/:projectId')
   async create(
     @Param('projectId') projectId: string,
-    @Body() body: { name: string; key: string; description?: string },
+    @Body() body: { name: string; key: string; description?: string }
   ) {
-    const brand = await this.brandsService.create(projectId, body);
-    return { brand };
+    const brand = await this.brandsService.create(projectId, body)
+    return { brand }
   }
 
   @Patch(':brandId')
   async update(
     @Param('brandId') brandId: string,
-    @Body() body: { name?: string; description?: string },
+    @Body() body: { name?: string; description?: string }
   ) {
-    const brand = await this.brandsService.update(brandId, body);
-    return { brand };
+    const brand = await this.brandsService.update(brandId, body)
+    return { brand }
   }
 
   @Delete(':brandId')

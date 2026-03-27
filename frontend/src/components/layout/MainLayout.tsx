@@ -1,11 +1,22 @@
-import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '@/store/authStore';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import PendingInvitesBanner from '@/components/PendingInvitesBanner';
+import {
+  Bell,
+  Building2,
+  ChevronDown,
+  FlagIcon,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Shield,
+  User,
+  X,
+} from 'lucide-react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import PendingInvitesBanner from '@/components/PendingInvitesBanner'
+import { ThemeToggle } from '@/components/ThemeToggle'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,44 +24,33 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { 
-  FlagIcon, 
-  LayoutDashboard, 
-  Building2, 
-  User, 
-  LogOut, 
-  Bell,
-  Menu,
-  X,
-  ChevronDown,
-  Shield
-} from 'lucide-react';
-import { useState } from 'react';
+} from '@/components/ui/dropdown-menu'
+import { Separator } from '@/components/ui/separator'
+import { useAuthStore } from '@/store/authStore'
 
 export default function MainLayout() {
-  const { t } = useTranslation();
-  const { user, logout } = useAuthStore();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { t } = useTranslation()
+  const { user, logout } = useAuthStore()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const navigation = [
     { name: t('nav.dashboard'), href: '/dashboard', icon: LayoutDashboard },
     { name: t('nav.organizations'), href: '/organizations', icon: Building2 },
-  ];
+  ]
 
   const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+    logout()
+    navigate('/')
+  }
 
   const isActive = (href: string) => {
     if (href === '/dashboard' || href === '/') {
-      return location.pathname === href;
+      return location.pathname === href
     }
-    return location.pathname.startsWith(href);
-  };
+    return location.pathname.startsWith(href)
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -62,30 +62,33 @@ export default function MainLayout() {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
               <FlagIcon className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold hidden sm:inline">{t('common.app-name')}</span>
+            <span className="text-xl font-bold hidden sm:inline">
+              {t('common.app-name')}
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
             {navigation.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.href);
+              const Icon = item.icon
+              const active = isActive(item.href)
               return (
                 <Link
                   key={item.name}
                   to={item.href}
                   className={`
                     flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors
-                    ${active 
-                      ? 'bg-primary/10 text-primary' 
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    ${
+                      active
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                     }
                   `}
                 >
                   <Icon className="w-4 h-4" />
                   {item.name}
                 </Link>
-              );
+              )
             })}
           </nav>
 
@@ -98,20 +101,32 @@ export default function MainLayout() {
             <ThemeToggle />
 
             {/* Notifications - coming soon */}
-            <Button variant="ghost" size="icon" disabled className="relative opacity-50">
+            <Button
+              variant="ghost"
+              size="icon"
+              disabled
+              className="relative opacity-50"
+            >
               <Bell className="w-5 h-5" />
             </Button>
 
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2 px-2">
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 px-2"
+                >
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-medium text-sm">
                     {user?.name?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <div className="hidden sm:block text-left">
-                    <p className="text-sm font-medium leading-none">{user?.name}</p>
-                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                    <p className="text-sm font-medium leading-none">
+                      {user?.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {user?.email}
+                    </p>
                   </div>
                   <ChevronDown className="w-4 h-4 text-muted-foreground hidden sm:block" />
                 </Button>
@@ -132,7 +147,10 @@ export default function MainLayout() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-destructive"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   {t('nav.logout')}
                 </DropdownMenuItem>
@@ -140,13 +158,17 @@ export default function MainLayout() {
             </DropdownMenu>
 
             {/* Mobile Menu Button */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className="md:hidden"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {isMobileMenuOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
             </Button>
           </div>
         </div>
@@ -156,8 +178,8 @@ export default function MainLayout() {
           <div className="md:hidden border-t">
             <nav className="flex flex-col p-4 space-y-1">
               {navigation.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.href);
+                const Icon = item.icon
+                const active = isActive(item.href)
                 return (
                   <Link
                     key={item.name}
@@ -165,16 +187,17 @@ export default function MainLayout() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`
                       flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
-                      ${active 
-                        ? 'bg-primary/10 text-primary' 
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      ${
+                        active
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                       }
                     `}
                   >
                     <Icon className="w-5 h-5" />
                     {item.name}
                   </Link>
-                );
+                )
               })}
               <Separator className="my-2" />
               <Link
@@ -205,5 +228,5 @@ export default function MainLayout() {
         <Outlet />
       </main>
     </div>
-  );
+  )
 }

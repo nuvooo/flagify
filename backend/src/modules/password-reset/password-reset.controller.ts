@@ -1,5 +1,5 @@
-import { Controller, Post, Body } from '@nestjs/common';
-import { PasswordResetService } from './password-reset.service';
+import { Body, Controller, Post } from '@nestjs/common'
+import type { PasswordResetService } from './password-reset.service'
 
 @Controller('password-reset')
 export class PasswordResetController {

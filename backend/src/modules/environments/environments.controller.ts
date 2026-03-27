@@ -1,6 +1,15 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common';
-import { EnvironmentsService } from './environments.service';
-import { AuthGuard } from '../../shared/auth.guard';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common'
+import { AuthGuard } from '../../shared/auth.guard'
+import type { EnvironmentsService } from './environments.service'
 
 @Controller('environments')
 @UseGuards(AuthGuard)
@@ -16,10 +25,10 @@ export class EnvironmentsController {
   @Post('project/:projectId')
   async create(
     @Param('projectId') projectId: string,
-    @Body() body: { name: string; key: string; organizationId: string },
+    @Body() body: { name: string; key: string; organizationId: string }
   ) {
-    const env = await this.envsService.create(projectId, body);
-    return { environment: env };
+    const env = await this.envsService.create(projectId, body)
+    return { environment: env }
   }
 
   @Post()
@@ -33,12 +42,9 @@ export class EnvironmentsController {
   }
 
   @Patch(':id')
-  async update(
-    @Param('id') id: string,
-    @Body() body: { name?: string },
-  ) {
-    const env = await this.envsService.update(id, body);
-    return { environment: env };
+  async update(@Param('id') id: string, @Body() body: { name?: string }) {
+    const env = await this.envsService.update(id, body)
+    return { environment: env }
   }
 
   @Delete(':id')
@@ -50,9 +56,9 @@ export class EnvironmentsController {
   @Post('project/:projectId/reorder')
   async reorder(
     @Param('projectId') projectId: string,
-    @Body() body: { environmentIds: string[] },
+    @Body() body: { environmentIds: string[] }
   ) {
     // For now, just return success - reordering would require an order field
-    return { success: true };
+    return { success: true }
   }
 }

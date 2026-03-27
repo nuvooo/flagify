@@ -1,49 +1,57 @@
-import { Flag, FlagType } from '../../domain/flag.entity';
+import { Flag, type FlagType } from '../../domain/flag.entity'
 
-export function isOriginAllowed(origin: string, allowedOrigins: string[]): boolean {
+export function isOriginAllowed(
+  origin: string,
+  allowedOrigins: string[]
+): boolean {
   return allowedOrigins.some((allowedOrigin) => {
     if (allowedOrigin === '*') {
-      return true;
+      return true
     }
 
     if (allowedOrigin === origin) {
-      return true;
+      return true
     }
 
     if (allowedOrigin.startsWith('*.')) {
-      const domain = allowedOrigin.slice(2);
-      return origin.endsWith(domain);
+      const domain = allowedOrigin.slice(2)
+      return origin.endsWith(domain)
     }
 
-    return false;
-  });
+    return false
+  })
 }
 
 export function getDefaultFlagValue(flagType: FlagType): string {
   switch (flagType) {
     case 'BOOLEAN':
-      return 'false';
+      return 'false'
     case 'NUMBER':
-      return '0';
+      return '0'
     case 'JSON':
-      return '{}';
+      return '{}'
     case 'STRING':
     default:
-      return '';
+      return ''
   }
 }
 
-export function toSdkFlagResponse(flag: {
-  id: string;
-  key: string;
-  name: string;
-  description: string | null;
-  flagType: FlagType;
-  projectId: string;
-  createdById: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}, organizationId: string, defaultValue: string, enabled: boolean) {
+export function toSdkFlagResponse(
+  flag: {
+    id: string
+    key: string
+    name: string
+    description: string | null
+    flagType: FlagType
+    projectId: string
+    createdById: string | null
+    createdAt: Date
+    updatedAt: Date
+  },
+  organizationId: string,
+  defaultValue: string,
+  enabled: boolean
+) {
   const domainFlag = Flag.reconstitute({
     id: flag.id,
     key: flag.key,
@@ -55,11 +63,11 @@ export function toSdkFlagResponse(flag: {
     createdById: flag.createdById || '',
     createdAt: flag.createdAt,
     updatedAt: flag.updatedAt,
-  });
+  })
 
   return {
     value: domainFlag.parseValue(defaultValue),
     enabled,
     flagType: flag.flagType,
-  };
+  }
 }

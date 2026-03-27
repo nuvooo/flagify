@@ -1,58 +1,58 @@
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 12);
+  return bcrypt.hash(password, 12)
 }
 
 async function main() {
-  console.log('🌱 Seeding database...');
+  console.log('🌱 Seeding database...')
 
   // Check if demo user exists
   const existingUser = await prisma.user.findUnique({
-    where: { email: 'demo@togglely.io' }
-  });
+    where: { email: 'demo@togglely.io' },
+  })
 
   if (existingUser) {
-    console.log('Demo user already exists, skipping seed');
-    return;
+    console.log('Demo user already exists, skipping seed')
+    return
   }
 
   // Create demo user
-  const hashedPassword = await hashPassword('demo123!');
-  
+  const hashedPassword = await hashPassword('demo123!')
+
   const user = await prisma.user.create({
     data: {
       email: 'demo@togglely.io',
       password: hashedPassword,
       firstName: 'Demo',
-      lastName: 'User'
-    }
-  });
+      lastName: 'User',
+    },
+  })
 
-  console.log('Created demo user:', user.email);
+  console.log('Created demo user:', user.email)
 
   // Create organization
   const org = await prisma.organization.create({
     data: {
       name: 'Demo Organization',
       slug: 'demo-organization',
-      description: 'A demo organization for testing'
-    }
-  });
+      description: 'A demo organization for testing',
+    },
+  })
 
-  console.log('Created organization:', org.name);
+  console.log('Created organization:', org.name)
 
   // Add user as owner
   await prisma.organizationMember.create({
     data: {
       userId: user.id,
       organizationId: org.id,
-      role: 'OWNER'
-    }
-  });
+      role: 'OWNER',
+    },
+  })
 
   // Create project
   const project = await prisma.project.create({
@@ -60,11 +60,11 @@ async function main() {
       name: 'Demo Project',
       key: 'demo-project',
       description: 'A demo project with sample feature flags',
-      organizationId: org.id
-    }
-  });
+      organizationId: org.id,
+    },
+  })
 
-  console.log('Created project:', project.name);
+  console.log('Created project:', project.name)
 
   // Create environments
   const devEnv = await prisma.environment.create({
@@ -72,20 +72,20 @@ async function main() {
       name: 'Development',
       key: 'development',
       projectId: project.id,
-      organizationId: org.id
-    }
-  });
+      organizationId: org.id,
+    },
+  })
 
   const prodEnv = await prisma.environment.create({
     data: {
       name: 'Production',
       key: 'production',
       projectId: project.id,
-      organizationId: org.id
-    }
-  });
+      organizationId: org.id,
+    },
+  })
 
-  console.log('Created environments');
+  console.log('Created environments')
 
   // Create sample feature flags
   const flags = [
@@ -96,7 +96,7 @@ async function main() {
       flagType: 'BOOLEAN' as const,
       devEnabled: true,
       prodEnabled: false,
-      defaultValue: 'false'
+      defaultValue: 'false',
     },
     {
       name: 'Dark Mode',
@@ -105,7 +105,7 @@ async function main() {
       flagType: 'BOOLEAN' as const,
       devEnabled: true,
       prodEnabled: true,
-      defaultValue: 'true'
+      defaultValue: 'true',
     },
     {
       name: 'Max Items Per Page',
@@ -114,7 +114,7 @@ async function main() {
       flagType: 'NUMBER' as const,
       devEnabled: true,
       prodEnabled: true,
-      defaultValue: '10'
+      defaultValue: '10',
     },
     {
       name: 'Welcome Message',
@@ -123,9 +123,9 @@ async function main() {
       flagType: 'STRING' as const,
       devEnabled: true,
       prodEnabled: true,
-      defaultValue: 'Welcome to our app!'
-    }
-  ];
+      defaultValue: 'Welcome to our app!',
+    },
+  ]
 
   for (const flagData of flags) {
     const flag = await prisma.featureFlag.create({
@@ -142,18 +142,18 @@ async function main() {
             {
               environmentId: devEnv.id,
               enabled: flagData.devEnabled,
-              defaultValue: flagData.defaultValue
+              defaultValue: flagData.defaultValue,
             },
             {
               environmentId: prodEnv.id,
               enabled: flagData.prodEnabled,
-              defaultValue: flagData.defaultValue
-            }
-          ]
-        }
-      }
-    });
-    console.log('Created flag:', flag.name);
+              defaultValue: flagData.defaultValue,
+            },
+          ],
+        },
+      },
+    })
+    console.log('Created flag:', flag.name)
   }
 
   // Create a demo API key
@@ -163,26 +163,26 @@ async function main() {
       key: 'togglely_demo_sdk_key_for_testing_purposes_only',
       type: 'SDK',
       organizationId: org.id,
-      userId: user.id
-    }
-  });
+      userId: user.id,
+    },
+  })
 
-  console.log('Created API key:', apiKey.name);
+  console.log('Created API key:', apiKey.name)
 
-  console.log('✅ Seed completed successfully!');
-  console.log('');
-  console.log('Demo credentials:');
-  console.log('  Email: demo@togglely.io');
-  console.log('  Password: demo123!');
-  console.log('');
-  console.log('Demo API Key: togglely_demo_sdk_key_for_testing_purposes_only');
+  console.log('✅ Seed completed successfully!')
+  console.log('')
+  console.log('Demo credentials:')
+  console.log('  Email: demo@togglely.io')
+  console.log('  Password: demo123!')
+  console.log('')
+  console.log('Demo API Key: togglely_demo_sdk_key_for_testing_purposes_only')
 }
 
 main()
   .catch((e) => {
-    console.error('Seed failed:', e);
-    process.exit(1);
+    console.error('Seed failed:', e)
+    process.exit(1)
   })
   .finally(async () => {
-    await prisma.$disconnect();
-  });
+    await prisma.$disconnect()
+  })

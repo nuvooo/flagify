@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../shared/prisma.service';
+import { Injectable, NotFoundException } from '@nestjs/common'
+import type { PrismaService } from '../../shared/prisma.service'
 
 @Injectable()
 export class EnvironmentsService {
@@ -8,10 +8,13 @@ export class EnvironmentsService {
   async findByProject(projectId: string) {
     return this.prisma.environment.findMany({
       where: { projectId },
-    });
+    })
   }
 
-  async create(projectId: string, data: { name: string; key: string; organizationId: string }) {
+  async create(
+    projectId: string,
+    data: { name: string; key: string; organizationId: string }
+  ) {
     return this.prisma.environment.create({
       data: {
         name: data.name,
@@ -19,19 +22,21 @@ export class EnvironmentsService {
         projectId,
         organizationId: data.organizationId,
       },
-    });
+    })
   }
 
   async update(envId: string, data: { name?: string }) {
     return this.prisma.environment.update({
       where: { id: envId },
       data,
-    });
+    })
   }
 
   async delete(envId: string) {
     // Delete all flag environments for this environment first (cascading delete for MongoDB)
-    await this.prisma.flagEnvironment.deleteMany({ where: { environmentId: envId } });
-    await this.prisma.environment.delete({ where: { id: envId } });
+    await this.prisma.flagEnvironment.deleteMany({
+      where: { environmentId: envId },
+    })
+    await this.prisma.environment.delete({ where: { id: envId } })
   }
 }

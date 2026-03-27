@@ -1,8 +1,19 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Req, UseGuards, Res } from '@nestjs/common';
-import { ProjectsService } from './projects.service';
-import { CreateProjectDto } from './dto/create-project.dto';
-import { AuthGuard } from '../../shared/auth.guard';
-import { Response } from 'express';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common'
+import type { Response } from 'express'
+import { AuthGuard } from '../../shared/auth.guard'
+import type { CreateProjectDto } from './dto/create-project.dto'
+import type { ProjectsService } from './projects.service'
 
 @Controller('projects')
 @UseGuards(AuthGuard)
@@ -42,52 +53,61 @@ export class ProjectsController {
   async create(
     @Param('orgId') orgId: string,
     @Body() dto: CreateProjectDto,
-    @Req() req: any,
+    @Req() req: any
   ) {
-    const project = await this.projectsService.create(orgId, req.user.userId, dto);
-    return { project };
+    const project = await this.projectsService.create(
+      orgId,
+      req.user.userId,
+      dto
+    )
+    return { project }
   }
 
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() body: { name?: string; description?: string; type?: 'SINGLE' | 'MULTI'; allowedOrigins?: string[] },
+    @Body() body: { name?: string; description?: string; type?: 'SINGLE' | 'MULTI'; allowedOrigins?: string[] }
   ) {
-    const project = await this.projectsService.update(id, body);
-    return { project };
+    const project = await this.projectsService.update(id, body)
+    return { project }
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string, @Req() req: any) {
-    await this.projectsService.delete(id, req.user.userId);
-    return { success: true };
+    await this.projectsService.delete(id, req.user.userId)
+    return { success: true }
   }
 
   // Import/Export Feature Flags
   @Get(':id/export')
-  async exportFlags(
-    @Param('id') id: string,
-    @Res() res: Response,
-  ) {
-    const exportData = await this.projectsService.exportFlags(id);
-    
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', `attachment; filename="${exportData.projectName}-flags.json"`);
-    res.send(JSON.stringify(exportData, null, 2));
+  async exportFlags(@Param('id') id: string, @Res() res: Response) {
+    const exportData = await this.projectsService.exportFlags(id)
+
+    res.setHeader('Content-Type', 'application/json')
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${exportData.projectName}-flags.json"`
+    )
+    res.send(JSON.stringify(exportData, null, 2))
   }
 
   @Post(':id/import')
   async importFlags(
     @Param('id') id: string,
     @Body() body: { flags: any[]; options?: { overwrite?: boolean; skipExisting?: boolean } },
-    @Req() req: any,
+    @Req() req: any
   ) {
-    const result = await this.projectsService.importFlags(id, req.user.userId, body.flags, body.options);
-    return { 
-      success: true, 
+    const result = await this.projectsService.importFlags(
+      id,
+      req.user.userId,
+      body.flags,
+      body.options
+    )
+    return {
+      success: true,
       imported: result.imported,
       skipped: result.skipped,
-      errors: result.errors 
-    };
+      errors: result.errors,
+    }
   }
 }

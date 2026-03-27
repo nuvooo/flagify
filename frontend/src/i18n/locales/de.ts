@@ -94,7 +94,8 @@ export const de = {
 
   // Dashboard
   'dashboard.title': 'Dashboard',
-  'dashboard.welcome': 'Willkommen zurück! Hier ist eine Übersicht Ihrer Feature Flags.',
+  'dashboard.welcome':
+    'Willkommen zurück! Hier ist eine Übersicht Ihrer Feature Flags.',
   'dashboard.new-organization': 'Neue Organisation',
   'dashboard.stats.organizations': 'Organisationen',
   'dashboard.stats.organizations-description': 'Aktive Organisationen',
@@ -107,19 +108,23 @@ export const de = {
   'dashboard.organizations.title': 'Ihre Organisationen',
   'dashboard.organizations.view-all': 'Alle anzeigen',
   'dashboard.organizations.no-organizations': 'Noch keine Organisationen',
-  'dashboard.organizations.create-first': 'Erstellen Sie Ihre erste Organisation, um mit Feature Flags zu beginnen',
+  'dashboard.organizations.create-first':
+    'Erstellen Sie Ihre erste Organisation, um mit Feature Flags zu beginnen',
   'dashboard.organizations.create-cta': 'Organisation erstellen',
   'dashboard.organizations.projects-count': '{{count}} Projekte',
   'dashboard.organizations.members-count': '{{count}} Mitglieder',
   'dashboard.quick-actions.title': 'Schnellaktionen',
   'dashboard.quick-actions.new-organization': 'Neue Organisation',
-  'dashboard.quick-actions.new-organization-desc': 'Erstellen Sie einen neuen Arbeitsbereich',
+  'dashboard.quick-actions.new-organization-desc':
+    'Erstellen Sie einen neuen Arbeitsbereich',
   'dashboard.quick-actions.new-project': 'Neues Projekt',
-  'dashboard.quick-actions.new-project-desc': 'Fügen Sie {{orgName}} ein Projekt hinzu',
+  'dashboard.quick-actions.new-project-desc':
+    'Fügen Sie {{orgName}} ein Projekt hinzu',
   'dashboard.quick-actions.feature-flags': 'Feature Flags',
   'dashboard.quick-actions.feature-flags-desc': 'Verwalten Sie Feature-Toggles',
   'dashboard.activity.title': 'Letzte Aktivität',
-  'dashboard.activity.coming-soon': 'Demnächst verfügbar - Verfolgen Sie alle Änderungen an Ihren Feature Flags',
+  'dashboard.activity.coming-soon':
+    'Demnächst verfügbar - Verfolgen Sie alle Änderungen an Ihren Feature Flags',
 
   // Organizations
   'organizations.title': 'Organisationen',
@@ -127,7 +132,8 @@ export const de = {
   'organizations.new-organization': 'Neue Organisation',
   'organizations.search-placeholder': 'Organisationen suchen...',
   'organizations.no-organizations': 'Noch keine Organisationen',
-  'organizations.no-organizations-description': 'Erstellen Sie Ihre erste Organisation. Organisationen helfen Ihnen, Projekte zu organisieren und mit Ihrem Team zusammenzuarbeiten.',
+  'organizations.no-organizations-description':
+    'Erstellen Sie Ihre erste Organisation. Organisationen helfen Ihnen, Projekte zu organisieren und mit Ihrem Team zusammenzuarbeiten.',
   'organizations.create-cta': 'Organisation erstellen',
   'organizations.card.projects': '{{count}} Projekte',
   'organizations.card.members': '{{count}} Mitglieder',
@@ -144,37 +150,47 @@ export const de = {
   'organization-detail.projects.title': 'Projekte',
   'organization-detail.projects.search-placeholder': 'Projekte suchen...',
   'organization-detail.projects.no-projects': 'Noch keine Projekte',
-  'organization-detail.projects.create-first': 'Erstellen Sie Ihr erstes Projekt, um mit der Verwaltung von Feature Flags zu beginnen',
+  'organization-detail.projects.create-first':
+    'Erstellen Sie Ihr erstes Projekt, um mit der Verwaltung von Feature Flags zu beginnen',
   'organization-detail.projects.create-cta': 'Projekt erstellen',
-  'organization-detail.projects.no-results': 'Keine Projekte entsprechen Ihrer Suche',
+  'organization-detail.projects.no-results':
+    'Keine Projekte entsprechen Ihrer Suche',
   'organization-detail.projects.environments-count': '{{count}} Umgebungen',
   'organization-detail.projects.flags-count': '{{count}} Flags',
   'organization-detail.projects.view': 'Projekt anzeigen',
   'organization-detail.danger-zone.title': 'Gefahrenzone',
-  'organization-detail.danger-zone.description': 'Sobald Sie eine Organisation löschen, gibt es kein Zurück mehr. Bitte seien Sie sicher.',
+  'organization-detail.danger-zone.description':
+    'Sobald Sie eine Organisation löschen, gibt es kein Zurück mehr. Bitte seien Sie sicher.',
   'organization-detail.danger-zone.delete-button': 'Organisation löschen',
   'organization-detail.delete-dialog.title': 'Sind Sie absolut sicher?',
-  'organization-detail.delete-dialog.description': 'Diese Aktion kann nicht rückgängig gemacht werden. Dies wird die Organisation <strong>{{name}}</strong> und alle ihre Projekte, Feature Flags und Daten dauerhaft löschen.',
+  'organization-detail.delete-dialog.description':
+    'Diese Aktion kann nicht rückgängig gemacht werden. Dies wird die Organisation <strong>{{name}}</strong> und alle ihre Projekte, Feature Flags und Daten dauerhaft löschen.',
   'organization-detail.delete-dialog.cancel': 'Abbrechen',
   'organization-detail.delete-dialog.confirm': 'Organisation löschen',
 
   // Create Organization
   'create-organization.title': 'Organisation erstellen',
-  'create-organization.subtitle': 'Richten Sie einen neuen Organisationsarbeitsbereich ein',
+  'create-organization.subtitle':
+    'Richten Sie einen neuen Organisationsarbeitsbereich ein',
   'create-organization.details.title': 'Organisationsdetails',
-  'create-organization.details.description': 'Geben Sie die grundlegenden Informationen für Ihre Organisation ein',
+  'create-organization.details.description':
+    'Geben Sie die grundlegenden Informationen für Ihre Organisation ein',
   'create-organization.name-label': 'Organisationsname',
   'create-organization.name-placeholder': 'Muster GmbH',
-  'create-organization.name-help': 'Dies ist der Anzeigename für Ihre Organisation',
+  'create-organization.name-help':
+    'Dies ist der Anzeigename für Ihre Organisation',
   'create-organization.slug-label': 'Organisations-Slug',
   'create-organization.slug-placeholder': 'muster-gmbh',
-  'create-organization.slug-help': 'Wird in URLs verwendet. Nur Kleinbuchstaben, Zahlen und Bindestriche.',
+  'create-organization.slug-help':
+    'Wird in URLs verwendet. Nur Kleinbuchstaben, Zahlen und Bindestriche.',
   'create-organization.preview.title': 'Vorschau',
   'create-organization.preview.url': 'togglely.io/{{slug}}',
   'create-organization.tips.what-next.title': 'Was passiert als Nächstes?',
-  'create-organization.tips.what-next.description': 'Nach der Erstellung Ihrer Organisation können Sie Projekte hinzufügen, Teammitglieder einladen und mit der Verwaltung von Feature Flags beginnen.',
+  'create-organization.tips.what-next.description':
+    'Nach der Erstellung Ihrer Organisation können Sie Projekte hinzufügen, Teammitglieder einladen und mit der Verwaltung von Feature Flags beginnen.',
   'create-organization.tips.best-practices.title': 'Best Practices',
-  'create-organization.tips.best-practices.description': 'Verwenden Sie einen klaren, beschreibenden Namen, den Ihr Team erkennt. Der Slug sollte kurz und merkbar sein.',
+  'create-organization.tips.best-practices.description':
+    'Verwenden Sie einen klaren, beschreibenden Namen, den Ihr Team erkennt. Der Slug sollte kurz und merkbar sein.',
   'create-organization.submit': 'Organisation erstellen',
   'create-organization.creating': 'Wird erstellt...',
 
@@ -184,4 +200,4 @@ export const de = {
   'language.en': 'English',
   'language.switch-to-de': 'Zu Deutsch wechseln',
   'language.switch-to-en': 'Switch to English',
-};
+}

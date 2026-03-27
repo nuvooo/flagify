@@ -1,18 +1,21 @@
-import { Controller, Get, Param, Query, Headers } from '@nestjs/common';
-import { SdkService } from './sdk.service';
+import { Controller, Get, Headers, Param, Query } from '@nestjs/common'
+import type { SdkService } from './sdk.service'
 
 @Controller('sdk')
 export class SdkController {
   constructor(private readonly sdkService: SdkService) {}
 
   private resolveApiKey(queryApiKey?: string, authHeader?: string): string {
-    if (queryApiKey) return queryApiKey;
-    if (authHeader?.startsWith('Bearer ')) return authHeader.slice(7);
-    return '';
+    if (queryApiKey) return queryApiKey
+    if (authHeader?.startsWith('Bearer ')) return authHeader.slice(7)
+    return ''
   }
 
-  private resolveBrandKey(brandKey?: string, tenantId?: string): string | undefined {
-    return brandKey || tenantId;
+  private resolveBrandKey(
+    brandKey?: string,
+    tenantId?: string
+  ): string | undefined {
+    return brandKey || tenantId
   }
 
   @Get('flags/:projectKey/:environmentKey/:flagKey')
@@ -24,18 +27,18 @@ export class SdkController {
     @Query('brandKey') brandKey?: string,
     @Query('tenantId') tenantId?: string,
     @Headers('origin') origin?: string,
-    @Headers('authorization') authHeader?: string,
+    @Headers('authorization') authHeader?: string
   ) {
-    const apiKey = this.resolveApiKey(queryApiKey, authHeader);
-    const resolvedBrandKey = this.resolveBrandKey(brandKey, tenantId);
+    const apiKey = this.resolveApiKey(queryApiKey, authHeader)
+    const resolvedBrandKey = this.resolveBrandKey(brandKey, tenantId)
     return this.sdkService.evaluateFlag(
       projectKey,
       environmentKey,
       flagKey,
       apiKey,
       resolvedBrandKey,
-      origin,
-    );
+      origin
+    )
   }
 
   @Get('flags/:projectKey/:environmentKey')
@@ -46,16 +49,16 @@ export class SdkController {
     @Query('brandKey') brandKey?: string,
     @Query('tenantId') tenantId?: string,
     @Headers('origin') origin?: string,
-    @Headers('authorization') authHeader?: string,
+    @Headers('authorization') authHeader?: string
   ) {
-    const apiKey = this.resolveApiKey(queryApiKey, authHeader);
-    const resolvedBrandKey = this.resolveBrandKey(brandKey, tenantId);
+    const apiKey = this.resolveApiKey(queryApiKey, authHeader)
+    const resolvedBrandKey = this.resolveBrandKey(brandKey, tenantId)
     return this.sdkService.getAllFlags(
       projectKey,
       environmentKey,
       apiKey,
       resolvedBrandKey,
-      origin,
-    );
+      origin
+    )
   }
 }

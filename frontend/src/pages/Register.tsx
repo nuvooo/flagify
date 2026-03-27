@@ -1,74 +1,87 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '@/store/authStore';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { FlagIcon, Loader2, CheckCircle } from 'lucide-react';
+import { CheckCircle, FlagIcon, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Link, useNavigate } from 'react-router-dom'
+import { ThemeToggle } from '@/components/ThemeToggle'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { useAuthStore } from '@/store/authStore'
 
 export default function Register() {
-  const { t } = useTranslation();
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const { t } = useTranslation()
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
 
-  const [agreeTerms, setAgreeTerms] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
-  const { register } = useAuthStore();
+  const [agreeTerms, setAgreeTerms] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate()
+  const { register } = useAuthStore()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
 
     if (password !== confirmPassword) {
-      setError(t('register.error-passwords-mismatch'));
-      setIsLoading(false);
-      return;
+      setError(t('register.error-passwords-mismatch'))
+      setIsLoading(false)
+      return
     }
 
     if (!agreeTerms) {
-      setError(t('register.error-terms-required'));
-      setIsLoading(false);
-      return;
+      setError(t('register.error-terms-required'))
+      setIsLoading(false)
+      return
     }
 
     try {
-      await register(firstName, lastName, email, password);
-      navigate('/');
+      await register(firstName, lastName, email, password)
+      navigate('/')
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Registration failed');
+      setError(err.response?.data?.error || 'Registration failed')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const passwordStrength = () => {
-    let strength = 0;
-    if (password.length >= 8) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/[0-9]/.test(password)) strength++;
-    if (/[^A-Za-z0-9]/.test(password)) strength++;
-    return strength;
-  };
+    let strength = 0
+    if (password.length >= 8) strength++
+    if (/[A-Z]/.test(password)) strength++
+    if (/[0-9]/.test(password)) strength++
+    if (/[^A-Za-z0-9]/.test(password)) strength++
+    return strength
+  }
 
-  const strength = passwordStrength();
-  const strengthColor = ['bg-slate-200', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'][strength];
+  const strength = passwordStrength()
+  const strengthColor = [
+    'bg-slate-200',
+    'bg-red-500',
+    'bg-orange-500',
+    'bg-yellow-500',
+    'bg-green-500',
+  ][strength]
   const strengthText = [
     t('register.password-too-short'),
     t('register.password-weak'),
     t('register.password-fair'),
     t('register.password-good'),
-    t('register.password-strong')
-  ][strength];
+    t('register.password-strong'),
+  ][strength]
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -82,13 +95,17 @@ export default function Register() {
             <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
               <FlagIcon className="w-7 h-7 text-primary-foreground" />
             </div>
-            <span className="text-3xl font-bold text-foreground">{t('common.app-name')}</span>
+            <span className="text-3xl font-bold text-foreground">
+              {t('common.app-name')}
+            </span>
           </div>
         </div>
 
         <Card className="border-0 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50">
           <CardHeader className="space-y-1 text-center pb-2">
-            <CardTitle className="text-2xl font-bold">{t('register.title')}</CardTitle>
+            <CardTitle className="text-2xl font-bold">
+              {t('register.title')}
+            </CardTitle>
             <CardDescription>{t('register.subtitle')}</CardDescription>
           </CardHeader>
 
@@ -102,7 +119,9 @@ export default function Register() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">{t('register.first-name-label')}</Label>
+                  <Label htmlFor="firstName">
+                    {t('register.first-name-label')}
+                  </Label>
                   <Input
                     id="firstName"
                     type="text"
@@ -114,7 +133,9 @@ export default function Register() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">{t('register.last-name-label')}</Label>
+                  <Label htmlFor="lastName">
+                    {t('register.last-name-label')}
+                  </Label>
                   <Input
                     id="lastName"
                     type="text"
@@ -159,20 +180,25 @@ export default function Register() {
                         <div
                           key={i}
                           className={`h-full flex-1 rounded-full ${
-                            strength >= i ? strengthColor : 'bg-slate-200 dark:bg-slate-700'
+                            strength >= i
+                              ? strengthColor
+                              : 'bg-slate-200 dark:bg-slate-700'
                           }`}
                         />
                       ))}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {t('register.password-strength')}: <span className="font-medium">{strengthText}</span>
+                      {t('register.password-strength')}:{' '}
+                      <span className="font-medium">{strengthText}</span>
                     </p>
                   </div>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">{t('register.confirm-password-label')}</Label>
+                <Label htmlFor="confirmPassword">
+                  {t('register.confirm-password-label')}
+                </Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -194,22 +220,37 @@ export default function Register() {
                 <Checkbox
                   id="terms"
                   checked={agreeTerms}
-                  onCheckedChange={(checked) => setAgreeTerms(checked as boolean)}
+                  onCheckedChange={(checked) =>
+                    setAgreeTerms(checked as boolean)
+                  }
                   className="mt-0.5"
                 />
-                <Label htmlFor="terms" className="text-sm font-normal cursor-pointer leading-relaxed">
+                <Label
+                  htmlFor="terms"
+                  className="text-sm font-normal cursor-pointer leading-relaxed"
+                >
                   {t('register.terms-label')}{' '}
-                  <a href="#" className="text-primary hover:underline font-medium">{t('register.terms-link')}</a>
-                  {' '}{t('common.and')}{' '}
-                  <a href="#" className="text-primary hover:underline font-medium">{t('register.privacy-link')}</a>
-                  {' '}{t('register.agree-terms')}
+                  <a
+                    href="#"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    {t('register.terms-link')}
+                  </a>{' '}
+                  {t('common.and')}{' '}
+                  <a
+                    href="#"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    {t('register.privacy-link')}
+                  </a>{' '}
+                  {t('register.agree-terms')}
                 </Label>
               </div>
             </CardContent>
 
             <CardFooter className="flex-col gap-4 pt-2">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full h-11 text-base font-semibold"
                 disabled={isLoading}
               >
@@ -236,8 +277,8 @@ export default function Register() {
 
               <p className="text-sm text-muted-foreground text-center">
                 {t('register.has-account')}{' '}
-                <Link 
-                  to="/login" 
+                <Link
+                  to="/login"
                   className="text-primary font-semibold hover:text-primary/80"
                 >
                   {t('register.sign-in')}
@@ -248,5 +289,5 @@ export default function Register() {
         </Card>
       </div>
     </div>
-  );
+  )
 }

@@ -1,28 +1,28 @@
-import { useState } from 'react';
-import { Menu, Transition } from '@headlessui/react';
+import { Menu, Transition } from '@headlessui/react'
 import {
   Bars3Icon,
-  UserCircleIcon,
-  ChevronDownIcon,
   BuildingOfficeIcon,
-} from '@heroicons/react/24/outline';
-import { useAuthStore } from '@/store/authStore';
-import { ThemeToggle } from './ThemeToggle';
-import clsx from 'clsx';
+  ChevronDownIcon,
+  UserCircleIcon,
+} from '@heroicons/react/24/outline'
+import clsx from 'clsx'
+import { useState } from 'react'
+import { useAuthStore } from '@/store/authStore'
+import { ThemeToggle } from './ThemeToggle'
 
 interface HeaderProps {
-  onMenuClick: () => void;
+  onMenuClick: () => void
 }
 
 export default function Header({ onMenuClick }: HeaderProps) {
-  const { user, logout } = useAuthStore();
-  const [currentOrg, setCurrentOrg] = useState('Personal Organization');
+  const { user, logout } = useAuthStore()
+  const [currentOrg, setCurrentOrg] = useState('Personal Organization')
 
-  const organizations = ['Personal Organization', 'Acme Corp', 'Tech Startup'];
+  const organizations = ['Personal Organization', 'Acme Corp', 'Tech Startup']
 
   const handleLogout = () => {
-    logout();
-  };
+    logout()
+  }
 
   return (
     <header className="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
@@ -64,9 +64,12 @@ export default function Header({ onMenuClick }: HeaderProps) {
                           <button
                             onClick={() => setCurrentOrg(org)}
                             className={clsx(
-                              active ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300',
+                              active
+                                ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                                : 'text-gray-700 dark:text-gray-300',
                               'block w-full px-4 py-2 text-left text-sm',
-                              currentOrg === org && 'font-medium text-primary-600'
+                              currentOrg === org &&
+                                'font-medium text-primary-600'
                             )}
                           >
                             {org}
@@ -83,7 +86,9 @@ export default function Header({ onMenuClick }: HeaderProps) {
                           <a
                             href="/organizations/new"
                             className={clsx(
-                              active ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300',
+                              active
+                                ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                                : 'text-gray-700 dark:text-gray-300',
                               'block px-4 py-2 text-sm text-primary-600'
                             )}
                           >
@@ -102,7 +107,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
           <div className="flex items-center space-x-4">
             {/* Theme Toggle */}
             <ThemeToggle />
-            
+
             {/* User menu */}
             <Menu as="div" className="relative">
               <Menu.Button className="flex items-center max-w-xs text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
@@ -168,5 +173,5 @@ export default function Header({ onMenuClick }: HeaderProps) {
         </div>
       </div>
     </header>
-  );
+  )
 }

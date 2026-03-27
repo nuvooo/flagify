@@ -1,166 +1,185 @@
-import { useEffect, useState, Fragment } from 'react';
-import { Link } from 'react-router-dom';
+import { Dialog, Menu, Transition } from '@headlessui/react'
 import {
+  BuildingOfficeIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  EllipsisVerticalIcon,
+  ExclamationTriangleIcon,
+  FlagIcon,
   FolderIcon,
   PlusIcon,
-  EllipsisVerticalIcon,
-  FlagIcon,
-  ClockIcon,
-  ExclamationTriangleIcon,
-  XMarkIcon,
-  CheckCircleIcon,
   TrashIcon,
-  BuildingOfficeIcon,
-} from '@heroicons/react/24/outline';
-import { Menu, Transition, Dialog } from '@headlessui/react';
-import api from '@/lib/api';
-import clsx from 'clsx';
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
+import clsx from 'clsx'
+import { Fragment, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import api from '@/lib/api'
 
 interface Project {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  organizationId: string;
-  organizationName: string;
-  featureFlagCount: number;
-  environmentCount: number;
-  createdAt: string;
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  organizationId: string
+  organizationName: string
+  featureFlagCount: number
+  environmentCount: number
+  createdAt: string
 }
 
 interface Organization {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
 export default function Projects() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedOrg, setSelectedOrg] = useState<string>('all');
-  
+  const [projects, setProjects] = useState<Project[]>([])
+  const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedOrg, setSelectedOrg] = useState<string>('all')
+
   // Modal state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
-  const [createSuccess, setCreateSuccess] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
+  const [createSuccess, setCreateSuccess] = useState<string | null>(null)
   const [newProjectData, setNewProjectData] = useState({
     name: '',
     slug: '',
     description: '',
     organizationId: '',
-  });
-  
+  })
+
   // Delete state
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null)
 
   const fetchProjects = async () => {
     try {
-      setIsLoading(true);
-      setError(null);
-      const response = await api.get('/projects');
-      setProjects(response.data.projects || []);
+      setIsLoading(true)
+      setError(null)
+      const response = await api.get('/projects')
+      setProjects(response.data.projects || [])
     } catch (err) {
-      console.error('Failed to fetch projects:', err);
-      setError('Failed to load projects. Please try again later.');
+      console.error('Failed to fetch projects:', err)
+      setError('Failed to load projects. Please try again later.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const fetchOrganizations = async () => {
     try {
-      const response = await api.get('/organizations');
-      setOrganizations(response.data.organizations || []);
+      const response = await api.get('/organizations')
+      setOrganizations(response.data.organizations || [])
     } catch (err) {
-      console.error('Failed to fetch organizations:', err);
+      console.error('Failed to fetch organizations:', err)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchProjects();
-    fetchOrganizations();
-  }, []);
+    fetchProjects()
+    fetchOrganizations()
+  }, [])
 
   const createProject = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsCreating(true);
-    setCreateError(null);
-    setCreateSuccess(null);
-    
+    e.preventDefault()
+    setIsCreating(true)
+    setCreateError(null)
+    setCreateSuccess(null)
+
     try {
-      await api.post(`/projects/organization/${newProjectData.organizationId}`, {
-        name: newProjectData.name,
-        key: newProjectData.slug || undefined,
-        description: newProjectData.description || undefined,
-      });
-      
+      await api.post(
+        `/projects/organization/${newProjectData.organizationId}`,
+        {
+          name: newProjectData.name,
+          key: newProjectData.slug || undefined,
+          description: newProjectData.description || undefined,
+        }
+      )
+
       // Refresh projects to get complete data (including organizationName, counts, etc.)
-      await fetchProjects();
-      setCreateSuccess('Project created successfully!');
-      
+      await fetchProjects()
+      setCreateSuccess('Project created successfully!')
+
       // Reset form and close modal after a brief delay
       setTimeout(() => {
-        setNewProjectData({ name: '', slug: '', description: '', organizationId: '' });
-        setIsModalOpen(false);
-        setCreateSuccess(null);
-      }, 1500);
+        setNewProjectData({
+          name: '',
+          slug: '',
+          description: '',
+          organizationId: '',
+        })
+        setIsModalOpen(false)
+        setCreateSuccess(null)
+      }, 1500)
     } catch (err: any) {
-      console.error('Failed to create project:', err);
-      setCreateError(err.response?.data?.message || 'Failed to create project. Please try again.');
+      console.error('Failed to create project:', err)
+      setCreateError(
+        err.response?.data?.message ||
+          'Failed to create project. Please try again.'
+      )
     } finally {
-      setIsCreating(false);
+      setIsCreating(false)
     }
-  };
+  }
 
   const deleteProject = async (projectId: string) => {
-    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
-      return;
+    if (
+      !confirm(
+        'Are you sure you want to delete this project? This action cannot be undone.'
+      )
+    ) {
+      return
     }
-    
-    setIsDeleting(projectId);
+
+    setIsDeleting(projectId)
     try {
-      await api.delete(`/projects/${projectId}`);
-      setProjects((prev) => prev.filter((p) => p.id !== projectId));
+      await api.delete(`/projects/${projectId}`)
+      setProjects((prev) => prev.filter((p) => p.id !== projectId))
     } catch (err: any) {
-      console.error('Failed to delete project:', err);
-      alert(err.response?.data?.message || 'Failed to delete project. Please try again.');
+      console.error('Failed to delete project:', err)
+      alert(
+        err.response?.data?.message ||
+          'Failed to delete project. Please try again.'
+      )
     } finally {
-      setIsDeleting(null);
+      setIsDeleting(null)
     }
-  };
+  }
 
   // Auto-generate slug from name
   const handleNameChange = (name: string) => {
     setNewProjectData((prev) => ({
       ...prev,
       name,
-      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-    }));
-  };
+      slug: name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, ''),
+    }))
+  }
 
-  const orgNames = Array.from(
-    new Set(projects.map((p) => p.organizationName))
-  );
+  const orgNames = Array.from(new Set(projects.map((p) => p.organizationName)))
 
   const filteredProjects = projects.filter((project) => {
     const matchesSearch =
       project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.slug.toLowerCase().includes(searchTerm.toLowerCase());
+      project.slug.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesOrg =
-      selectedOrg === 'all' || project.organizationName === selectedOrg;
-    return matchesSearch && matchesOrg;
-  });
+      selectedOrg === 'all' || project.organizationName === selectedOrg
+    return matchesSearch && matchesOrg
+  })
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    });
-  };
+    })
+  }
 
   return (
     <div className="space-y-6">
@@ -221,10 +240,15 @@ export default function Projects() {
         <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
           <div className="flex">
             <div className="flex-shrink-0">
-              <ExclamationTriangleIcon className="h-5 w-5 text-red-400" aria-hidden="true" />
+              <ExclamationTriangleIcon
+                className="h-5 w-5 text-red-400"
+                aria-hidden="true"
+              />
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-400">Error</h3>
+              <h3 className="text-sm font-medium text-red-800 dark:text-red-400">
+                Error
+              </h3>
               <div className="mt-2 text-sm text-red-700 dark:text-red-300">
                 <p>{error}</p>
               </div>
@@ -243,7 +267,11 @@ export default function Projects() {
 
       {/* Create Project Modal */}
       <Transition appear show={isModalOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={() => !isCreating && setIsModalOpen(false)}>
+        <Dialog
+          as="div"
+          className="relative z-10"
+          onClose={() => !isCreating && setIsModalOpen(false)}
+        >
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -286,26 +314,38 @@ export default function Projects() {
 
                   {createError && (
                     <div className="mb-4 rounded-md bg-red-50 dark:bg-red-900/20 p-3">
-                      <p className="text-sm text-red-700 dark:text-red-300">{createError}</p>
+                      <p className="text-sm text-red-700 dark:text-red-300">
+                        {createError}
+                      </p>
                     </div>
                   )}
 
                   {createSuccess && (
                     <div className="mb-4 rounded-md bg-green-50 dark:bg-green-900/20 p-3 flex items-center">
                       <CheckCircleIcon className="h-5 w-5 text-green-400 mr-2" />
-                      <p className="text-sm text-green-700 dark:text-green-300">{createSuccess}</p>
+                      <p className="text-sm text-green-700 dark:text-green-300">
+                        {createSuccess}
+                      </p>
                     </div>
                   )}
 
                   <form onSubmit={createProject} className="space-y-4">
                     <div>
-                      <label htmlFor="project-org" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <label
+                        htmlFor="project-org"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
                         Organization <span className="text-red-500">*</span>
                       </label>
                       <select
                         id="project-org"
                         value={newProjectData.organizationId}
-                        onChange={(e) => setNewProjectData({ ...newProjectData, organizationId: e.target.value })}
+                        onChange={(e) =>
+                          setNewProjectData({
+                            ...newProjectData,
+                            organizationId: e.target.value,
+                          })
+                        }
                         className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                         required
                         disabled={isCreating}
@@ -320,7 +360,10 @@ export default function Projects() {
                     </div>
 
                     <div>
-                      <label htmlFor="project-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <label
+                        htmlFor="project-name"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
                         Project Name <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -336,14 +379,22 @@ export default function Projects() {
                     </div>
 
                     <div>
-                      <label htmlFor="project-slug" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <label
+                        htmlFor="project-slug"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
                         Slug
                       </label>
                       <input
                         type="text"
                         id="project-slug"
                         value={newProjectData.slug}
-                        onChange={(e) => setNewProjectData({ ...newProjectData, slug: e.target.value })}
+                        onChange={(e) =>
+                          setNewProjectData({
+                            ...newProjectData,
+                            slug: e.target.value,
+                          })
+                        }
                         className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                         placeholder="web-application"
                         disabled={isCreating}
@@ -354,13 +405,21 @@ export default function Projects() {
                     </div>
 
                     <div>
-                      <label htmlFor="project-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <label
+                        htmlFor="project-description"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
                         Description
                       </label>
                       <textarea
                         id="project-description"
                         value={newProjectData.description}
-                        onChange={(e) => setNewProjectData({ ...newProjectData, description: e.target.value })}
+                        onChange={(e) =>
+                          setNewProjectData({
+                            ...newProjectData,
+                            description: e.target.value,
+                          })
+                        }
                         rows={3}
                         className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                         placeholder="Brief description of your project"
@@ -379,7 +438,11 @@ export default function Projects() {
                       </button>
                       <button
                         type="submit"
-                        disabled={isCreating || !newProjectData.name || !newProjectData.organizationId}
+                        disabled={
+                          isCreating ||
+                          !newProjectData.name ||
+                          !newProjectData.organizationId
+                        }
                         className="rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isCreating ? 'Creating...' : 'Create Project'}
@@ -397,7 +460,10 @@ export default function Projects() {
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-lg bg-white dark:bg-gray-800 shadow animate-pulse">
+            <div
+              key={i}
+              className="rounded-lg bg-white dark:bg-gray-800 shadow animate-pulse"
+            >
               <div className="p-6">
                 <div className="h-6 w-32 bg-gray-200 rounded" />
                 <div className="mt-2 h-4 w-48 bg-gray-200 rounded" />
@@ -412,7 +478,9 @@ export default function Projects() {
       ) : filteredProjects.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700 p-12 text-center">
           <FolderIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
-          <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">No projects</h3>
+          <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+            No projects
+          </h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Get started by creating a new project.
           </p>
@@ -441,14 +509,22 @@ export default function Projects() {
                     </div>
                     <div className="ml-4">
                       <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                        <Link to={`/projects/${project.id}`} className="hover:text-primary-600">
+                        <Link
+                          to={`/projects/${project.id}`}
+                          className="hover:text-primary-600"
+                        >
                           {project.name}
                         </Link>
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{project.slug}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {project.slug}
+                      </p>
                     </div>
                   </div>
-                  <Menu as="div" className="relative ml-2 inline-block text-left">
+                  <Menu
+                    as="div"
+                    className="relative ml-2 inline-block text-left"
+                  >
                     <Menu.Button className="flex items-center rounded-full bg-white dark:bg-gray-800 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
                       <span className="sr-only">Open options</span>
                       <EllipsisVerticalIcon className="h-5 w-5" />
@@ -468,7 +544,9 @@ export default function Projects() {
                               <Link
                                 to={`/projects/${project.id}`}
                                 className={clsx(
-                                  active ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300',
+                                  active
+                                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                                    : 'text-gray-700 dark:text-gray-300',
                                   'block px-4 py-2 text-sm'
                                 )}
                               >
@@ -481,7 +559,9 @@ export default function Projects() {
                               <Link
                                 to={`/feature-flags?project=${project.id}`}
                                 className={clsx(
-                                  active ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300',
+                                  active
+                                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                                    : 'text-gray-700 dark:text-gray-300',
                                   'block px-4 py-2 text-sm'
                                 )}
                               >
@@ -494,7 +574,9 @@ export default function Projects() {
                               <Link
                                 to={`/projects/${project.id}/settings`}
                                 className={clsx(
-                                  active ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300',
+                                  active
+                                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                                    : 'text-gray-700 dark:text-gray-300',
                                   'block px-4 py-2 text-sm'
                                 )}
                               >
@@ -509,13 +591,17 @@ export default function Projects() {
                                   onClick={() => deleteProject(project.id)}
                                   disabled={isDeleting === project.id}
                                   className={clsx(
-                                    active ? 'bg-gray-100 dark:bg-gray-800 text-red-900 dark:text-red-400' : 'text-red-700 dark:text-red-400',
+                                    active
+                                      ? 'bg-gray-100 dark:bg-gray-800 text-red-900 dark:text-red-400'
+                                      : 'text-red-700 dark:text-red-400',
                                     'block w-full px-4 py-2 text-left text-sm disabled:opacity-50'
                                   )}
                                 >
                                   <span className="flex items-center">
                                     <TrashIcon className="mr-2 h-4 w-4" />
-                                    {isDeleting === project.id ? 'Deleting...' : 'Delete'}
+                                    {isDeleting === project.id
+                                      ? 'Deleting...'
+                                      : 'Delete'}
                                   </span>
                                 </button>
                               )}
@@ -556,5 +642,5 @@ export default function Projects() {
         </div>
       )}
     </div>
-  );
+  )
 }

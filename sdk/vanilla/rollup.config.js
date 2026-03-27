@@ -1,6 +1,6 @@
-import typescript from '@rollup/plugin-typescript';
-import resolve from '@rollup/plugin-node-resolve';
-import terser from '@rollup/plugin-terser';
+import resolve from '@rollup/plugin-node-resolve'
+import terser from '@rollup/plugin-terser'
+import typescript from '@rollup/plugin-typescript'
 
 export default [
   // ESM build
@@ -9,10 +9,10 @@ export default [
     output: {
       file: 'dist/index.esm.js',
       format: 'esm',
-      sourcemap: true
+      sourcemap: true,
     },
     plugins: [resolve(), typescript({ tsconfig: './tsconfig.json' })],
-    external: ['@togglely/sdk-core']
+    external: ['@togglely/sdk-core'],
   },
   // CJS build
   {
@@ -20,10 +20,10 @@ export default [
     output: {
       file: 'dist/index.js',
       format: 'cjs',
-      sourcemap: true
+      sourcemap: true,
     },
     plugins: [resolve(), typescript({ tsconfig: './tsconfig.json' })],
-    external: ['@togglely/sdk-core']
+    external: ['@togglely/sdk-core'],
   },
   // UMD build (for CDN)
   {
@@ -33,9 +33,9 @@ export default [
       format: 'umd',
       name: 'Togglely',
       sourcemap: true,
-      globals: {}
+      globals: {},
     },
-    plugins: [resolve(), typescript({ tsconfig: './tsconfig.json' })]
+    plugins: [resolve(), typescript({ tsconfig: './tsconfig.json' })],
   },
   // UMD minified build
   {
@@ -45,8 +45,8 @@ export default [
       format: 'umd',
       name: 'Flagify',
       sourcemap: true,
-      globals: {}
+      globals: {},
     },
-    plugins: [resolve(), typescript({ tsconfig: './tsconfig.json' }), terser()]
-  }
-];
+    plugins: [resolve(), typescript({ tsconfig: './tsconfig.json' }), terser()],
+  },
+]

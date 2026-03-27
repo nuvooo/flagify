@@ -1,12 +1,28 @@
-import { Controller, Post, Get, Patch, Body, Param, Req, UseGuards, NotFoundException, ConflictException, ForbiddenException, Inject } from '@nestjs/common';
-import { ApiTags, ApiBody, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { AuthService } from './auth.service';
-import { AuthGuard } from '../../shared/auth.guard';
-import { PrismaService } from '../../shared/prisma.service';
-import { MailService } from '../../shared/mail.service';
-import { UpdateProfileDto } from './dto/update-profile.dto';
-import * as bcrypt from 'bcryptjs';
-import { randomUUID } from 'crypto';
+import {
+  Body,
+  ConflictException,
+  Controller,
+  ForbiddenException,
+  Get,
+  NotFoundException,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common'
+import { ApiTags } from '@nestjs/swagger'
+import * as bcrypt from 'bcryptjs'
+import { randomUUID } from 'crypto'
+import { AuthGuard } from '../../shared/auth.guard'
+import type { MailService } from '../../shared/mail.service'
+import type { PrismaService } from '../../shared/prisma.service'
+import type { AuthService } from './auth.service'
+import type { ChangePasswordDto } from './dto/change-password.dto'
+import type { LoginDto } from './dto/login.dto'
+import type { RegisterDto } from './dto/register.dto'
+import type { UpdateProfileDto } from './dto/update-profile.dto'
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -14,34 +30,34 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly prisma: PrismaService,
-    private readonly mailService: MailService,
+    private readonly mailService: MailService
   ) {}
 
   @Post('login')
-  async login(@Body() body: { email: string; password: string }) {
-    return this.authService.login(body.email, body.password);
+  async login(@Body() dto: LoginDto) {
+    return this.authService.login(dto.email, dto.password);
   }
 
   @Post('register')
-  async register(
-    @Body() body: { email: string; password: string; name: string; firstName?: string; lastName?: string },
-    @Req() req: any
-  ) {
-    // Support both name and firstName/lastName
-    const name = body.name || `${body.firstName} ${body.lastName}`;
-    const result = await this.authService.register(body.email, body.password, name);
-    
+  async register(@Body() dto: RegisterDto, @Req() req: any) {
+    const name = dto.name || `${dto.firstName} ${dto.lastName}`
+    const result = await this.authService.register(
+      dto.email,
+      dto.password,
+      name
+    )
+
     // Send verification email
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const baseUrl = `${req.protocol}://${req.get('host')}`
     if (result.user.emailVerifyToken) {
       await this.mailService.sendVerificationEmail(
-        body.email,
+        dto.email,
         result.user.emailVerifyToken,
         baseUrl
-      );
+      )
     }
-    
-    return result;
+
+    return result
   }
 
   @Get('me')
@@ -59,7 +75,7 @@ export class AuthController {
     });
 
     if (!user) {
-      return { error: 'User not found' };
+      throw new NotFoundException('User not found');
     }
 
     const membership = await this.prisma.organizationMember.findFirst({
@@ -93,42 +109,39 @@ export class AuthController {
         lastName: true,
         createdAt: true,
       },
-    });
+    })
 
     return {
       user: {
         ...user,
         name: `${user.firstName} ${user.lastName}`,
       },
-    };
+    }
   }
 
   @Post('change-password')
   @UseGuards(AuthGuard)
-  async changePassword(
-    @Req() req: any,
-    @Body() body: { currentPassword: string; newPassword: string },
-  ) {
+  async changePassword(@Req() req: any, @Body() dto: ChangePasswordDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: req.user.userId },
-    });
+    })
 
     if (!user) {
-      return { error: 'User not found' };
+      throw new NotFoundException('User not found')
     }
 
-    const valid = await bcrypt.compare(body.currentPassword, user.password);
+    const valid = await bcrypt.compare(dto.currentPassword, user.password)
     if (!valid) {
-      return { error: 'Current password is incorrect' };
+      throw new UnauthorizedException('Current password is incorrect')
     }
 
-    const newPasswordHash = await bcrypt.hash(body.newPassword, 10);
+    const newPasswordHash = await bcrypt.hash(dto.newPassword, 10)
     await this.prisma.user.update({
       where: { id: req.user.userId },
       data: { password: newPasswordHash },
-    });
+    })
 
-    return { success: true };
+    return { success: true }
   }
 
   // Invite-based registration
@@ -163,28 +176,33 @@ export class AuthController {
     const invite = await this.prisma.organizationInvite.findUnique({
       where: { token },
       include: { organization: true },
-    });
+    })
 
-    if (!invite) throw new NotFoundException('Invite not found');
-    if (invite.expiresAt < new Date()) throw new NotFoundException('Invite expired');
-    if (invite.acceptedAt) throw new ConflictException('Invite already used');
+    if (!invite) throw new NotFoundException('Invite not found')
+    if (invite.expiresAt < new Date())
+      throw new NotFoundException('Invite expired')
+    if (invite.acceptedAt) throw new ConflictException('Invite already used')
 
     // Verify the logged-in user matches the invite email
     const user = await this.prisma.user.findUnique({
       where: { id: req.user.userId },
-    });
+    })
 
     if (!user || user.email !== invite.email) {
-      throw new ForbiddenException('This invite is for a different email address');
+      throw new ForbiddenException(
+        'This invite is for a different email address'
+      )
     }
 
     // Check if already a member
     const existingMember = await this.prisma.organizationMember.findFirst({
       where: { organizationId: invite.organizationId, userId: user.id },
-    });
+    })
 
     if (existingMember) {
-      throw new ConflictException('You are already a member of this organization');
+      throw new ConflictException(
+        'You are already a member of this organization'
+      )
     }
 
     // Add user to organization
@@ -194,7 +212,7 @@ export class AuthController {
         organizationId: invite.organizationId,
         role: invite.role,
       },
-    });
+    })
 
     // Mark invite as accepted
     await this.prisma.organizationInvite.update({
@@ -203,24 +221,25 @@ export class AuthController {
         acceptedAt: new Date(),
         acceptedById: user.id,
       },
-    });
+    })
 
-    return { success: true, message: 'You have joined the organization' };
+    return { success: true, message: 'You have joined the organization' }
   }
 
   @Post('invite/:token/register')
   async registerWithInvite(
     @Param('token') token: string,
-    @Body() body: { password: string; firstName: string; lastName: string },
+    @Body() body: { password: string; firstName: string; lastName: string }
   ) {
     const invite = await this.prisma.organizationInvite.findUnique({
       where: { token },
       include: { organization: true },
-    });
+    })
 
-    if (!invite) throw new NotFoundException('Invite not found');
-    if (invite.expiresAt < new Date()) throw new NotFoundException('Invite expired');
-    if (invite.acceptedAt) throw new ConflictException('Invite already used');
+    if (!invite) throw new NotFoundException('Invite not found')
+    if (invite.expiresAt < new Date())
+      throw new NotFoundException('Invite expired')
+    if (invite.acceptedAt) throw new ConflictException('Invite already used')
 
     // Create user
     const registerResult = await this.authService.register(
@@ -230,14 +249,14 @@ export class AuthController {
       body.firstName,
       body.lastName,
       false // email not verified yet
-    );
+    )
 
     // Get the created user
     const newUser = await this.prisma.user.findUnique({
       where: { email: invite.email },
-    });
+    })
 
-    if (!newUser) throw new NotFoundException('User creation failed');
+    if (!newUser) throw new NotFoundException('User creation failed')
 
     // Add user to organization
     await this.prisma.organizationMember.create({
@@ -246,7 +265,7 @@ export class AuthController {
         organizationId: invite.organizationId,
         role: invite.role,
       },
-    });
+    })
 
     // Mark invite as accepted
     await this.prisma.organizationInvite.update({
@@ -255,9 +274,9 @@ export class AuthController {
         acceptedAt: new Date(),
         acceptedById: newUser.id,
       },
-    });
+    })
 
-    return { success: true, message: 'Account created and joined organization' };
+    return { success: true, message: 'Account created and joined organization' }
   }
 
   // Get pending invites for current user
@@ -336,22 +355,23 @@ export class AuthController {
   async resendVerification(@Body() body: { email: string }, @Req() req: any) {
     const user = await this.prisma.user.findUnique({
       where: { email: body.email },
-    });
+    })
 
-    if (!user) throw new NotFoundException('User not found');
-    if (user.emailVerified) throw new ConflictException('Email already verified');
+    if (!user) throw new NotFoundException('User not found')
+    if (user.emailVerified)
+      throw new ConflictException('Email already verified')
 
     // Generate new token
-    const token = randomUUID();
+    const token = randomUUID()
     await this.prisma.user.update({
       where: { id: user.id },
       data: { emailVerifyToken: token },
-    });
+    })
 
     // Send verification email
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
-    await this.mailService.sendVerificationEmail(body.email, token, baseUrl);
+    const baseUrl = `${req.protocol}://${req.get('host')}`
+    await this.mailService.sendVerificationEmail(body.email, token, baseUrl)
 
-    return { success: true, message: 'Verification email sent' };
+    return { success: true, message: 'Verification email sent' }
   }
 }
