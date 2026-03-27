@@ -15,6 +15,7 @@ import clsx from 'clsx'
 import { Fragment, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '@/lib/api'
+import { toast } from 'sonner'
 
 interface Project {
   id: string
@@ -141,7 +142,7 @@ export default function Projects() {
       setProjects((prev) => prev.filter((p) => p.id !== projectId))
     } catch (err: any) {
       console.error('Failed to delete project:', err)
-      alert(
+      toast.error(
         err.response?.data?.message ||
           'Failed to delete project. Please try again.'
       )
