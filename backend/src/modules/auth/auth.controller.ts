@@ -13,7 +13,6 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
-import { Throttle, ThrottlerGuard } from '@nestjs/throttler'
 import * as bcrypt from 'bcryptjs'
 import { randomUUID } from 'crypto'
 import { AuthGuard } from '../../shared/auth.guard'
@@ -35,15 +34,11 @@ export class AuthController {
   ) {}
 
   @Post('login')
-  @UseGuards(ThrottlerGuard)
-  @Throttle({ default: { limit: 5, ttl: 900000 } })
   async login(@Body() dto: LoginDto) {
-    return this.authService.login(dto.email, dto.password);
+    return this.authService.login(dto.email, dto.password)
   }
 
   @Post('register')
-  @UseGuards(ThrottlerGuard)
-  @Throttle({ default: { limit: 5, ttl: 900000 } })
   async register(@Body() dto: RegisterDto, @Req() req: any) {
     const name = dto.name || `${dto.firstName} ${dto.lastName}`
     const result = await this.authService.register(
