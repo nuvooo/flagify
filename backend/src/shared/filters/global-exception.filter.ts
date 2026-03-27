@@ -75,7 +75,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       exception !== null &&
       'code' in exception &&
       typeof (exception as Record<string, unknown>).code === 'string' &&
-      (exception as Record<string, unknown>).code.toString().startsWith('P')
+      String((exception as Record<string, unknown>).code).startsWith('P')
     )
   }
 

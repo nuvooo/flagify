@@ -286,12 +286,14 @@ export class SdkService {
         })
       }
 
-      results[flag.key] = toSdkFlagResponse(
-        flag,
-        project.organizationId,
-        flagEnv.defaultValue,
-        flagEnv.enabled
-      )
+      if (flagEnv) {
+        results[flag.key] = toSdkFlagResponse(
+          flag,
+          project.organizationId,
+          flagEnv.defaultValue,
+          flagEnv.enabled
+        )
+      }
     }
 
     return results

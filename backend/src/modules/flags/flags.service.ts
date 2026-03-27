@@ -405,7 +405,7 @@ export class FlagsService {
       // Find one matching the envId (either by environment.id or flagEnvironment.id)
       existing = allEnvs.find(
         (fe) => fe.id === envId || fe.environmentId === envId
-      )
+      ) ?? null
     }
 
     if (existing) {

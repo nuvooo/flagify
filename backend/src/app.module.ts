@@ -15,6 +15,7 @@ import { ProjectsModule } from './modules/projects/projects.module'
 import { SdkModule } from './modules/sdk/sdk.module'
 import { MailService } from './shared/mail.service'
 import { MailerModule } from './shared/mailer.module'
+import { MetricsModule } from './shared/metrics/metrics.module'
 import { PrismaModule } from './shared/prisma.module'
 
 @Module({
@@ -24,6 +25,7 @@ import { PrismaModule } from './shared/prisma.module'
     winstonConfig,
     PrismaModule,
     MailerModule,
+    MetricsModule,
     HealthModule,
     AuditLogsModule,
     AuthModule,
