@@ -1,6 +1,15 @@
-import { Controller, Get, Post, Delete, Body, Param, Req, UseGuards } from '@nestjs/common';
-import { ApiKeysService } from './api-keys.service';
-import { AuthGuard } from '../../shared/auth.guard';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common'
+import { AuthGuard } from '../../shared/auth.guard'
+import type { ApiKeysService } from './api-keys.service'
 
 @Controller('api-keys')
 @UseGuards(AuthGuard)
@@ -17,10 +26,10 @@ export class ApiKeysController {
   async create(
     @Param('orgId') orgId: string,
     @Body() body: { name: string; type?: string; expiresInDays?: number },
-    @Req() req: any,
+    @Req() req: any
   ) {
-    const key = await this.apiKeysService.create(orgId, req.user.userId, body);
-    return { apiKey: key };
+    const key = await this.apiKeysService.create(orgId, req.user.userId, body)
+    return { apiKey: key }
   }
 
   @Delete(':keyId')

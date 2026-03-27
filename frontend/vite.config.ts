@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import path from 'path';
+import react from '@vitejs/plugin-react'
+import path from 'path'
+import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [
@@ -9,14 +9,14 @@ export default defineConfig({
     process.env.NODE_ENV === 'test' && {
       name: 'istanbul',
       transform(code, id) {
-        if (id.includes('node_modules')) return;
-        if (!id.includes('src')) return;
-        if (!/\.(tsx?|jsx?)$/.test(id)) return;
-        
+        if (id.includes('node_modules')) return
+        if (!id.includes('src')) return
+        if (!/\.(tsx?|jsx?)$/.test(id)) return
+
         // This is a simplified version - in production you'd use vite-plugin-istanbul
-        return code;
-      }
-    }
+        return code
+      },
+    },
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -35,4 +35,4 @@ export default defineConfig({
   build: {
     sourcemap: true,
   },
-});
+})

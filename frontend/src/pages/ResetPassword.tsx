@@ -1,77 +1,84 @@
-import { useState, useEffect } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import api from '@/lib/axios';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { FlagIcon, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, FlagIcon, Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import api from '@/lib/axios'
 
 export default function ResetPassword() {
-  const { t } = useTranslation();
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const token = searchParams.get('token');
-  
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isValidating, setIsValidating] = useState(true);
-  const [isValid, setIsValid] = useState(false);
-  const [isReset, setIsReset] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation()
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const token = searchParams.get('token')
+
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [isValidating, setIsValidating] = useState(true)
+  const [isValid, setIsValid] = useState(false)
+  const [isReset, setIsReset] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const validateToken = async () => {
       if (!token) {
-        setIsValidating(false);
-        return;
+        setIsValidating(false)
+        return
       }
-      
+
       try {
         const response = await api.get('/password-reset/validate', {
-          params: { token }
-        });
-        setIsValid(response.data.valid);
+          params: { token },
+        })
+        setIsValid(response.data.valid)
       } catch (err) {
-        setIsValid(false);
+        setIsValid(false)
       } finally {
-        setIsValidating(false);
+        setIsValidating(false)
       }
-    };
+    }
 
-    validateToken();
-  }, [token]);
+    validateToken()
+  }, [token])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      setIsLoading(false);
-      return;
+      setError('Passwords do not match')
+      setIsLoading(false)
+      return
     }
 
     try {
-      await api.post('/password-reset/reset', { token, password });
-      setIsReset(true);
-      setTimeout(() => navigate('/login'), 3000);
+      await api.post('/password-reset/reset', { token, password })
+      setIsReset(true)
+      setTimeout(() => navigate('/login'), 3000)
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to reset password');
+      setError(err.response?.data?.error || 'Failed to reset password')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   if (isValidating) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
-    );
+    )
   }
 
   if (!token || !isValid) {
@@ -83,7 +90,9 @@ export default function ResetPassword() {
               <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertCircle className="w-8 h-8 text-destructive" />
               </div>
-              <h2 className="text-xl font-semibold mb-2">Invalid or Expired Link</h2>
+              <h2 className="text-xl font-semibold mb-2">
+                Invalid or Expired Link
+              </h2>
               <p className="text-muted-foreground mb-4">
                 This password reset link is invalid or has expired.
               </p>
@@ -94,7 +103,7 @@ export default function ResetPassword() {
           </Card>
         </div>
       </div>
-    );
+    )
   }
 
   if (isReset) {
@@ -106,7 +115,9 @@ export default function ResetPassword() {
               <div className="w-16 h-16 bg-green-100 dark:bg-green-950 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
               </div>
-              <h2 className="text-xl font-semibold mb-2">Password Reset Successful</h2>
+              <h2 className="text-xl font-semibold mb-2">
+                Password Reset Successful
+              </h2>
               <p className="text-muted-foreground mb-4">
                 Your password has been reset. Redirecting to login...
               </p>
@@ -117,7 +128,7 @@ export default function ResetPassword() {
           </Card>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -128,7 +139,9 @@ export default function ResetPassword() {
             <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
               <FlagIcon className="w-7 h-7 text-primary-foreground" />
             </div>
-            <span className="text-3xl font-bold text-foreground">{t('common.app-name')}</span>
+            <span className="text-3xl font-bold text-foreground">
+              {t('common.app-name')}
+            </span>
           </div>
         </div>
 
@@ -175,8 +188,8 @@ export default function ResetPassword() {
             </CardContent>
 
             <CardFooter className="flex-col gap-4 pt-2">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full h-11 text-base font-semibold"
                 disabled={isLoading}
               >
@@ -194,5 +207,5 @@ export default function ResetPassword() {
         </Card>
       </div>
     </div>
-  );
+  )
 }

@@ -1,66 +1,66 @@
-import { useEffect, useState, Fragment } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Dialog, Menu, Switch, Transition } from '@headlessui/react'
 import {
-  FlagIcon,
-  PlusIcon,
-  EllipsisVerticalIcon,
   CheckCircleIcon,
-  XCircleIcon,
   ClockIcon,
-  MagnifyingGlassIcon,
+  EllipsisVerticalIcon,
+  FlagIcon,
   FunnelIcon,
-  XMarkIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
   TrashIcon,
-} from '@heroicons/react/24/outline';
-import { Menu, Transition, Switch, Dialog } from '@headlessui/react';
-import api from '@/lib/api';
-import clsx from 'clsx';
+  XCircleIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
+import clsx from 'clsx'
+import { Fragment, useEffect, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+import api from '@/lib/api'
 
 // Helper to validate MongoDB ObjectID format (24-char hex)
 const isValidObjectId = (id: string | undefined | null): id is string => {
-  if (!id || typeof id !== 'string') return false;
-  if (id === 'undefined' || id === 'null' || id === 'new') return false;
-  return /^[0-9a-fA-F]{24}$/.test(id);
-};
+  if (!id || typeof id !== 'string') return false
+  if (id === 'undefined' || id === 'null' || id === 'new') return false
+  return /^[0-9a-fA-F]{24}$/.test(id)
+}
 
 interface FeatureFlag {
-  id: string;
-  name: string;
-  key: string;
-  description: string | null;
-  type: 'BOOLEAN' | 'STRING' | 'NUMBER' | 'JSON';
-  defaultValue: boolean | string | number | object;
-  projectId: string;
-  projectName: string;
-  environmentId: string;
-  environmentName: string;
-  isEnabled: boolean;
-  createdAt: string;
-  updatedAt: string;
+  id: string
+  name: string
+  key: string
+  description: string | null
+  type: 'BOOLEAN' | 'STRING' | 'NUMBER' | 'JSON'
+  defaultValue: boolean | string | number | object
+  projectId: string
+  projectName: string
+  environmentId: string
+  environmentName: string
+  isEnabled: boolean
+  createdAt: string
+  updatedAt: string
 }
 
 interface Project {
-  id: string;
-  name: string;
-  environments: { id: string; name: string }[];
+  id: string
+  name: string
+  environments: { id: string; name: string }[]
 }
 
 export default function FeatureFlags() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [featureFlags, setFeatureFlags] = useState<FeatureFlag[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [featureFlags, setFeatureFlags] = useState<FeatureFlag[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
   const [selectedProject, setSelectedProject] = useState<string>(
     searchParams.get('project') || 'all'
-  );
-  const [selectedEnvironment, setSelectedEnvironment] = useState<string>('all');
-  
+  )
+  const [selectedEnvironment, setSelectedEnvironment] = useState<string>('all')
+
   // Modal state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
-  const [createSuccess, setCreateSuccess] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
+  const [createSuccess, setCreateSuccess] = useState<string | null>(null)
   const [newFlagData, setNewFlagData] = useState({
     name: '',
     key: '',
@@ -69,75 +69,82 @@ export default function FeatureFlags() {
     defaultValue: 'false',
     projectId: '',
     environmentId: '',
-  });
-  
+  })
+
   // Toggle state
-  const [togglingFlags, setTogglingFlags] = useState<Set<string>>(new Set());
-  
+  const [togglingFlags, setTogglingFlags] = useState<Set<string>>(new Set())
+
   // Delete state
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null)
 
   // Validate projectId from search params
-  const validProjectId = isValidObjectId(selectedProject) ? selectedProject : null;
+  const validProjectId = isValidObjectId(selectedProject)
+    ? selectedProject
+    : null
 
   const fetchFeatureFlags = async () => {
     try {
-      setIsLoading(true);
+      setIsLoading(true)
       const response = await api.get('/feature-flags', {
         params: {
           projectId: validProjectId || undefined,
           environmentId:
             selectedEnvironment !== 'all' ? selectedEnvironment : undefined,
         },
-      });
-      const flags = response.data.featureFlags || [];
+      })
+      const flags = response.data.featureFlags || []
       // Normalize the flag data to ensure consistent structure
-      setFeatureFlags(flags.map((flag: any) => ({
-        ...flag,
-        isEnabled: flag.enabled ?? flag.isEnabled ?? false,
-        environmentId: flag.environmentId || selectedEnvironment,
-      })));
+      setFeatureFlags(
+        flags.map((flag: any) => ({
+          ...flag,
+          isEnabled: flag.enabled ?? flag.isEnabled ?? false,
+          environmentId: flag.environmentId || selectedEnvironment,
+        }))
+      )
     } catch (error) {
-      console.error('Failed to fetch feature flags:', error);
-      setFeatureFlags([]);
+      console.error('Failed to fetch feature flags:', error)
+      setFeatureFlags([])
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const fetchProjects = async () => {
     try {
-      const response = await api.get('/projects');
-      setProjects(response.data.projects || []);
+      const response = await api.get('/projects')
+      setProjects(response.data.projects || [])
     } catch (error) {
-      console.error('Failed to fetch projects:', error);
+      console.error('Failed to fetch projects:', error)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchFeatureFlags();
-    fetchProjects();
-  }, [validProjectId, selectedEnvironment]);
+    fetchFeatureFlags()
+    fetchProjects()
+  }, [validProjectId, selectedEnvironment])
 
   const createFeatureFlag = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsCreating(true);
-    setCreateError(null);
-    setCreateSuccess(null);
-    
+    e.preventDefault()
+    setIsCreating(true)
+    setCreateError(null)
+    setCreateSuccess(null)
+
     try {
-      const response = await api.post(`/feature-flags/project/${newFlagData.projectId}`, {
-        name: newFlagData.name,
-        key: newFlagData.key,
-        description: newFlagData.description || undefined,
-        flagType: newFlagData.type,
-        defaultValue: newFlagData.defaultValue,
-      });
-      
-      const newFlag = response.data.featureFlag || response.data;
-      setFeatureFlags((prev) => [newFlag, ...prev]);
-      setCreateSuccess('Feature flag created successfully!');
-      
+      const response = await api.post(
+        `/feature-flags/project/${newFlagData.projectId}`,
+        {
+          name: newFlagData.name,
+          key: newFlagData.key,
+          description: newFlagData.description || undefined,
+          flagType: newFlagData.type,
+          defaultValue: newFlagData.defaultValue,
+        }
+      )
+
+      const newFlag = response.data.featureFlag || response.data
+      setFeatureFlags((prev) => [newFlag, ...prev])
+      setCreateSuccess('Feature flag created successfully!')
+
       // Reset form and close modal after a brief delay
       setTimeout(() => {
         setNewFlagData({
@@ -148,134 +155,154 @@ export default function FeatureFlags() {
           defaultValue: 'false',
           projectId: '',
           environmentId: '',
-        });
-        setIsModalOpen(false);
-        setCreateSuccess(null);
-      }, 1500);
+        })
+        setIsModalOpen(false)
+        setCreateSuccess(null)
+      }, 1500)
     } catch (err: any) {
-      console.error('Failed to create feature flag:', err);
-      setCreateError(err.response?.data?.message || 'Failed to create feature flag. Please try again.');
+      console.error('Failed to create feature flag:', err)
+      setCreateError(
+        err.response?.data?.message ||
+          'Failed to create feature flag. Please try again.'
+      )
     } finally {
-      setIsCreating(false);
+      setIsCreating(false)
     }
-  };
+  }
 
-  const toggleFlag = async (flagId: string, currentValue: boolean, environmentId?: string) => {
+  const toggleFlag = async (
+    flagId: string,
+    currentValue: boolean,
+    environmentId?: string
+  ) => {
     if (!isValidObjectId(flagId)) {
-      console.error('Invalid flagId:', flagId);
-      return;
+      console.error('Invalid flagId:', flagId)
+      return
     }
-    
+
     // Get the effective environment ID
-    const effectiveEnvId = environmentId || selectedEnvironment;
+    const effectiveEnvId = environmentId || selectedEnvironment
     if (!effectiveEnvId || effectiveEnvId === 'all') {
-      alert('Please select a specific environment to toggle flags');
-      return;
+      alert('Please select a specific environment to toggle flags')
+      return
     }
-    
-    const newEnabled = !currentValue;
-    
-    setTogglingFlags((prev) => new Set(prev).add(flagId));
+
+    const newEnabled = !currentValue
+
+    setTogglingFlags((prev) => new Set(prev).add(flagId))
     try {
       await api.post(`/feature-flags/${flagId}/toggle`, {
         environmentId: effectiveEnvId,
         enabled: newEnabled,
-      });
+      })
       setFeatureFlags((prev) =>
         prev.map((flag) => {
           if (flag.id === flagId) {
             // For BOOLEAN flags, sync defaultValue with enabled state
-            const updates: Partial<FeatureFlag> = { isEnabled: newEnabled };
+            const updates: Partial<FeatureFlag> = { isEnabled: newEnabled }
             if (flag.type === 'BOOLEAN') {
-              updates.defaultValue = newEnabled;
+              updates.defaultValue = newEnabled
             }
-            return { ...flag, ...updates };
+            return { ...flag, ...updates }
           }
-          return flag;
+          return flag
         })
-      );
+      )
     } catch (error) {
-      console.error('Failed to toggle feature flag:', error);
-      alert('Failed to toggle feature flag. Please try again.');
+      console.error('Failed to toggle feature flag:', error)
+      alert('Failed to toggle feature flag. Please try again.')
     } finally {
       setTogglingFlags((prev) => {
-        const next = new Set(prev);
-        next.delete(flagId);
-        return next;
-      });
+        const next = new Set(prev)
+        next.delete(flagId)
+        return next
+      })
     }
-  };
+  }
 
   const deleteFeatureFlag = async (flagId: string) => {
-    if (!confirm('Are you sure you want to delete this feature flag? This action cannot be undone.')) {
-      return;
+    if (
+      !confirm(
+        'Are you sure you want to delete this feature flag? This action cannot be undone.'
+      )
+    ) {
+      return
     }
-    
-    setIsDeleting(flagId);
+
+    setIsDeleting(flagId)
     try {
-      await api.delete(`/feature-flags/${flagId}`);
-      setFeatureFlags((prev) => prev.filter((flag) => flag.id !== flagId));
+      await api.delete(`/feature-flags/${flagId}`)
+      setFeatureFlags((prev) => prev.filter((flag) => flag.id !== flagId))
     } catch (err: any) {
-      console.error('Failed to delete feature flag:', err);
-      alert(err.response?.data?.message || 'Failed to delete feature flag. Please try again.');
+      console.error('Failed to delete feature flag:', err)
+      alert(
+        err.response?.data?.message ||
+          'Failed to delete feature flag. Please try again.'
+      )
     } finally {
-      setIsDeleting(null);
+      setIsDeleting(null)
     }
-  };
+  }
 
   // Auto-generate key from name
   const handleNameChange = (name: string) => {
     setNewFlagData((prev) => ({
       ...prev,
       name,
-      key: name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''),
-    }));
-  };
+      key: name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, ''),
+    }))
+  }
 
   // Get available environments for selected project
-  const selectedProjectData = projects.find((p) => p.id === newFlagData.projectId);
-  const availableEnvironments = selectedProjectData?.environments || [];
+  const selectedProjectData = projects.find(
+    (p) => p.id === newFlagData.projectId
+  )
+  const availableEnvironments = selectedProjectData?.environments || []
 
   const projectNames = Array.from(
     new Set(featureFlags.map((f) => f.projectName))
-  );
+  )
   const environments = Array.from(
     new Set(featureFlags.map((f) => f.environmentName))
-  );
+  )
 
   const filteredFlags = featureFlags.filter((flag) => {
     const matchesSearch =
       flag.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      flag.key.toLowerCase().includes(searchTerm.toLowerCase());
+      flag.key.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesProject =
-      selectedProject === 'all' || flag.projectId === selectedProject;
+      selectedProject === 'all' || flag.projectId === selectedProject
     const matchesEnvironment =
-      selectedEnvironment === 'all' || flag.environmentId === selectedEnvironment;
-    return matchesSearch && matchesProject && matchesEnvironment;
-  });
+      selectedEnvironment === 'all' ||
+      flag.environmentId === selectedEnvironment
+    return matchesSearch && matchesProject && matchesEnvironment
+  })
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    });
-  };
+    })
+  }
 
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'BOOLEAN':
-        return 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-400 ring-1 ring-inset ring-blue-700/10 dark:ring-blue-400/20';
+        return 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-400 ring-1 ring-inset ring-blue-700/10 dark:ring-blue-400/20'
       case 'STRING':
-        return 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400 ring-1 ring-inset ring-green-600/20 dark:ring-green-400/20';
+        return 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400 ring-1 ring-inset ring-green-600/20 dark:ring-green-400/20'
       case 'NUMBER':
-        return 'bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-400 ring-1 ring-inset ring-purple-700/10 dark:ring-purple-400/20';
+        return 'bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-400 ring-1 ring-inset ring-purple-700/10 dark:ring-purple-400/20'
       case 'JSON':
-        return 'bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-400 ring-1 ring-inset ring-orange-700/10 dark:ring-orange-400/20';
+        return 'bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-400 ring-1 ring-inset ring-orange-700/10 dark:ring-orange-400/20'
       default:
-        return 'bg-muted text-foreground ring-1 ring-inset ring-border';
+        return 'bg-muted text-foreground ring-1 ring-inset ring-border'
     }
-  };
+  }
 
   return (
     <div className="space-y-6">
@@ -320,11 +347,11 @@ export default function FeatureFlags() {
           <select
             value={selectedProject}
             onChange={(e) => {
-              setSelectedProject(e.target.value);
+              setSelectedProject(e.target.value)
               if (e.target.value !== 'all') {
-                setSearchParams({ project: e.target.value });
+                setSearchParams({ project: e.target.value })
               } else {
-                setSearchParams({});
+                setSearchParams({})
               }
             }}
             className="rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
@@ -353,7 +380,11 @@ export default function FeatureFlags() {
 
       {/* Create Feature Flag Modal */}
       <Transition appear show={isModalOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={() => !isCreating && setIsModalOpen(false)}>
+        <Dialog
+          as="div"
+          className="relative z-10"
+          onClose={() => !isCreating && setIsModalOpen(false)}
+        >
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -403,19 +434,30 @@ export default function FeatureFlags() {
                   {createSuccess && (
                     <div className="mb-4 rounded-md bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/50 p-3 flex items-center">
                       <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
-                      <p className="text-sm text-green-700 dark:text-green-400">{createSuccess}</p>
+                      <p className="text-sm text-green-700 dark:text-green-400">
+                        {createSuccess}
+                      </p>
                     </div>
                   )}
 
                   <form onSubmit={createFeatureFlag} className="space-y-4">
                     <div>
-                      <label htmlFor="flag-project" className="block text-sm font-medium text-foreground">
+                      <label
+                        htmlFor="flag-project"
+                        className="block text-sm font-medium text-foreground"
+                      >
                         Project <span className="text-destructive">*</span>
                       </label>
                       <select
                         id="flag-project"
                         value={newFlagData.projectId}
-                        onChange={(e) => setNewFlagData({ ...newFlagData, projectId: e.target.value, environmentId: '' })}
+                        onChange={(e) =>
+                          setNewFlagData({
+                            ...newFlagData,
+                            projectId: e.target.value,
+                            environmentId: '',
+                          })
+                        }
                         className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                         required
                         disabled={isCreating}
@@ -430,18 +472,32 @@ export default function FeatureFlags() {
                     </div>
 
                     <div>
-                      <label htmlFor="flag-environment" className="block text-sm font-medium text-foreground">
+                      <label
+                        htmlFor="flag-environment"
+                        className="block text-sm font-medium text-foreground"
+                      >
                         Environment
                       </label>
                       <select
                         id="flag-environment"
                         value={newFlagData.environmentId}
-                        onChange={(e) => setNewFlagData({ ...newFlagData, environmentId: e.target.value })}
+                        onChange={(e) =>
+                          setNewFlagData({
+                            ...newFlagData,
+                            environmentId: e.target.value,
+                          })
+                        }
                         className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                        disabled={isCreating || !newFlagData.projectId || availableEnvironments.length === 0}
+                        disabled={
+                          isCreating ||
+                          !newFlagData.projectId ||
+                          availableEnvironments.length === 0
+                        }
                       >
                         <option value="">
-                          {availableEnvironments.length === 0 ? 'Default environment' : 'Select environment'}
+                          {availableEnvironments.length === 0
+                            ? 'Default environment'
+                            : 'Select environment'}
                         </option>
                         {availableEnvironments.map((env) => (
                           <option key={env.id} value={env.id}>
@@ -452,7 +508,10 @@ export default function FeatureFlags() {
                     </div>
 
                     <div>
-                      <label htmlFor="flag-name" className="block text-sm font-medium text-foreground">
+                      <label
+                        htmlFor="flag-name"
+                        className="block text-sm font-medium text-foreground"
+                      >
                         Flag Name <span className="text-destructive">*</span>
                       </label>
                       <input
@@ -468,38 +527,54 @@ export default function FeatureFlags() {
                     </div>
 
                     <div>
-                      <label htmlFor="flag-key" className="block text-sm font-medium text-foreground">
+                      <label
+                        htmlFor="flag-key"
+                        className="block text-sm font-medium text-foreground"
+                      >
                         Key <span className="text-destructive">*</span>
                       </label>
                       <input
                         type="text"
                         id="flag-key"
                         value={newFlagData.key}
-                        onChange={(e) => setNewFlagData({ ...newFlagData, key: e.target.value })}
+                        onChange={(e) =>
+                          setNewFlagData({
+                            ...newFlagData,
+                            key: e.target.value,
+                          })
+                        }
                         className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                         placeholder="dark_mode"
                         required
                         disabled={isCreating}
                       />
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Used in code to reference this flag. Auto-generated from name.
+                        Used in code to reference this flag. Auto-generated from
+                        name.
                       </p>
                     </div>
 
                     <div>
-                      <label htmlFor="flag-type" className="block text-sm font-medium text-foreground">
+                      <label
+                        htmlFor="flag-type"
+                        className="block text-sm font-medium text-foreground"
+                      >
                         Type
                       </label>
                       <select
                         id="flag-type"
                         value={newFlagData.type}
                         onChange={(e) => {
-                          const newType = e.target.value as FeatureFlag['type'];
-                          let defaultValue = 'false';
-                          if (newType === 'STRING') defaultValue = '';
-                          else if (newType === 'NUMBER') defaultValue = '0';
-                          else if (newType === 'JSON') defaultValue = '{}';
-                          setNewFlagData({ ...newFlagData, type: newType, defaultValue });
+                          const newType = e.target.value as FeatureFlag['type']
+                          let defaultValue = 'false'
+                          if (newType === 'STRING') defaultValue = ''
+                          else if (newType === 'NUMBER') defaultValue = '0'
+                          else if (newType === 'JSON') defaultValue = '{}'
+                          setNewFlagData({
+                            ...newFlagData,
+                            type: newType,
+                            defaultValue,
+                          })
                         }}
                         className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                         disabled={isCreating}
@@ -512,14 +587,22 @@ export default function FeatureFlags() {
                     </div>
 
                     <div>
-                      <label htmlFor="flag-default" className="block text-sm font-medium text-foreground">
+                      <label
+                        htmlFor="flag-default"
+                        className="block text-sm font-medium text-foreground"
+                      >
                         Default Value
                       </label>
                       {newFlagData.type === 'BOOLEAN' ? (
                         <select
                           id="flag-default"
                           value={newFlagData.defaultValue}
-                          onChange={(e) => setNewFlagData({ ...newFlagData, defaultValue: e.target.value })}
+                          onChange={(e) =>
+                            setNewFlagData({
+                              ...newFlagData,
+                              defaultValue: e.target.value,
+                            })
+                          }
                           className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                           disabled={isCreating}
                         >
@@ -531,22 +614,39 @@ export default function FeatureFlags() {
                           type="text"
                           id="flag-default"
                           value={newFlagData.defaultValue}
-                          onChange={(e) => setNewFlagData({ ...newFlagData, defaultValue: e.target.value })}
+                          onChange={(e) =>
+                            setNewFlagData({
+                              ...newFlagData,
+                              defaultValue: e.target.value,
+                            })
+                          }
                           className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                          placeholder={newFlagData.type === 'JSON' ? '{"enabled": true}' : 'Enter default value'}
+                          placeholder={
+                            newFlagData.type === 'JSON'
+                              ? '{"enabled": true}'
+                              : 'Enter default value'
+                          }
                           disabled={isCreating}
                         />
                       )}
                     </div>
 
                     <div>
-                      <label htmlFor="flag-description" className="block text-sm font-medium text-foreground">
+                      <label
+                        htmlFor="flag-description"
+                        className="block text-sm font-medium text-foreground"
+                      >
                         Description
                       </label>
                       <textarea
                         id="flag-description"
                         value={newFlagData.description}
-                        onChange={(e) => setNewFlagData({ ...newFlagData, description: e.target.value })}
+                        onChange={(e) =>
+                          setNewFlagData({
+                            ...newFlagData,
+                            description: e.target.value,
+                          })
+                        }
                         rows={2}
                         className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                         placeholder="Brief description of this feature flag"
@@ -565,7 +665,12 @@ export default function FeatureFlags() {
                       </button>
                       <button
                         type="submit"
-                        disabled={isCreating || !newFlagData.name || !newFlagData.key || !newFlagData.projectId}
+                        disabled={
+                          isCreating ||
+                          !newFlagData.name ||
+                          !newFlagData.key ||
+                          !newFlagData.projectId
+                        }
                         className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isCreating ? 'Creating...' : 'Create Feature Flag'}
@@ -677,10 +782,17 @@ export default function FeatureFlags() {
                 <div className="ml-4 flex items-center space-x-4">
                   <Switch
                     checked={flag.isEnabled}
-                    onChange={() => toggleFlag(flag.id, flag.isEnabled, flag.environmentId)}
-                    disabled={togglingFlags.has(flag.id) || selectedEnvironment === 'all'}
+                    onChange={() =>
+                      toggleFlag(flag.id, flag.isEnabled, flag.environmentId)
+                    }
+                    disabled={
+                      togglingFlags.has(flag.id) ||
+                      selectedEnvironment === 'all'
+                    }
                     className={clsx(
-                      flag.isEnabled ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700',
+                      flag.isEnabled
+                        ? 'bg-primary'
+                        : 'bg-gray-200 dark:bg-gray-700',
                       'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
                     )}
                   >
@@ -751,7 +863,9 @@ export default function FeatureFlags() {
                                 >
                                   <span className="flex items-center">
                                     <TrashIcon className="mr-2 h-4 w-4" />
-                                    {isDeleting === flag.id ? 'Deleting...' : 'Delete'}
+                                    {isDeleting === flag.id
+                                      ? 'Deleting...'
+                                      : 'Delete'}
                                   </span>
                                 </button>
                               )}
@@ -768,5 +882,5 @@ export default function FeatureFlags() {
         </div>
       )}
     </div>
-  );
+  )
 }

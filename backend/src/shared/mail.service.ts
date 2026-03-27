@@ -1,15 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { MailerService } from '@nestjs-modules/mailer';
+import { Injectable, Logger } from '@nestjs/common'
+import type { MailerService } from '@nestjs-modules/mailer'
 
 @Injectable()
 export class MailService {
-  private readonly logger = new Logger(MailService.name);
+  private readonly logger = new Logger(MailService.name)
 
   constructor(private readonly mailerService: MailerService) {}
 
   async sendVerificationEmail(email: string, token: string, baseUrl: string) {
-    const verificationUrl = `${baseUrl}/verify-email/${token}`;
-    
+    const verificationUrl = `${baseUrl}/verify-email/${token}`
+
     try {
       await this.mailerService.sendMail({
         to: email,
@@ -32,19 +32,24 @@ export class MailService {
           </div>
         `,
         text: `Welcome to Togglely! Please verify your email by visiting: ${verificationUrl}`,
-      });
-      
-      this.logger.log(`Verification email sent to ${email}`);
-      return true;
+      })
+
+      this.logger.log(`Verification email sent to ${email}`)
+      return true
     } catch (error) {
-      this.logger.error(`Failed to send verification email to ${email}:`, error);
-      return false;
+      this.logger.error(`Failed to send verification email to ${email}:`, error)
+      return false
     }
   }
 
-  async sendInviteEmail(email: string, token: string, organizationName: string, baseUrl: string) {
-    const inviteUrl = `${baseUrl}/invite/${token}`;
-    
+  async sendInviteEmail(
+    email: string,
+    token: string,
+    organizationName: string,
+    baseUrl: string
+  ) {
+    const inviteUrl = `${baseUrl}/invite/${token}`
+
     try {
       await this.mailerService.sendMail({
         to: email,
@@ -68,19 +73,19 @@ export class MailService {
           </div>
         `,
         text: `You've been invited to join ${organizationName} on Togglely. Visit: ${inviteUrl}`,
-      });
-      
-      this.logger.log(`Invite email sent to ${email}`);
-      return true;
+      })
+
+      this.logger.log(`Invite email sent to ${email}`)
+      return true
     } catch (error) {
-      this.logger.error(`Failed to send invite email to ${email}:`, error);
-      return false;
+      this.logger.error(`Failed to send invite email to ${email}:`, error)
+      return false
     }
   }
 
   async sendPasswordResetEmail(email: string, token: string, baseUrl: string) {
-    const resetUrl = `${baseUrl}/reset-password?token=${token}`;
-    
+    const resetUrl = `${baseUrl}/reset-password?token=${token}`
+
     try {
       await this.mailerService.sendMail({
         to: email,
@@ -104,13 +109,16 @@ export class MailService {
           </div>
         `,
         text: `Reset your Togglely password: ${resetUrl}`,
-      });
-      
-      this.logger.log(`Password reset email sent to ${email}`);
-      return true;
+      })
+
+      this.logger.log(`Password reset email sent to ${email}`)
+      return true
     } catch (error) {
-      this.logger.error(`Failed to send password reset email to ${email}:`, error);
-      return false;
+      this.logger.error(
+        `Failed to send password reset email to ${email}:`,
+        error
+      )
+      return false
     }
   }
 }

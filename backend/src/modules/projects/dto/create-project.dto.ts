@@ -1,22 +1,22 @@
-import { IsString, IsOptional, IsIn, IsArray } from 'class-validator';
+import { IsArray, IsIn, IsOptional, IsString } from 'class-validator'
 
 export class CreateProjectDto {
   @IsString()
-  name: string;
+  name: string
 
   @IsString()
-  key: string;
+  key: string
 
   @IsString()
   @IsOptional()
-  description?: string;
+  description?: string
 
   @IsIn(['SINGLE', 'MULTI'])
   @IsOptional()
-  type?: 'SINGLE' | 'MULTI' = 'SINGLE';
+  type?: 'SINGLE' | 'MULTI' = 'SINGLE'
 
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
-  allowedOrigins?: string[] = [];
+  allowedOrigins?: string[] = []
 }

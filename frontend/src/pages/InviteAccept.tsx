@@ -1,124 +1,136 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, CheckCircle, AlertCircle, LogIn } from 'lucide-react';
-import api from '@/lib/axios';
+import { AlertCircle, CheckCircle, Loader2, LogIn } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import api from '@/lib/axios'
 
 interface InviteInfo {
-  email: string;
-  organizationName: string;
-  role: string;
-  existingUser: boolean;
+  email: string
+  organizationName: string
+  role: string
+  existingUser: boolean
 }
 
 export default function InviteAccept() {
-  const { token: inviteToken } = useParams<{ token: string }>();
-  const navigate = useNavigate();
-  
-  const [inviteInfo, setInviteInfo] = useState<InviteInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
+  const { token: inviteToken } = useParams<{ token: string }>()
+  const navigate = useNavigate()
+
+  const [inviteInfo, setInviteInfo] = useState<InviteInfo | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
   // For new users
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
-  
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [success, setSuccess] = useState(false)
+
   // Check if user is logged in
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
     // Check if user is logged in
-    const authToken = localStorage.getItem('token');
-    setIsLoggedIn(!!authToken);
+    const authToken = localStorage.getItem('token')
+    setIsLoggedIn(!!authToken)
 
     const fetchInviteInfo = async () => {
       if (!inviteToken) {
-        setError('Invalid invite link');
-        setIsLoading(false);
-        return;
+        setError('Invalid invite link')
+        setIsLoading(false)
+        return
       }
       try {
-        const response = await api.get(`/auth/invite/${inviteToken}`);
-        setInviteInfo(response.data);
+        const response = await api.get(`/auth/invite/${inviteToken}`)
+        setInviteInfo(response.data)
       } catch (err: any) {
-        setError(err.response?.data?.message || 'Invalid or expired invite link');
+        setError(
+          err.response?.data?.message || 'Invalid or expired invite link'
+        )
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchInviteInfo();
-  }, [inviteToken]);
+    fetchInviteInfo()
+  }, [inviteToken])
 
   const handleAcceptAsExisting = async () => {
-    setIsSubmitting(true);
-    setError(null);
+    setIsSubmitting(true)
+    setError(null)
 
     try {
-      await api.post(`/auth/invite/${inviteToken}/accept`);
-      setSuccess(true);
-      
+      await api.post(`/auth/invite/${inviteToken}/accept`)
+      setSuccess(true)
+
       // Redirect to dashboard after 2 seconds
       setTimeout(() => {
-        navigate('/');
-      }, 2000);
+        navigate('/')
+      }, 2000)
     } catch (err: any) {
-      setError(err.response?.data?.message || err.response?.data?.error || 'Failed to accept invite');
+      setError(
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          'Failed to accept invite'
+      )
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   const handleSubmitNewUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+    e.preventDefault()
+
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-    
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
+      setError('Passwords do not match')
+      return
     }
 
-    setIsSubmitting(true);
-    setError(null);
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters')
+      return
+    }
+
+    setIsSubmitting(true)
+    setError(null)
 
     try {
       await api.post(`/auth/invite/${inviteToken}/register`, {
         firstName,
         lastName,
         password,
-      });
-      setSuccess(true);
-      
+      })
+      setSuccess(true)
+
       // Redirect to login after 3 seconds
       setTimeout(() => {
-        navigate('/login');
-      }, 3000);
+        navigate('/login')
+      }, 3000)
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create account');
+      setError(err.response?.data?.message || 'Failed to create account')
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
-    );
+    )
   }
 
   if (error && !inviteInfo) {
@@ -138,7 +150,7 @@ export default function InviteAccept() {
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   if (success) {
@@ -151,17 +163,18 @@ export default function InviteAccept() {
               {inviteInfo?.existingUser ? 'Welcome!' : 'Account Created!'}
             </h2>
             <p className="text-muted-foreground mb-4">
-              You have successfully joined <strong>{inviteInfo?.organizationName}</strong>.
+              You have successfully joined{' '}
+              <strong>{inviteInfo?.organizationName}</strong>.
             </p>
             <p className="text-sm text-muted-foreground">
-              {inviteInfo?.existingUser 
-                ? 'Redirecting to dashboard...' 
+              {inviteInfo?.existingUser
+                ? 'Redirecting to dashboard...'
                 : 'Redirecting to login in a few seconds...'}
             </p>
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   // Existing user view
@@ -170,9 +183,12 @@ export default function InviteAccept() {
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">Join Organization</CardTitle>
+            <CardTitle className="text-2xl text-center">
+              Join Organization
+            </CardTitle>
             <CardDescription className="text-center">
-              You've been invited to join <strong>{inviteInfo?.organizationName}</strong> as a{' '}
+              You've been invited to join{' '}
+              <strong>{inviteInfo?.organizationName}</strong> as a{' '}
               <strong>{inviteInfo?.role}</strong>
             </CardDescription>
           </CardHeader>
@@ -183,7 +199,7 @@ export default function InviteAccept() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
+
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -197,9 +213,9 @@ export default function InviteAccept() {
               </div>
 
               {isLoggedIn ? (
-                <Button 
-                  onClick={handleAcceptAsExisting} 
-                  className="w-full" 
+                <Button
+                  onClick={handleAcceptAsExisting}
+                  className="w-full"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
@@ -216,11 +232,16 @@ export default function InviteAccept() {
                   <Alert className="mb-4">
                     <LogIn className="h-4 w-4" />
                     <AlertDescription>
-                      You already have an account. Please sign in to accept this invite.
+                      You already have an account. Please sign in to accept this
+                      invite.
                     </AlertDescription>
                   </Alert>
-                  <Button 
-                    onClick={() => navigate('/login', { state: { redirectTo: `/invite/${inviteToken}` } })} 
+                  <Button
+                    onClick={() =>
+                      navigate('/login', {
+                        state: { redirectTo: `/invite/${inviteToken}` },
+                      })
+                    }
                     className="w-full"
                   >
                     Sign In to Accept
@@ -231,7 +252,7 @@ export default function InviteAccept() {
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   // New user registration view
@@ -239,9 +260,12 @@ export default function InviteAccept() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">Join Organization</CardTitle>
+          <CardTitle className="text-2xl text-center">
+            Join Organization
+          </CardTitle>
           <CardDescription className="text-center">
-            You've been invited to join <strong>{inviteInfo?.organizationName}</strong> as a{' '}
+            You've been invited to join{' '}
+            <strong>{inviteInfo?.organizationName}</strong> as a{' '}
             <strong>{inviteInfo?.role}</strong>
           </CardDescription>
         </CardHeader>
@@ -252,7 +276,7 @@ export default function InviteAccept() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          
+
           <form onSubmit={handleSubmitNewUser} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -333,5 +357,5 @@ export default function InviteAccept() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

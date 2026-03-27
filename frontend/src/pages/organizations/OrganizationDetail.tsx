@@ -1,24 +1,26 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useOrganizationStore } from '@/store/organizationStore';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { 
-  Building2, 
-  Plus, 
-  ArrowLeft, 
-  Search,
+import {
+  ArrowLeft,
+  Building2,
   FolderKanban,
-  Settings,
+  Globe,
   Loader2,
   MoreVertical,
+  Plus,
+  Search,
+  Settings,
   Users,
-  Globe
-} from 'lucide-react';
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -27,120 +29,135 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from '@/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { useOrganizationStore } from '@/store/organizationStore'
 
 export default function OrganizationDetail() {
-  const { t } = useTranslation();
-  const { orgId } = useParams<{ orgId: string }>();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { 
-    currentOrganization, 
+  const { t } = useTranslation()
+  const { orgId } = useParams<{ orgId: string }>()
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const {
+    currentOrganization,
     fetchOrganizationById,
     createProject,
     deleteProject,
-    isLoading 
-  } = useOrganizationStore();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showCreateProjectDialog, setShowCreateProjectDialog] = useState(false);
-  const [newProjectName, setNewProjectName] = useState('');
-  const [newProjectKey, setNewProjectKey] = useState('');
-  const [newProjectType, setNewProjectType] = useState<'SINGLE' | 'MULTI'>('SINGLE');
-  const [isCreatingProject, setIsCreatingProject] = useState(false);
-  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
-  const [isDeletingProject, setIsDeletingProject] = useState(false);
+    isLoading,
+  } = useOrganizationStore()
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showCreateProjectDialog, setShowCreateProjectDialog] = useState(false)
+  const [newProjectName, setNewProjectName] = useState('')
+  const [newProjectKey, setNewProjectKey] = useState('')
+  const [newProjectType, setNewProjectType] = useState<'SINGLE' | 'MULTI'>(
+    'SINGLE'
+  )
+  const [isCreatingProject, setIsCreatingProject] = useState(false)
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null)
+  const [isDeletingProject, setIsDeletingProject] = useState(false)
 
   useEffect(() => {
     if (orgId) {
-      fetchOrganizationById(orgId);
+      fetchOrganizationById(orgId)
     }
     // Check if we should open create project dialog (from dashboard quick action)
     if (searchParams.get('action') === 'create-project') {
-      setShowCreateProjectDialog(true);
+      setShowCreateProjectDialog(true)
     }
-  }, [orgId, fetchOrganizationById, searchParams]);
+  }, [orgId, fetchOrganizationById, searchParams])
 
   const generateKey = (name: string) => {
     return name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-  };
+      .replace(/^-+|-+$/g, '')
+  }
 
   const handleNameChange = (value: string) => {
-    setNewProjectName(value);
+    setNewProjectName(value)
     if (!newProjectKey || newProjectKey === generateKey(newProjectName)) {
-      setNewProjectKey(generateKey(value));
+      setNewProjectKey(generateKey(value))
     }
-  };
+  }
 
   const handleCreateProject = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!orgId) return;
-    setIsCreatingProject(true);
+    e.preventDefault()
+    if (!orgId) return
+    setIsCreatingProject(true)
     try {
-      const newProject = await createProject(orgId, { name: newProjectName, key: newProjectKey, type: newProjectType });
-      setShowCreateProjectDialog(false);
-      setNewProjectName('');
-      setNewProjectKey('');
-      setNewProjectType('SINGLE');
-      
+      const newProject = await createProject(orgId, {
+        name: newProjectName,
+        key: newProjectKey,
+        type: newProjectType,
+      })
+      setShowCreateProjectDialog(false)
+      setNewProjectName('')
+      setNewProjectKey('')
+      setNewProjectType('SINGLE')
+
       // Refresh organization data to get complete project list with all fields
-      await fetchOrganizationById(orgId);
-      
+      await fetchOrganizationById(orgId)
+
       // Navigate to the new project (handle both wrapped and unwrapped responses)
-      const projectId = (newProject as any).project?.id || newProject.id;
+      const projectId = (newProject as any).project?.id || newProject.id
       if (projectId) {
-        navigate(`/projects/${projectId}?orgId=${orgId}`);
+        navigate(`/projects/${projectId}?orgId=${orgId}`)
       }
     } catch (error) {
-      console.error('Failed to create project:', error);
+      console.error('Failed to create project:', error)
     } finally {
-      setIsCreatingProject(false);
+      setIsCreatingProject(false)
     }
-  };
+  }
 
   const handleDeleteProject = async () => {
-    if (!projectToDelete) return;
-    setIsDeletingProject(true);
+    if (!projectToDelete) return
+    setIsDeletingProject(true)
     try {
-      await deleteProject(projectToDelete);
-      setProjectToDelete(null);
+      await deleteProject(projectToDelete)
+      setProjectToDelete(null)
     } catch (error) {
-      console.error('Failed to delete project:', error);
+      console.error('Failed to delete project:', error)
     } finally {
-      setIsDeletingProject(false);
+      setIsDeletingProject(false)
     }
-  };
+  }
 
-  const projects = currentOrganization?.projects || [];
-  const filteredProjects = projects.filter(p => 
+  const projects = currentOrganization?.projects || []
+  const filteredProjects = projects.filter((p) =>
     (p.name || '').toLowerCase().includes((searchQuery || '').toLowerCase())
-  );
+  )
 
   if (isLoading || !currentOrganization) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
-    );
+    )
   }
 
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link to="/organizations" className="hover:text-foreground transition-colors">
+        <Link
+          to="/organizations"
+          className="hover:text-foreground transition-colors"
+        >
           {t('organization-detail.breadcrumb.organizations')}
         </Link>
         <span>/</span>
-        <span className="text-foreground font-medium">{currentOrganization.name}</span>
+        <span className="text-foreground font-medium">
+          {currentOrganization.name}
+        </span>
       </div>
 
       {/* Header */}
@@ -156,8 +173,12 @@ export default function OrganizationDetail() {
               {currentOrganization.name.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">{currentOrganization.name}</h1>
-              <p className="text-muted-foreground text-sm">{currentOrganization.slug}</p>
+              <h1 className="text-2xl font-bold tracking-tight">
+                {currentOrganization.name}
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                {currentOrganization.slug}
+              </p>
             </div>
           </div>
         </div>
@@ -168,7 +189,10 @@ export default function OrganizationDetail() {
               {t('organizations.menu.settings')}
             </Link>
           </Button>
-          <Dialog open={showCreateProjectDialog} onOpenChange={setShowCreateProjectDialog}>
+          <Dialog
+            open={showCreateProjectDialog}
+            onOpenChange={setShowCreateProjectDialog}
+          >
             <DialogTrigger asChild>
               <Button>
                 <Plus className="w-4 h-4 mr-2" />
@@ -202,7 +226,13 @@ export default function OrganizationDetail() {
                         id="projectKey"
                         placeholder="my-project"
                         value={newProjectKey}
-                        onChange={(e) => setNewProjectKey(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                        onChange={(e) =>
+                          setNewProjectKey(
+                            e.target.value
+                              .toLowerCase()
+                              .replace(/[^a-z0-9-]/g, '')
+                          )
+                        }
                         required
                         className="pl-10 font-mono"
                       />
@@ -213,23 +243,41 @@ export default function OrganizationDetail() {
                     <select
                       id="projectType"
                       value={newProjectType}
-                      onChange={(e) => setNewProjectType(e.target.value as 'SINGLE' | 'MULTI')}
+                      onChange={(e) =>
+                        setNewProjectType(e.target.value as 'SINGLE' | 'MULTI')
+                      }
                       className="w-full rounded-md border border-input bg-background px-3 py-2"
                     >
-                      <option value="SINGLE">Single - One brand per project</option>
-                      <option value="MULTI">Multi-Tenant - Multiple brands per project</option>
+                      <option value="SINGLE">
+                        Single - One brand per project
+                      </option>
+                      <option value="MULTI">
+                        Multi-Tenant - Multiple brands per project
+                      </option>
                     </select>
                     <p className="text-xs text-muted-foreground">
-                      Multi-tenant projects allow you to manage feature flags for multiple brands independently.
+                      Multi-tenant projects allow you to manage feature flags
+                      for multiple brands independently.
                     </p>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setShowCreateProjectDialog(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowCreateProjectDialog(false)}
+                  >
                     {t('common.cancel')}
                   </Button>
-                  <Button type="submit" disabled={isCreatingProject || !newProjectName || !newProjectKey}>
-                    {isCreatingProject ? t('common.loading') : t('common.create')}
+                  <Button
+                    type="submit"
+                    disabled={
+                      isCreatingProject || !newProjectName || !newProjectKey
+                    }
+                  >
+                    {isCreatingProject
+                      ? t('common.loading')
+                      : t('common.create')}
                   </Button>
                 </DialogFooter>
               </form>
@@ -244,7 +292,9 @@ export default function OrganizationDetail() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('organization-detail.stats.projects')}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t('organization-detail.stats.projects')}
+            </CardTitle>
             <FolderKanban className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -254,17 +304,23 @@ export default function OrganizationDetail() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('organization-detail.stats.members')}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t('organization-detail.stats.members')}
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{(currentOrganization as any).members?.length ?? 1}</div>
+            <div className="text-2xl font-bold">
+              {(currentOrganization as any).members?.length ?? 1}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('organization-detail.stats.created')}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t('organization-detail.stats.created')}
+            </CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -278,7 +334,9 @@ export default function OrganizationDetail() {
       {/* Projects Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold tracking-tight">{t('organization-detail.projects.title')}</h2>
+          <h2 className="text-xl font-semibold tracking-tight">
+            {t('organization-detail.projects.title')}
+          </h2>
           <div className="relative max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -296,11 +354,16 @@ export default function OrganizationDetail() {
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
                 <FolderKanban className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">{t('organization-detail.projects.no-projects')}</h3>
+              <h3 className="text-xl font-semibold mb-2">
+                {t('organization-detail.projects.no-projects')}
+              </h3>
               <p className="text-sm text-muted-foreground text-center max-w-sm mb-6">
                 {t('organization-detail.projects.create-first')}
               </p>
-              <Button size="lg" onClick={() => setShowCreateProjectDialog(true)}>
+              <Button
+                size="lg"
+                onClick={() => setShowCreateProjectDialog(true)}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 {t('organization-detail.projects.create-cta')}
               </Button>
@@ -309,13 +372,18 @@ export default function OrganizationDetail() {
         ) : filteredProjects.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground">{t('organization-detail.projects.no-results')}</p>
+              <p className="text-muted-foreground">
+                {t('organization-detail.projects.no-results')}
+              </p>
             </CardContent>
           </Card>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredProjects.map((project) => (
-              <Card key={project.id} className="group hover:shadow-lg transition-all">
+              <Card
+                key={project.id}
+                className="group hover:shadow-lg transition-all"
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
@@ -326,7 +394,9 @@ export default function OrganizationDetail() {
                         <CardTitle className="text-base truncate group-hover:text-primary transition-colors">
                           {project.name}
                         </CardTitle>
-                        <CardDescription className="text-xs">{project.key}</CardDescription>
+                        <CardDescription className="text-xs">
+                          {project.key}
+                        </CardDescription>
                       </div>
                     </div>
                     <DropdownMenu>
@@ -341,7 +411,7 @@ export default function OrganizationDetail() {
                             {t('organizations.card.view')}
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => setProjectToDelete(project.id)}
                         >
@@ -354,11 +424,15 @@ export default function OrganizationDetail() {
                 <CardContent className="pt-0">
                   <div className="flex items-center gap-2 mb-4">
                     <span className="text-xs text-muted-foreground">
-                      {t('organization-detail.projects.environments-count', { count: (project as any).environmentCount ?? 0 })}
+                      {t('organization-detail.projects.environments-count', {
+                        count: (project as any).environmentCount ?? 0,
+                      })}
                     </span>
                     <span className="text-xs text-muted-foreground">•</span>
                     <span className="text-xs text-muted-foreground">
-                      {t('organization-detail.projects.flags-count', { count: (project as any).flagCount ?? 0 })}
+                      {t('organization-detail.projects.flags-count', {
+                        count: (project as any).flagCount ?? 0,
+                      })}
                     </span>
                   </div>
                   <Button variant="secondary" className="w-full" asChild>
@@ -374,24 +448,37 @@ export default function OrganizationDetail() {
       </div>
 
       {/* Delete Project Dialog */}
-      <Dialog open={!!projectToDelete} onOpenChange={() => setProjectToDelete(null)}>
+      <Dialog
+        open={!!projectToDelete}
+        onOpenChange={() => setProjectToDelete(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Project</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this project? This will permanently delete the project and all associated feature flags. This action cannot be undone.
+              Are you sure you want to delete this project? This will
+              permanently delete the project and all associated feature flags.
+              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setProjectToDelete(null)} disabled={isDeletingProject}>
+            <Button
+              variant="outline"
+              onClick={() => setProjectToDelete(null)}
+              disabled={isDeletingProject}
+            >
               {t('common.cancel')}
             </Button>
-            <Button variant="destructive" onClick={handleDeleteProject} disabled={isDeletingProject}>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteProject}
+              disabled={isDeletingProject}
+            >
               {isDeletingProject ? t('common.loading') : t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-  );
+  )
 }

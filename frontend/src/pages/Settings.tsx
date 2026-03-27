@@ -1,148 +1,159 @@
-import { useEffect, useState } from 'react';
-
 import {
-  UserCircleIcon,
-  KeyIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
-} from '@heroicons/react/24/outline';
-import api from '@/lib/axios';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+  KeyIcon,
+  UserCircleIcon,
+} from '@heroicons/react/24/outline'
+import { useEffect, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import api from '@/lib/axios'
 
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore'
 
 interface UserProfile {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
+  id: string
+  email: string
+  firstName: string
+  lastName: string
+  name: string
+  createdAt: string
+  updatedAt: string
 }
 
 export default function Settings() {
-  const { updateUser } = useAuthStore();
-  const [, setProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  
+  const { updateUser } = useAuthStore()
+  const [, setProfile] = useState<UserProfile | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [message, setMessage] = useState<{
+    type: 'success' | 'error'
+    text: string
+  } | null>(null)
+
   // Form states
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [email, setEmail] = useState('')
+
   // Password change states
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await api.get('/auth/me');
-        const data = response.data.user || response.data;
+        const response = await api.get('/auth/me')
+        const data = response.data.user || response.data
         setProfile({
           ...data,
           name: `${data.firstName} ${data.lastName}`.trim(),
-        });
-        setFirstName(data.firstName || '');
-        setLastName(data.lastName || '');
-        setEmail(data.email || '');
+        })
+        setFirstName(data.firstName || '')
+        setLastName(data.lastName || '')
+        setEmail(data.email || '')
       } catch (error) {
-        console.error('Failed to fetch profile:', error);
-        setMessage({ type: 'error', text: 'Failed to load profile' });
+        console.error('Failed to fetch profile:', error)
+        setMessage({ type: 'error', text: 'Failed to load profile' })
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchProfile();
-  }, []);
+    fetchProfile()
+  }, [])
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-    setMessage(null);
+    e.preventDefault()
+    setIsSaving(true)
+    setMessage(null)
 
     try {
       const response = await api.patch('/auth/profile', {
         firstName,
         lastName,
-      });
-      
-      const updatedUser = response.data.user || response.data;
-      
+      })
+
+      const updatedUser = response.data.user || response.data
+
       setProfile({
         ...updatedUser,
         name: `${updatedUser.firstName} ${updatedUser.lastName}`.trim(),
-      });
-      
+      })
+
       // Update auth store
       updateUser({
         name: `${updatedUser.firstName} ${updatedUser.lastName}`.trim(),
-      });
-      
-      setMessage({ type: 'success', text: 'Profile updated successfully' });
+      })
+
+      setMessage({ type: 'success', text: 'Profile updated successfully' })
     } catch (error: any) {
-      console.error('Failed to update profile:', error);
-      setMessage({ 
-        type: 'error', 
-        text: error.response?.data?.error || 'Failed to update profile' 
-      });
+      console.error('Failed to update profile:', error)
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.error || 'Failed to update profile',
+      })
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
-  };
+  }
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMessage(null);
+    e.preventDefault()
+    setMessage(null)
 
     if (newPassword !== confirmPassword) {
-      setMessage({ type: 'error', text: 'Passwords do not match' });
-      return;
+      setMessage({ type: 'error', text: 'Passwords do not match' })
+      return
     }
 
     if (newPassword.length < 8) {
-      setMessage({ type: 'error', text: 'Password must be at least 8 characters' });
-      return;
+      setMessage({
+        type: 'error',
+        text: 'Password must be at least 8 characters',
+      })
+      return
     }
 
-    setIsChangingPassword(true);
+    setIsChangingPassword(true)
 
     try {
       await api.post('/auth/change-password', {
         currentPassword,
         newPassword,
-      });
-      
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setMessage({ type: 'success', text: 'Password changed successfully' });
+      })
+
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+      setMessage({ type: 'success', text: 'Password changed successfully' })
     } catch (error: any) {
-      console.error('Failed to change password:', error);
-      setMessage({ 
-        type: 'error', 
-        text: error.response?.data?.error || 'Failed to change password' 
-      });
+      console.error('Failed to change password:', error)
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.error || 'Failed to change password',
+      })
     } finally {
-      setIsChangingPassword(false);
+      setIsChangingPassword(false)
     }
-  };
+  }
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
-    );
+    )
   }
 
   return (
@@ -156,7 +167,9 @@ export default function Settings() {
       </div>
 
       {message && (
-        <div className={`p-4 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-destructive/10 text-destructive border border-destructive/20'}`}>
+        <div
+          className={`p-4 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-destructive/10 text-destructive border border-destructive/20'}`}
+        >
           <div className="flex items-center gap-2">
             {message.type === 'success' ? (
               <CheckCircleIcon className="h-5 w-5" />
@@ -177,7 +190,9 @@ export default function Settings() {
             </div>
             <div>
               <CardTitle>Profile Information</CardTitle>
-              <CardDescription>Update your personal information</CardDescription>
+              <CardDescription>
+                Update your personal information
+              </CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -213,7 +228,8 @@ export default function Settings() {
                 className="bg-muted"
               />
               <p className="text-xs text-muted-foreground">
-                Email cannot be changed. Contact support if you need to update it.
+                Email cannot be changed. Contact support if you need to update
+                it.
               </p>
             </div>
             <div className="flex justify-end">
@@ -234,7 +250,9 @@ export default function Settings() {
             </div>
             <div>
               <CardTitle>Change Password</CardTitle>
-              <CardDescription>Update your password to keep your account secure</CardDescription>
+              <CardDescription>
+                Update your password to keep your account secure
+              </CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -283,5 +301,5 @@ export default function Settings() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

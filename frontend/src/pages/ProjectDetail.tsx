@@ -1,19 +1,18 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import {
-  FolderIcon,
   ArrowLeftIcon,
-  PlusIcon,
-  FlagIcon,
   Cog6ToothIcon,
+  FlagIcon,
+  FolderIcon,
+  PlusIcon,
   TrashIcon,
-} from '@heroicons/react/24/outline';
-import api from '@/lib/axios';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+} from '@heroicons/react/24/outline'
+import clsx from 'clsx'
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -22,157 +21,177 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import clsx from 'clsx';
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import api from '@/lib/axios'
 
 // Helper to validate MongoDB ObjectID format (24-char hex)
 const isValidObjectId = (id: string | undefined | null): id is string => {
-  if (!id || typeof id !== 'string') return false;
-  if (id === 'undefined' || id === 'null' || id === 'new') return false;
-  return /^[0-9a-fA-F]{24}$/.test(id);
-};
+  if (!id || typeof id !== 'string') return false
+  if (id === 'undefined' || id === 'null' || id === 'new') return false
+  return /^[0-9a-fA-F]{24}$/.test(id)
+}
 
 interface Project {
-  id: string;
-  name: string;
-  key: string;
-  description: string | null;
-  type: 'SINGLE' | 'MULTI';
-  organizationId: string;
-  organizationName: string;
-  createdAt: string;
-  environments?: Environment[];
+  id: string
+  name: string
+  key: string
+  description: string | null
+  type: 'SINGLE' | 'MULTI'
+  organizationId: string
+  organizationName: string
+  createdAt: string
+  environments?: Environment[]
 }
 
 interface Environment {
-  id: string;
-  name: string;
-  key: string;
+  id: string
+  name: string
+  key: string
 }
 
 interface BrandFlagValue {
-  brandId: string;
-  brandName: string;
-  enabled: boolean;
-  defaultValue: string;
-  isCustom: boolean;
+  brandId: string
+  brandName: string
+  enabled: boolean
+  defaultValue: string
+  isCustom: boolean
 }
 
 interface FlagEnvironment {
-  id: string;
-  environmentId: string;
-  environmentName: string;
-  enabled: boolean;
-  defaultValue: string;
-  brandValues?: BrandFlagValue[];  // Brand values per environment
+  id: string
+  environmentId: string
+  environmentName: string
+  enabled: boolean
+  defaultValue: string
+  brandValues?: BrandFlagValue[] // Brand values per environment
 }
 
 interface FeatureFlag {
-  id: string;
-  name: string;
-  key: string;
-  description: string | null;
-  flagType: 'BOOLEAN' | 'STRING' | 'NUMBER' | 'JSON';
-  environments: FlagEnvironment[];
-  createdAt: string;
-  updatedAt: string;
+  id: string
+  name: string
+  key: string
+  description: string | null
+  flagType: 'BOOLEAN' | 'STRING' | 'NUMBER' | 'JSON'
+  environments: FlagEnvironment[]
+  createdAt: string
+  updatedAt: string
 }
 
 export default function ProjectDetail() {
-  const { t } = useTranslation();
-  const { orgId: orgIdFromParams, projectId } = useParams<{ orgId: string; projectId: string }>();
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const orgId = orgIdFromParams || searchParams.get('orgId') || '';
-  const [project, setProject] = useState<Project | null>(null);
-  const [featureFlags, setFeatureFlags] = useState<FeatureFlag[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showCreateFlagDialog, setShowCreateFlagDialog] = useState(false);
-  const [newFlagName, setNewFlagName] = useState('');
-  const [newFlagKey, setNewFlagKey] = useState('');
-  const [newFlagType, setNewFlagType] = useState<'BOOLEAN' | 'STRING' | 'NUMBER' | 'JSON'>('BOOLEAN');
-  const [isCreatingFlag, setIsCreatingFlag] = useState(false);
-  
+  const { t } = useTranslation()
+  const { orgId: orgIdFromParams, projectId } = useParams<{
+    orgId: string
+    projectId: string
+  }>()
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const orgId = orgIdFromParams || searchParams.get('orgId') || ''
+  const [project, setProject] = useState<Project | null>(null)
+  const [featureFlags, setFeatureFlags] = useState<FeatureFlag[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showCreateFlagDialog, setShowCreateFlagDialog] = useState(false)
+  const [newFlagName, setNewFlagName] = useState('')
+  const [newFlagKey, setNewFlagKey] = useState('')
+  const [newFlagType, setNewFlagType] = useState<
+    'BOOLEAN' | 'STRING' | 'NUMBER' | 'JSON'
+  >('BOOLEAN')
+  const [isCreatingFlag, setIsCreatingFlag] = useState(false)
+
   // Delete flag dialog state
-  const [flagToDelete, setFlagToDelete] = useState<FeatureFlag | null>(null);
-  const [isDeletingFlag, setIsDeletingFlag] = useState(false);
-  
+  const [flagToDelete, setFlagToDelete] = useState<FeatureFlag | null>(null)
+  const [isDeletingFlag, setIsDeletingFlag] = useState(false)
+
   // Edit flag value dialog state
-  const [editingFlagEnv, setEditingFlagEnv] = useState<{flag: FeatureFlag, env: FlagEnvironment} | null>(null);
-  const [editValue, setEditValue] = useState('');
-  const [isSavingValue, setIsSavingValue] = useState(false);
-  
+  const [editingFlagEnv, setEditingFlagEnv] = useState<{
+    flag: FeatureFlag
+    env: FlagEnvironment
+  } | null>(null)
+  const [editValue, setEditValue] = useState('')
+  const [isSavingValue, setIsSavingValue] = useState(false)
+
   // Brand management
-  const [isMultiTenant, setIsMultiTenant] = useState(false);
-  const [togglingBrandFlags, setTogglingBrandFlags] = useState<Set<string>>(new Set());
+  const [isMultiTenant, setIsMultiTenant] = useState(false)
+  const [togglingBrandFlags, setTogglingBrandFlags] = useState<Set<string>>(
+    new Set()
+  )
 
   // Validate IDs early
-  const validOrgId = isValidObjectId(orgId) ? orgId : null;
-  const validProjectId = isValidObjectId(projectId) ? projectId : null;
+  const validOrgId = isValidObjectId(orgId) ? orgId : null
+  const validProjectId = isValidObjectId(projectId) ? projectId : null
 
   const fetchData = async (skipLoading = false) => {
-    if (!validProjectId) return;
-    
+    if (!validProjectId) return
+
     try {
-      if (!skipLoading) setIsLoading(true);
-      
+      if (!skipLoading) setIsLoading(true)
+
       // Use optimized API for multi-tenant projects
-      const projectRes = await api.get(`/projects/${validProjectId}`);
-      const projectData = projectRes.data.project || projectRes.data;
-      setProject(projectData);
-      setIsMultiTenant(projectData.type === 'MULTI');
-      
+      const projectRes = await api.get(`/projects/${validProjectId}`)
+      const projectData = projectRes.data.project || projectRes.data
+      setProject(projectData)
+      setIsMultiTenant(projectData.type === 'MULTI')
+
       if (projectData.type === 'MULTI') {
-        const flagsWithBrandsRes = await api.get(`/projects/${validProjectId}/flags-with-brands`);
-        setFeatureFlags(flagsWithBrandsRes.data.flags || []);
+        const flagsWithBrandsRes = await api.get(
+          `/projects/${validProjectId}/flags-with-brands`
+        )
+        setFeatureFlags(flagsWithBrandsRes.data.flags || [])
       } else {
-        const flagsRes = await api.get(`/feature-flags/project/${validProjectId}`);
-        const flags = flagsRes.data.featureFlags || [];
-        setFeatureFlags(flags);
+        const flagsRes = await api.get(
+          `/feature-flags/project/${validProjectId}`
+        )
+        const flags = flagsRes.data.featureFlags || []
+        setFeatureFlags(flags)
       }
     } catch (error) {
-      console.error('Failed to fetch project data:', error);
+      console.error('Failed to fetch project data:', error)
     } finally {
-      if (!skipLoading) setIsLoading(false);
+      if (!skipLoading) setIsLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
     if (!validOrgId || !validProjectId) {
-      setIsLoading(false);
-      return;
+      setIsLoading(false)
+      return
     }
 
-    fetchData();
-  }, [validOrgId, validProjectId]);
+    fetchData()
+  }, [validOrgId, validProjectId])
 
   const generateKey = (name: string) => {
     return name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-  };
+      .replace(/^-+|-+$/g, '')
+  }
 
   const handleNameChange = (value: string) => {
-    setNewFlagName(value);
+    setNewFlagName(value)
     if (!newFlagKey || newFlagKey === generateKey(newFlagName)) {
-      setNewFlagKey(generateKey(value));
+      setNewFlagKey(generateKey(value))
     }
-  };
+  }
 
   const handleCreateFlag = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validProjectId) return;
-    setIsCreatingFlag(true);
+    e.preventDefault()
+    if (!validProjectId) return
+    setIsCreatingFlag(true)
     try {
       // Determine default value based on type
-      const defaultValue = newFlagType === 'BOOLEAN' ? 'false' :
-                          newFlagType === 'NUMBER' ? '0' :
-                          newFlagType === 'JSON' ? '{}' : '';
-      
+      const defaultValue =
+        newFlagType === 'BOOLEAN'
+          ? 'false'
+          : newFlagType === 'NUMBER'
+            ? '0'
+            : newFlagType === 'JSON'
+              ? '{}'
+              : ''
+
       await api.post(`/feature-flags/project/${validProjectId}`, {
         name: newFlagName,
         key: newFlagKey,
@@ -181,55 +200,64 @@ export default function ProjectDetail() {
           development: { enabled: false, value: defaultValue },
           production: { enabled: false, value: defaultValue },
         },
-      });
-      
-      // Refresh flags to get complete data (including environments, brandValues, etc.)
-      await fetchData();
-      
-      setShowCreateFlagDialog(false);
-      setNewFlagName('');
-      setNewFlagKey('');
-      setNewFlagType('BOOLEAN');
-    } catch (error) {
-      console.error('Failed to create feature flag:', error);
-    } finally {
-      setIsCreatingFlag(false);
-    }
-  };
+      })
 
-  const handleToggleFlag = async (flagId: string, environmentId: string, enabled: boolean, flagType?: string) => {
-    const newEnabled = !enabled;
-    const newValue = flagType === 'BOOLEAN' ? String(newEnabled) : undefined;
-    
+      // Refresh flags to get complete data (including environments, brandValues, etc.)
+      await fetchData()
+
+      setShowCreateFlagDialog(false)
+      setNewFlagName('')
+      setNewFlagKey('')
+      setNewFlagType('BOOLEAN')
+    } catch (error) {
+      console.error('Failed to create feature flag:', error)
+    } finally {
+      setIsCreatingFlag(false)
+    }
+  }
+
+  const handleToggleFlag = async (
+    flagId: string,
+    environmentId: string,
+    enabled: boolean,
+    flagType?: string
+  ) => {
+    const newEnabled = !enabled
+    const newValue = flagType === 'BOOLEAN' ? String(newEnabled) : undefined
+
     // Optimistic UI update
-    const previousFlags = [...featureFlags];
+    const previousFlags = [...featureFlags]
     setFeatureFlags((prev) =>
       prev.map((f) => {
         if (f.id === flagId) {
           return {
             ...f,
             environments: f.environments.map((e) =>
-              e.environmentId === environmentId 
-                ? { ...e, enabled: newEnabled, ...(newValue && { defaultValue: newValue }) } 
+              e.environmentId === environmentId
+                ? {
+                    ...e,
+                    enabled: newEnabled,
+                    ...(newValue && { defaultValue: newValue }),
+                  }
                 : e
             ),
-          };
+          }
         }
-        return f;
+        return f
       })
-    );
+    )
 
     try {
       await api.post(`/feature-flags/${flagId}/toggle`, {
         environmentId,
         enabled: newEnabled,
-      });
+      })
     } catch (error) {
-      console.error('Failed to toggle flag:', error);
+      console.error('Failed to toggle flag:', error)
       // Rollback on error
-      setFeatureFlags(previousFlags);
+      setFeatureFlags(previousFlags)
     }
-  };
+  }
 
   const handleToggleBrandFlag = async (
     brandId: string,
@@ -238,11 +266,11 @@ export default function ProjectDetail() {
     enabled: boolean,
     flagType?: string
   ) => {
-    const newEnabled = !enabled;
-    const newValue = flagType === 'BOOLEAN' ? String(newEnabled) : undefined;
-    
+    const newEnabled = !enabled
+    const newValue = flagType === 'BOOLEAN' ? String(newEnabled) : undefined
+
     // Optimistic UI update
-    const previousFlags = [...featureFlags];
+    const previousFlags = [...featureFlags]
     setFeatureFlags((prev) =>
       prev.map((f) => {
         if (f.id === flagId) {
@@ -253,104 +281,128 @@ export default function ProjectDetail() {
                 return {
                   ...e,
                   brandValues: e.brandValues?.map((bv) =>
-                    bv.brandId === brandId 
-                      ? { ...bv, enabled: newEnabled, ...(newValue && { defaultValue: newValue }) } 
+                    bv.brandId === brandId
+                      ? {
+                          ...bv,
+                          enabled: newEnabled,
+                          ...(newValue && { defaultValue: newValue }),
+                        }
                       : bv
                   ),
-                };
+                }
               }
-              return e;
+              return e
             }),
-          };
+          }
         }
-        return f;
+        return f
       })
-    );
+    )
 
-    const toggleKey = `${flagId}-${environmentId}-${brandId}`;
-    setTogglingBrandFlags(prev => new Set(prev).add(toggleKey));
+    const toggleKey = `${flagId}-${environmentId}-${brandId}`
+    setTogglingBrandFlags((prev) => new Set(prev).add(toggleKey))
 
     try {
       await api.post(`/brands/${brandId}/flags/${flagId}/toggle`, {
         environmentId,
         enabled: newEnabled,
-      });
+      })
     } catch (error) {
-      console.error('Failed to toggle brand flag:', error);
+      console.error('Failed to toggle brand flag:', error)
       // Rollback on error
-      setFeatureFlags(previousFlags);
+      setFeatureFlags(previousFlags)
     } finally {
-      setTogglingBrandFlags(prev => {
-        const next = new Set(prev);
-        next.delete(toggleKey);
-        return next;
-      });
+      setTogglingBrandFlags((prev) => {
+        const next = new Set(prev)
+        next.delete(toggleKey)
+        return next
+      })
     }
-  };
+  }
 
   /* Lines 260-316 omitted */
 
   const openDeleteDialog = (flag: FeatureFlag) => {
-    setFlagToDelete(flag);
-  };
+    setFlagToDelete(flag)
+  }
 
   const handleDeleteFlag = async () => {
-    if (!flagToDelete) return;
-    setIsDeletingFlag(true);
+    if (!flagToDelete) return
+    setIsDeletingFlag(true)
     try {
-      await api.delete(`/feature-flags/${flagToDelete.id}`);
-      setFeatureFlags((prev) => prev.filter(f => f.id !== flagToDelete.id));
-      setFlagToDelete(null);
+      await api.delete(`/feature-flags/${flagToDelete.id}`)
+      setFeatureFlags((prev) => prev.filter((f) => f.id !== flagToDelete.id))
+      setFlagToDelete(null)
     } catch (error) {
-      console.error('Failed to delete flag:', error);
+      console.error('Failed to delete flag:', error)
     } finally {
-      setIsDeletingFlag(false);
+      setIsDeletingFlag(false)
     }
-  };
+  }
 
-  const openEditValueDialog = (flag: FeatureFlag, env: FeatureFlag['environments'][0]) => {
-    setEditingFlagEnv({ flag, env });
-    setEditValue(env.defaultValue || '');
-  };
+  const openEditValueDialog = (
+    flag: FeatureFlag,
+    env: FeatureFlag['environments'][0]
+  ) => {
+    setEditingFlagEnv({ flag, env })
+    setEditValue(env.defaultValue || '')
+  }
 
   const handleSaveValue = async () => {
-    if (!editingFlagEnv || !validProjectId) return;
-    setIsSavingValue(true);
+    if (!editingFlagEnv || !validProjectId) return
+    setIsSavingValue(true)
     try {
       // Use correct endpoints for both single and multi-tenant
       if (project?.type === 'MULTI') {
         // For multi-tenant, save as default value (affects all brands without override)
-        await api.patch(`/feature-flags/${editingFlagEnv.flag.id}/environments/${editingFlagEnv.env.environmentId}`, {
-          defaultValue: editValue,
-        });
+        await api.patch(
+          `/feature-flags/${editingFlagEnv.flag.id}/environments/${editingFlagEnv.env.environmentId}`,
+          {
+            defaultValue: editValue,
+          }
+        )
       } else {
         // For single-tenant, use standard endpoint
-        await api.patch(`/feature-flags/${editingFlagEnv.flag.id}/environments/${editingFlagEnv.env.environmentId}`, {
-          defaultValue: editValue,
-        });
+        await api.patch(
+          `/feature-flags/${editingFlagEnv.flag.id}/environments/${editingFlagEnv.env.environmentId}`,
+          {
+            defaultValue: editValue,
+          }
+        )
       }
-      
+
       // Refresh flags using the same logic as initial load
       if (project?.type === 'MULTI') {
-        const flagsWithBrandsRes = await api.get(`/projects/${validProjectId}/flags-with-brands`);
-        setFeatureFlags(flagsWithBrandsRes.data.flags || []);
+        const flagsWithBrandsRes = await api.get(
+          `/projects/${validProjectId}/flags-with-brands`
+        )
+        setFeatureFlags(flagsWithBrandsRes.data.flags || [])
       } else {
-        const flagsRes = await api.get(`/feature-flags/project/${validProjectId}`);
-        setFeatureFlags(flagsRes.data.featureFlags || []);
+        const flagsRes = await api.get(
+          `/feature-flags/project/${validProjectId}`
+        )
+        setFeatureFlags(flagsRes.data.featureFlags || [])
       }
-      
-      setEditingFlagEnv(null);
-    } catch (error) {
-      console.error('Failed to save flag value:', error);
-    } finally {
-      setIsSavingValue(false);
-    }
-  };
 
-  const filteredFlags = Array.isArray(featureFlags) ? featureFlags.filter(flag =>
-    (flag.name || '').toLowerCase().includes((searchTerm || '').toLowerCase()) ||
-    (flag.key || '').toLowerCase().includes((searchTerm || '').toLowerCase())
-  ) : [];
+      setEditingFlagEnv(null)
+    } catch (error) {
+      console.error('Failed to save flag value:', error)
+    } finally {
+      setIsSavingValue(false)
+    }
+  }
+
+  const filteredFlags = Array.isArray(featureFlags)
+    ? featureFlags.filter(
+        (flag) =>
+          (flag.name || '')
+            .toLowerCase()
+            .includes((searchTerm || '').toLowerCase()) ||
+          (flag.key || '')
+            .toLowerCase()
+            .includes((searchTerm || '').toLowerCase())
+      )
+    : []
 
   if (!validOrgId || !validProjectId) {
     return (
@@ -360,7 +412,7 @@ export default function ProjectDetail() {
           Back to Organizations
         </Button>
       </div>
-    );
+    )
   }
 
   if (isLoading) {
@@ -368,31 +420,40 @@ export default function ProjectDetail() {
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
-    );
+    )
   }
 
   if (!project) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <p className="text-muted-foreground">Project not found</p>
-        <Button className="mt-4" onClick={() => navigate(`/organizations/${orgId}`)}>
+        <Button
+          className="mt-4"
+          onClick={() => navigate(`/organizations/${orgId}`)}
+        >
           Back to Organization
         </Button>
       </div>
-    );
+    )
   }
 
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link to="/organizations" className="hover:text-foreground transition-colors">
+        <Link
+          to="/organizations"
+          className="hover:text-foreground transition-colors"
+        >
           {t('organization-detail.breadcrumb.organizations')}
         </Link>
         {orgId && (
           <>
             <span>/</span>
-            <Link to={`/organizations/${orgId}`} className="hover:text-foreground transition-colors">
+            <Link
+              to={`/organizations/${orgId}`}
+              className="hover:text-foreground transition-colors"
+            >
               {project.organizationName || 'Organization'}
             </Link>
           </>
@@ -404,7 +465,11 @@ export default function ProjectDetail() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => navigate(`/organizations/${orgId}`)}>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => navigate(`/organizations/${orgId}`)}
+          >
             <ArrowLeftIcon className="h-4 w-4" />
           </Button>
           <div className="flex items-center gap-3">
@@ -412,17 +477,25 @@ export default function ProjectDetail() {
               {project.name?.charAt(0).toUpperCase() || 'P'}
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
+              <h1 className="text-2xl font-bold tracking-tight">
+                {project.name}
+              </h1>
               <p className="text-muted-foreground text-sm">{project.key}</p>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => navigate(`/projects/${projectId}/settings`)}>
+          <Button
+            variant="outline"
+            onClick={() => navigate(`/projects/${projectId}/settings`)}
+          >
             <Cog6ToothIcon className="w-4 h-4 mr-2" />
             Settings
           </Button>
-          <Dialog open={showCreateFlagDialog} onOpenChange={setShowCreateFlagDialog}>
+          <Dialog
+            open={showCreateFlagDialog}
+            onOpenChange={setShowCreateFlagDialog}
+          >
             <DialogTrigger asChild>
               <Button>
                 <PlusIcon className="w-4 h-4 mr-2" />
@@ -454,7 +527,13 @@ export default function ProjectDetail() {
                       id="flagKey"
                       placeholder="new-feature"
                       value={newFlagKey}
-                      onChange={(e) => setNewFlagKey(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                      onChange={(e) =>
+                        setNewFlagKey(
+                          e.target.value
+                            .toLowerCase()
+                            .replace(/[^a-z0-9-]/g, '')
+                        )
+                      }
                       required
                       className="font-mono"
                     />
@@ -475,10 +554,17 @@ export default function ProjectDetail() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setShowCreateFlagDialog(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowCreateFlagDialog(false)}
+                  >
                     {t('common.cancel')}
                   </Button>
-                  <Button type="submit" disabled={isCreatingFlag || !newFlagName || !newFlagKey}>
+                  <Button
+                    type="submit"
+                    disabled={isCreatingFlag || !newFlagName || !newFlagKey}
+                  >
                     {isCreatingFlag ? t('common.loading') : t('common.create')}
                   </Button>
                 </DialogFooter>
@@ -502,9 +588,7 @@ export default function ProjectDetail() {
           />
           <FolderIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         </div>
-        <Badge variant="secondary">
-          {filteredFlags.length} flags
-        </Badge>
+        <Badge variant="secondary">{filteredFlags.length} flags</Badge>
       </div>
 
       {/* Feature Flags Table */}
@@ -534,7 +618,9 @@ export default function ProjectDetail() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-lg">{flag.name}</h3>
-                      <p className="text-sm text-muted-foreground font-mono">{flag.key}</p>
+                      <p className="text-sm text-muted-foreground font-mono">
+                        {flag.key}
+                      </p>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant="outline">{flag.flagType}</Badge>
                       </div>
@@ -558,73 +644,97 @@ export default function ProjectDetail() {
                         No environments found.
                       </div>
                     ) : (
-                    flag.environments.map((env) => (
-                      <div
-                        key={env.id}
-                        className="p-4 rounded-lg border bg-muted border-border"
-                      >
-                        <h4 className="font-semibold text-foreground mb-3 pb-2 border-b border-border">
-                          {env.environmentName}
-                        </h4>
-                        <div className="space-y-3">
-                          {/* List all brands with their toggles */}
-                          {env.brandValues?.map((brand) => {
-                            const toggleKey = `${flag.id}-${env.environmentId}-${brand.brandId}`;
-                            const isToggling = togglingBrandFlags.has(toggleKey);
-                            
-                            return (
-                              <div
-                                key={brand.brandId}
-                                className="flex items-center justify-between p-2 rounded bg-card border border-border"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <Badge 
-                                    variant="outline" 
-                                    className="text-xs bg-card text-foreground"
-                                  >
-                                    {brand.brandName}
-                                  </Badge>
-                                </div>
-                                <button
-                                  onClick={() => handleToggleBrandFlag(brand.brandId, flag.id, env.environmentId, brand.enabled, flag.flagType)}
-                                  disabled={isToggling}
-                                  className={clsx(
-                                    "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
-                                    brand.enabled ? "bg-green-500 dark:bg-green-600" : "bg-gray-300 dark:bg-gray-600"
-                                  )}
+                      flag.environments.map((env) => (
+                        <div
+                          key={env.id}
+                          className="p-4 rounded-lg border bg-muted border-border"
+                        >
+                          <h4 className="font-semibold text-foreground mb-3 pb-2 border-b border-border">
+                            {env.environmentName}
+                          </h4>
+                          <div className="space-y-3">
+                            {/* List all brands with their toggles */}
+                            {env.brandValues?.map((brand) => {
+                              const toggleKey = `${flag.id}-${env.environmentId}-${brand.brandId}`
+                              const isToggling =
+                                togglingBrandFlags.has(toggleKey)
+
+                              return (
+                                <div
+                                  key={brand.brandId}
+                                  className="flex items-center justify-between p-2 rounded bg-card border border-border"
                                 >
-                                  <span
+                                  <div className="flex items-center gap-2">
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs bg-card text-foreground"
+                                    >
+                                      {brand.brandName}
+                                    </Badge>
+                                  </div>
+                                  <button
+                                    onClick={() =>
+                                      handleToggleBrandFlag(
+                                        brand.brandId,
+                                        flag.id,
+                                        env.environmentId,
+                                        brand.enabled,
+                                        flag.flagType
+                                      )
+                                    }
+                                    disabled={isToggling}
                                     className={clsx(
-                                      "inline-block h-3.5 w-3.5 transform rounded-full bg-background transition-transform",
-                                      brand.enabled ? "translate-x-5" : "translate-x-0.5"
+                                      'relative inline-flex h-5 w-9 items-center rounded-full transition-colors',
+                                      brand.enabled
+                                        ? 'bg-green-500 dark:bg-green-600'
+                                        : 'bg-gray-300 dark:bg-gray-600'
                                     )}
-                                  />
-                                </button>
-                              </div>
-                            );
-                          })}
-                        </div>
-                        {flag.flagType !== 'BOOLEAN' && (
-                          <div className="mt-3 pt-2 border-t border-border text-xs flex items-center gap-2">
-                            <span className={env.enabled ? "text-green-800 dark:text-green-200" : "text-muted-foreground"}>Value:</span>{' '}
-                            <code className={clsx(
-                              "px-1.5 py-0.5 rounded font-mono text-xs",
-                              env.enabled 
-                                ? "bg-green-100 dark:bg-green-900/50 text-green-900 dark:text-green-100" 
-                                : "bg-card text-foreground"
-                            )}>
-                              {env.defaultValue}
-                            </code>
-                            <button
-                              onClick={() => openEditValueDialog(flag, env)}
-                              className="text-xs text-primary hover:text-primary/80 underline"
-                            >
-                              Edit
-                            </button>
+                                  >
+                                    <span
+                                      className={clsx(
+                                        'inline-block h-3.5 w-3.5 transform rounded-full bg-background transition-transform',
+                                        brand.enabled
+                                          ? 'translate-x-5'
+                                          : 'translate-x-0.5'
+                                      )}
+                                    />
+                                  </button>
+                                </div>
+                              )
+                            })}
                           </div>
-                        )}
-                      </div>
-                    )))}
+                          {flag.flagType !== 'BOOLEAN' && (
+                            <div className="mt-3 pt-2 border-t border-border text-xs flex items-center gap-2">
+                              <span
+                                className={
+                                  env.enabled
+                                    ? 'text-green-800 dark:text-green-200'
+                                    : 'text-muted-foreground'
+                                }
+                              >
+                                Value:
+                              </span>{' '}
+                              <code
+                                className={clsx(
+                                  'px-1.5 py-0.5 rounded font-mono text-xs',
+                                  env.enabled
+                                    ? 'bg-green-100 dark:bg-green-900/50 text-green-900 dark:text-green-100'
+                                    : 'bg-card text-foreground'
+                                )}
+                              >
+                                {env.defaultValue}
+                              </code>
+                              <button
+                                onClick={() => openEditValueDialog(flag, env)}
+                                className="text-xs text-primary hover:text-primary/80 underline"
+                              >
+                                Edit
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
                   </div>
                 ) : (
                   /* For Single-Tenant: Simple environment toggles */
@@ -634,54 +744,78 @@ export default function ProjectDetail() {
                         No environments found. Please refresh the page.
                       </div>
                     ) : (
-                    flag.environments.map((env) => (
-                      <div
-                        key={env.id}
-                        className={clsx(
-                          "p-4 rounded-lg border transition-colors",
-                          env.enabled
-                            ? "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900/50"
-                            : "bg-muted border-border"
-                        )}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-foreground">{env.environmentName}</span>
-                          <button
-                            onClick={() => handleToggleFlag(flag.id, env.environmentId, env.enabled, flag.flagType)}
-                            className={clsx(
-                              "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
-                              env.enabled ? "bg-green-500 dark:bg-green-600" : "bg-gray-300 dark:bg-gray-600"
-                            )}
-                          >
-                            <span
-                              className={clsx(
-                                "inline-block h-4 w-4 transform rounded-full bg-background transition-transform",
-                                env.enabled ? "translate-x-6" : "translate-x-1"
-                              )}
-                            />
-                          </button>
-                        </div>
-                        {flag.flagType !== 'BOOLEAN' && (
-                          <div className="mt-2 text-sm flex items-center gap-2">
-                            <span className={env.enabled ? "text-green-800 dark:text-green-200" : "text-muted-foreground"}>Value:</span>{' '}
-                            <code className={clsx(
-                              "px-1.5 py-0.5 rounded font-mono text-xs",
-                              env.enabled 
-                                ? "bg-green-100 dark:bg-green-900/50 text-green-900 dark:text-green-100" 
-                                : "bg-card text-foreground"
-                            )}>
-                              {env.defaultValue}
-                            </code>
+                      flag.environments.map((env) => (
+                        <div
+                          key={env.id}
+                          className={clsx(
+                            'p-4 rounded-lg border transition-colors',
+                            env.enabled
+                              ? 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900/50'
+                              : 'bg-muted border-border'
+                          )}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-foreground">
+                              {env.environmentName}
+                            </span>
                             <button
-                              onClick={() => openEditValueDialog(flag, env)}
-                              className="text-xs text-primary hover:text-primary/80 underline"
+                              onClick={() =>
+                                handleToggleFlag(
+                                  flag.id,
+                                  env.environmentId,
+                                  env.enabled,
+                                  flag.flagType
+                                )
+                              }
+                              className={clsx(
+                                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                                env.enabled
+                                  ? 'bg-green-500 dark:bg-green-600'
+                                  : 'bg-gray-300 dark:bg-gray-600'
+                              )}
                             >
-                              Edit
+                              <span
+                                className={clsx(
+                                  'inline-block h-4 w-4 transform rounded-full bg-background transition-transform',
+                                  env.enabled
+                                    ? 'translate-x-6'
+                                    : 'translate-x-1'
+                                )}
+                              />
                             </button>
                           </div>
-                        )}
-                      </div>
-                    )))}
+                          {flag.flagType !== 'BOOLEAN' && (
+                            <div className="mt-2 text-sm flex items-center gap-2">
+                              <span
+                                className={
+                                  env.enabled
+                                    ? 'text-green-800 dark:text-green-200'
+                                    : 'text-muted-foreground'
+                                }
+                              >
+                                Value:
+                              </span>{' '}
+                              <code
+                                className={clsx(
+                                  'px-1.5 py-0.5 rounded font-mono text-xs',
+                                  env.enabled
+                                    ? 'bg-green-100 dark:bg-green-900/50 text-green-900 dark:text-green-100'
+                                    : 'bg-card text-foreground'
+                                )}
+                              >
+                                {env.defaultValue}
+                              </code>
+                              <button
+                                onClick={() => openEditValueDialog(flag, env)}
+                                className="text-xs text-primary hover:text-primary/80 underline"
+                              >
+                                Edit
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -696,15 +830,24 @@ export default function ProjectDetail() {
           <DialogHeader>
             <DialogTitle>Delete Feature Flag</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete <strong>{flagToDelete?.name}</strong>? 
-              This action cannot be undone.
+              Are you sure you want to delete{' '}
+              <strong>{flagToDelete?.name}</strong>? This action cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setFlagToDelete(null)} disabled={isDeletingFlag}>
+            <Button
+              variant="outline"
+              onClick={() => setFlagToDelete(null)}
+              disabled={isDeletingFlag}
+            >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDeleteFlag} disabled={isDeletingFlag}>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteFlag}
+              disabled={isDeletingFlag}
+            >
               {isDeletingFlag ? 'Deleting...' : 'Delete'}
             </Button>
           </DialogFooter>
@@ -712,17 +855,23 @@ export default function ProjectDetail() {
       </Dialog>
 
       {/* Edit Flag Value Dialog */}
-      <Dialog open={!!editingFlagEnv} onOpenChange={() => setEditingFlagEnv(null)}>
+      <Dialog
+        open={!!editingFlagEnv}
+        onOpenChange={() => setEditingFlagEnv(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Flag Value</DialogTitle>
             <DialogDescription>
-              Update the value for <strong>{editingFlagEnv?.flag.name}</strong> in {editingFlagEnv?.env.environmentName}
+              Update the value for <strong>{editingFlagEnv?.flag.name}</strong>{' '}
+              in {editingFlagEnv?.env.environmentName}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="flagValue">Value ({editingFlagEnv?.flag.flagType})</Label>
+              <Label htmlFor="flagValue">
+                Value ({editingFlagEnv?.flag.flagType})
+              </Label>
               {editingFlagEnv?.flag.flagType === 'JSON' ? (
                 <textarea
                   id="flagValue"
@@ -751,7 +900,11 @@ export default function ProjectDetail() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingFlagEnv(null)} disabled={isSavingValue}>
+            <Button
+              variant="outline"
+              onClick={() => setEditingFlagEnv(null)}
+              disabled={isSavingValue}
+            >
               Cancel
             </Button>
             <Button onClick={handleSaveValue} disabled={isSavingValue}>
@@ -761,5 +914,5 @@ export default function ProjectDetail() {
         </DialogContent>
       </Dialog>
     </div>
-  );
+  )
 }

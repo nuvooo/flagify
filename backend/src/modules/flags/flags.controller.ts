@@ -1,8 +1,19 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Req, UseGuards } from '@nestjs/common';
-import { FlagsService } from './flags.service';
-import { CreateFlagDto } from './dto/create-flag.dto';
-import { UpdateFlagValueDto } from './dto/update-flag-value.dto';
-import { AuthGuard } from '../../shared/auth.guard';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common'
+import { AuthGuard } from '../../shared/auth.guard'
+import type { CreateFlagDto } from './dto/create-flag.dto'
+import type { UpdateFlagValueDto } from './dto/update-flag-value.dto'
+import type { FlagsService } from './flags.service'
 
 @Controller('feature-flags')
 @UseGuards(AuthGuard)
@@ -11,12 +22,16 @@ export class FlagsController {
 
   @Get()
   async findAll(
-    @Req() req: any, 
+    @Req() req: any,
     @Query('projectId') projectId?: string,
-    @Query('environmentId') environmentId?: string,
+    @Query('environmentId') environmentId?: string
   ) {
-    const flags = await this.flagsService.findAll(req.user.userId, projectId, environmentId);
-    return { featureFlags: flags };
+    const flags = await this.flagsService.findAll(
+      req.user.userId,
+      projectId,
+      environmentId
+    )
+    return { featureFlags: flags }
   }
 
   @Get('project/:projectId')
@@ -35,26 +50,26 @@ export class FlagsController {
   async create(
     @Param('projectId') projectId: string,
     @Body() dto: CreateFlagDto,
-    @Req() req: any,
+    @Req() req: any
   ) {
-    return this.flagsService.create(projectId, req.user.userId, dto);
+    return this.flagsService.create(projectId, req.user.userId, dto)
   }
 
   @Patch(':flagId')
   async update(
     @Param('flagId') flagId: string,
-    @Body() body: { name?: string; description?: string },
+    @Body() body: { name?: string; description?: string }
   ) {
-    const flag = await this.flagsService.update(flagId, body);
-    return { featureFlag: flag };
+    const flag = await this.flagsService.update(flagId, body)
+    return { featureFlag: flag }
   }
 
   @Post(':flagId/toggle')
   async toggle(
     @Param('flagId') flagId: string,
-    @Body() body: { environmentId: string; enabled?: boolean },
+    @Body() body: { environmentId: string; enabled?: boolean }
   ) {
-    return this.flagsService.toggle(flagId, body.environmentId, body.enabled);
+    return this.flagsService.toggle(flagId, body.environmentId, body.enabled)
   }
 
   @Get(':flagId/environments')
@@ -67,18 +82,18 @@ export class FlagsController {
   async updateEnvironment(
     @Param('flagId') flagId: string,
     @Param('envId') envId: string,
-    @Body() body: { isEnabled?: boolean; defaultValue?: string },
+    @Body() body: { isEnabled?: boolean; defaultValue?: string }
   ) {
-    return this.flagsService.updateEnvironment(flagId, envId, body);
+    return this.flagsService.updateEnvironment(flagId, envId, body)
   }
 
   @Patch(':flagId/environments/:envId/value')
   async updateValue(
     @Param('flagId') flagId: string,
     @Param('envId') envId: string,
-    @Body() dto: UpdateFlagValueDto,
+    @Body() dto: UpdateFlagValueDto
   ) {
-    return this.flagsService.updateValue(flagId, envId, dto);
+    return this.flagsService.updateValue(flagId, envId, dto)
   }
 
   @Delete(':flagId')

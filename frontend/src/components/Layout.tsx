@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
-import Sidebar from './Sidebar';
-import Header from './Header';
+import { useState } from 'react'
+import { Outlet } from 'react-router-dom'
+import Header from './Header'
+import Sidebar from './Sidebar'
 
 export default function Layout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -24,5 +24,5 @@ export default function Layout() {
         </main>
       </div>
     </div>
-  );
+  )
 }

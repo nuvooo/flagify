@@ -1,24 +1,22 @@
-import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import clsx from 'clsx'
 import {
-  KeyIcon,
-  PlusIcon,
+  Building2,
+  CheckCircleIcon,
+  Code2,
   Copy,
   EyeIcon,
   EyeOff,
-  ServerIcon,
-  Code2,
-  CheckCircleIcon,
-  TrashIcon,
-  Building2,
+  KeyIcon,
   MoreVertical,
-} from 'lucide-react';
-import api from '@/lib/axios';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+  PlusIcon,
+  ServerIcon,
+  TrashIcon,
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -27,185 +25,201 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import clsx from 'clsx';
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import api from '@/lib/axios'
 
 interface ApiKey {
-  id: string;
-  name: string;
-  type: 'SERVER' | 'CLIENT' | 'SDK';
-  key: string;
-  isActive: boolean;
-  createdAt: string;
-  lastUsedAt: string | null;
-  expiresAt: string | null;
+  id: string
+  name: string
+  type: 'SERVER' | 'CLIENT' | 'SDK'
+  key: string
+  isActive: boolean
+  createdAt: string
+  lastUsedAt: string | null
+  expiresAt: string | null
   organization?: {
-    id: string;
-    name: string;
-  };
+    id: string
+    name: string
+  }
 }
 
 interface Organization {
-  id: string;
-  name: string;
-  role?: string;
+  id: string
+  name: string
+  role?: string
 }
 
 export default function ApiKeys() {
-  const { t: _t } = useTranslation();
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set());
-  const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
-  
+  const { t: _t } = useTranslation()
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
+  const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set())
+  const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null)
+
   // Modal state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
-  
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
+
   const [newKeyData, setNewKeyData] = useState({
     name: '',
     type: 'SERVER' as ApiKey['type'],
     organizationId: '',
     expiresInDays: '30',
-  });
-  
+  })
+
   // Revoke state
-  const [isRevoking, setIsRevoking] = useState<string | null>(null);
+  const [isRevoking, setIsRevoking] = useState<string | null>(null)
 
   const fetchData = async () => {
     try {
-      setIsLoading(true);
+      setIsLoading(true)
       const [keysRes, orgsRes] = await Promise.all([
         api.get('/api-keys/my'),
         api.get('/organizations'),
-      ]);
-      setApiKeys(Array.isArray(keysRes.data) ? keysRes.data : keysRes.data.apiKeys || []);
+      ])
+      setApiKeys(
+        Array.isArray(keysRes.data) ? keysRes.data : keysRes.data.apiKeys || []
+      )
       // Store organizations with their roles
-      const orgs = orgsRes.data.organizations || orgsRes.data || [];
-      setOrganizations(orgs);
+      const orgs = orgsRes.data.organizations || orgsRes.data || []
+      setOrganizations(orgs)
     } catch (error) {
-      console.error('Failed to fetch data:', error);
+      console.error('Failed to fetch data:', error)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const canManageApiKeys = (orgId: string) => {
-    const org = organizations.find(o => o.id === orgId);
-    return org?.role === 'OWNER' || org?.role === 'ADMIN';
-  };
+    const org = organizations.find((o) => o.id === orgId)
+    return org?.role === 'OWNER' || org?.role === 'ADMIN'
+  }
 
-  const userCanCreateKeys = organizations.some(o => o.role === 'OWNER' || o.role === 'ADMIN');
+  const userCanCreateKeys = organizations.some(
+    (o) => o.role === 'OWNER' || o.role === 'ADMIN'
+  )
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
   const createApiKey = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsCreating(true);
-    setCreateError(null);
-    
+    e.preventDefault()
+    setIsCreating(true)
+    setCreateError(null)
+
     try {
-      const response = await api.post(`/api-keys/organization/${newKeyData.organizationId}`, {
-        name: newKeyData.name,
-        type: newKeyData.type,
-        expiresInDays: newKeyData.expiresInDays ? parseInt(newKeyData.expiresInDays) : null,
-      });
-      
-      const newKey = response.data;
-      setApiKeys([newKey, ...apiKeys]);
-      setNewlyCreatedKey(newKey.key);
-      
+      const response = await api.post(
+        `/api-keys/organization/${newKeyData.organizationId}`,
+        {
+          name: newKeyData.name,
+          type: newKeyData.type,
+          expiresInDays: newKeyData.expiresInDays
+            ? parseInt(newKeyData.expiresInDays)
+            : null,
+        }
+      )
+
+      const newKey = response.data
+      setApiKeys([newKey, ...apiKeys])
+      setNewlyCreatedKey(newKey.key)
+
       // Reset form
-      setNewKeyData({ name: '', type: 'SERVER', organizationId: '', expiresInDays: '30' });
-      setIsModalOpen(false);
-      
+      setNewKeyData({
+        name: '',
+        type: 'SERVER',
+        organizationId: '',
+        expiresInDays: '30',
+      })
+      setIsModalOpen(false)
+
       // Refresh to get the masked version
-      await fetchData();
+      await fetchData()
     } catch (err: any) {
-      console.error('Failed to create API key:', err);
-      setCreateError(err.response?.data?.error || 'Failed to create API key');
+      console.error('Failed to create API key:', err)
+      setCreateError(err.response?.data?.error || 'Failed to create API key')
     } finally {
-      setIsCreating(false);
+      setIsCreating(false)
     }
-  };
+  }
 
   const revokeApiKey = async (keyId: string) => {
     if (!confirm('Are you sure you want to revoke this API key?')) {
-      return;
+      return
     }
-    
-    setIsRevoking(keyId);
+
+    setIsRevoking(keyId)
     try {
-      await api.delete(`/api-keys/${keyId}`);
-      setApiKeys(apiKeys.filter((k) => k.id !== keyId));
+      await api.delete(`/api-keys/${keyId}`)
+      setApiKeys(apiKeys.filter((k) => k.id !== keyId))
     } catch (err: any) {
-      console.error('Failed to revoke API key:', err);
-      alert(err.response?.data?.error || 'Failed to revoke API key');
+      console.error('Failed to revoke API key:', err)
+      alert(err.response?.data?.error || 'Failed to revoke API key')
     } finally {
-      setIsRevoking(null);
+      setIsRevoking(null)
     }
-  };
+  }
 
   const toggleKeyVisibility = (keyId: string) => {
     setRevealedKeys((prev) => {
-      const next = new Set(prev);
+      const next = new Set(prev)
       if (next.has(keyId)) {
-        next.delete(keyId);
+        next.delete(keyId)
       } else {
-        next.add(keyId);
+        next.add(keyId)
       }
-      return next;
-    });
-  };
+      return next
+    })
+  }
 
   const copyKeyToClipboard = async (key: string) => {
     try {
-      await navigator.clipboard.writeText(key);
+      await navigator.clipboard.writeText(key)
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
+      console.error('Failed to copy to clipboard:', error)
     }
-  };
+  }
 
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'SERVER':
-        return ServerIcon;
+        return ServerIcon
       case 'CLIENT':
-        return Code2;
+        return Code2
       case 'SDK':
-        return KeyIcon;
+        return KeyIcon
       default:
-        return KeyIcon;
+        return KeyIcon
     }
-  };
+  }
 
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'SERVER':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-400';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-400'
       case 'CLIENT':
-        return 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-400';
+        return 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-400'
       case 'SDK':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-400';
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-400'
       default:
-        return 'bg-muted text-foreground';
+        return 'bg-muted text-foreground'
     }
-  };
+  }
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Never';
-    return new Date(dateString).toLocaleDateString();
-  };
+    if (!dateString) return 'Never'
+    return new Date(dateString).toLocaleDateString()
+  }
 
   return (
     <div className="space-y-6">
@@ -233,7 +247,7 @@ export default function ApiKeys() {
                 Create a new API key for accessing the Togglely API
               </DialogDescription>
             </DialogHeader>
-            
+
             {createError && (
               <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
                 {createError}
@@ -248,7 +262,12 @@ export default function ApiKeys() {
                 <select
                   id="key-org"
                   value={newKeyData.organizationId}
-                  onChange={(e) => setNewKeyData({ ...newKeyData, organizationId: e.target.value })}
+                  onChange={(e) =>
+                    setNewKeyData({
+                      ...newKeyData,
+                      organizationId: e.target.value,
+                    })
+                  }
                   className="w-full rounded-md border border-input bg-background px-3 py-2"
                   required
                   disabled={isCreating}
@@ -269,7 +288,9 @@ export default function ApiKeys() {
                 <Input
                   id="key-name"
                   value={newKeyData.name}
-                  onChange={(e) => setNewKeyData({ ...newKeyData, name: e.target.value })}
+                  onChange={(e) =>
+                    setNewKeyData({ ...newKeyData, name: e.target.value })
+                  }
                   placeholder="e.g., Production Server Key"
                   required
                   disabled={isCreating}
@@ -281,7 +302,12 @@ export default function ApiKeys() {
                 <select
                   id="key-type"
                   value={newKeyData.type}
-                  onChange={(e) => setNewKeyData({ ...newKeyData, type: e.target.value as ApiKey['type'] })}
+                  onChange={(e) =>
+                    setNewKeyData({
+                      ...newKeyData,
+                      type: e.target.value as ApiKey['type'],
+                    })
+                  }
                   className="w-full rounded-md border border-input bg-background px-3 py-2"
                   disabled={isCreating}
                 >
@@ -290,7 +316,8 @@ export default function ApiKeys() {
                   <option value="SDK">SDK</option>
                 </select>
                 <p className="text-xs text-muted-foreground">
-                  Server keys have full access. Client keys have limited read-only access.
+                  Server keys have full access. Client keys have limited
+                  read-only access.
                 </p>
               </div>
 
@@ -299,7 +326,12 @@ export default function ApiKeys() {
                 <select
                   id="key-expires"
                   value={newKeyData.expiresInDays}
-                  onChange={(e) => setNewKeyData({ ...newKeyData, expiresInDays: e.target.value })}
+                  onChange={(e) =>
+                    setNewKeyData({
+                      ...newKeyData,
+                      expiresInDays: e.target.value,
+                    })
+                  }
                   className="w-full rounded-md border border-input bg-background px-3 py-2"
                   disabled={isCreating}
                 >
@@ -312,10 +344,20 @@ export default function ApiKeys() {
               </div>
 
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} disabled={isCreating}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsModalOpen(false)}
+                  disabled={isCreating}
+                >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isCreating || !newKeyData.name || !newKeyData.organizationId}>
+                <Button
+                  type="submit"
+                  disabled={
+                    isCreating || !newKeyData.name || !newKeyData.organizationId
+                  }
+                >
                   {isCreating ? 'Creating...' : 'Create Key'}
                 </Button>
               </DialogFooter>
@@ -334,7 +376,8 @@ export default function ApiKeys() {
                 API Key Created Successfully
               </h3>
               <p className="text-sm text-green-700 dark:text-green-500 mt-1">
-                Make sure to copy your API key now. You won&apos;t be able to see it again!
+                Make sure to copy your API key now. You won&apos;t be able to
+                see it again!
               </p>
               <div className="mt-3 flex items-center gap-2 bg-muted rounded-md p-3 border border-border">
                 <code className="text-green-600 dark:text-green-400 text-sm font-mono break-all flex-1">
@@ -378,9 +421,9 @@ export default function ApiKeys() {
             <KeyIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold">No API keys</h3>
             <p className="text-sm text-muted-foreground mt-1 mb-6">
-              {userCanCreateKeys 
-                ? "Get started by creating a new API key."
-                : "Only organization owners and admins can create API keys."}
+              {userCanCreateKeys
+                ? 'Get started by creating a new API key.'
+                : 'Only organization owners and admins can create API keys.'}
             </p>
             {userCanCreateKeys && (
               <Button onClick={() => setIsModalOpen(true)}>
@@ -393,11 +436,14 @@ export default function ApiKeys() {
       ) : (
         <div className="space-y-4">
           {apiKeys.map((apiKey) => {
-            const TypeIcon = getTypeIcon(apiKey.type);
-            const isRevealed = revealedKeys.has(apiKey.id);
+            const TypeIcon = getTypeIcon(apiKey.type)
+            const isRevealed = revealedKeys.has(apiKey.id)
 
             return (
-              <Card key={apiKey.id} className={clsx(!apiKey.isActive && 'opacity-60')}>
+              <Card
+                key={apiKey.id}
+                className={clsx(!apiKey.isActive && 'opacity-60')}
+              >
                 <CardContent className="p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-start gap-4">
@@ -407,12 +453,18 @@ export default function ApiKeys() {
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold">{apiKey.name}</h3>
-                          <Badge className={getTypeColor(apiKey.type)}>{apiKey.type}</Badge>
-                          {!apiKey.isActive && <Badge variant="secondary">Inactive</Badge>}
+                          <Badge className={getTypeColor(apiKey.type)}>
+                            {apiKey.type}
+                          </Badge>
+                          {!apiKey.isActive && (
+                            <Badge variant="secondary">Inactive</Badge>
+                          )}
                         </div>
                         <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                           <code className="bg-muted px-2 py-0.5 rounded text-xs">
-                            {isRevealed ? apiKey.key : `${apiKey.key.substring(0, 16)}...`}
+                            {isRevealed
+                              ? apiKey.key
+                              : `${apiKey.key.substring(0, 16)}...`}
                           </code>
                           <Button
                             variant="ghost"
@@ -444,7 +496,9 @@ export default function ApiKeys() {
                           )}
                           <span>Created: {formatDate(apiKey.createdAt)}</span>
                           {apiKey.lastUsedAt && (
-                            <span>Last used: {formatDate(apiKey.lastUsedAt)}</span>
+                            <span>
+                              Last used: {formatDate(apiKey.lastUsedAt)}
+                            </span>
                           )}
                           {apiKey.expiresAt && (
                             <span>Expires: {formatDate(apiKey.expiresAt)}</span>
@@ -462,17 +516,23 @@ export default function ApiKeys() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => copyKeyToClipboard(apiKey.key)}>
+                          <DropdownMenuItem
+                            onClick={() => copyKeyToClipboard(apiKey.key)}
+                          >
                             <Copy className="mr-2 h-4 w-4" />
                             Copy key
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-destructive focus:text-destructive"
                             onClick={() => revokeApiKey(apiKey.id)}
-                            disabled={isRevoking === apiKey.id || !apiKey.isActive}
+                            disabled={
+                              isRevoking === apiKey.id || !apiKey.isActive
+                            }
                           >
                             <TrashIcon className="mr-2 h-4 w-4" />
-                            {isRevoking === apiKey.id ? 'Revoking...' : 'Revoke key'}
+                            {isRevoking === apiKey.id
+                              ? 'Revoking...'
+                              : 'Revoke key'}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -480,10 +540,10 @@ export default function ApiKeys() {
                   </div>
                 </CardContent>
               </Card>
-            );
+            )
           })}
         </div>
       )}
     </div>
-  );
+  )
 }

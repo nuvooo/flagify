@@ -1,32 +1,42 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, CheckCircle, AlertCircle, Mail } from 'lucide-react';
-import api from '@/lib/axios';
+import { AlertCircle, CheckCircle, Loader2, Mail } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import api from '@/lib/axios'
 
 export default function VerifyEmail() {
-  const { token } = useParams<{ token: string }>();
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [message, setMessage] = useState('');
+  const { token } = useParams<{ token: string }>()
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
+    'loading'
+  )
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
     const verifyEmail = async () => {
       try {
-        const response = await api.get(`/auth/verify-email/${token}`);
-        setStatus('success');
-        setMessage(response.data.message || 'Email verified successfully!');
+        const response = await api.get(`/auth/verify-email/${token}`)
+        setStatus('success')
+        setMessage(response.data.message || 'Email verified successfully!')
       } catch (err: any) {
-        setStatus('error');
-        setMessage(err.response?.data?.message || 'Invalid or expired verification link');
+        setStatus('error')
+        setMessage(
+          err.response?.data?.message || 'Invalid or expired verification link'
+        )
       }
-    };
+    }
 
     if (token) {
-      verifyEmail();
+      verifyEmail()
     }
-  }, [token]);
+  }, [token])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -51,7 +61,9 @@ export default function VerifyEmail() {
             <div className="text-center space-y-4">
               <CheckCircle className="h-12 w-12 text-green-500 mx-auto" />
               <Alert className="bg-green-50 border-green-200">
-                <AlertDescription className="text-green-800">{message}</AlertDescription>
+                <AlertDescription className="text-green-800">
+                  {message}
+                </AlertDescription>
               </Alert>
               <Button asChild className="w-full">
                 <Link to="/login">Continue to Login</Link>
@@ -71,7 +83,10 @@ export default function VerifyEmail() {
                 </Button>
                 <p className="text-sm text-muted-foreground">
                   Need a new verification email?{' '}
-                  <Link to="/resend-verification" className="text-primary hover:underline">
+                  <Link
+                    to="/resend-verification"
+                    className="text-primary hover:underline"
+                  >
                     Click here
                   </Link>
                 </p>
@@ -81,5 +96,5 @@ export default function VerifyEmail() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

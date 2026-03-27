@@ -1,54 +1,65 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useOrganizationStore } from '@/store/organizationStore';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { 
-  ArrowLeft, 
-  Building2, 
-  Loader2,
+import {
+  ArrowLeft,
+  Building2,
   CheckCircle2,
-  Sparkles
-} from 'lucide-react';
+  Loader2,
+  Sparkles,
+} from 'lucide-react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Link, useNavigate } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { useOrganizationStore } from '@/store/organizationStore'
 
 export default function CreateOrganization() {
-  const { t } = useTranslation();
-  const [name, setName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
-  const { createOrganization } = useOrganizationStore();
+  const { t } = useTranslation()
+  const [name, setName] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate()
+  const { createOrganization } = useOrganizationStore()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
 
     try {
       // Slug wird vom Backend automatisch als UUID generiert
-      const org = await createOrganization({ name });
-      navigate(`/organizations/${org.id}`);
+      const org = await createOrganization({ name })
+      navigate(`/organizations/${org.id}`)
     } catch (err: any) {
-      const message = err.response?.data?.message;
-      setError(message || 'Failed to create organization');
+      const message = err.response?.data?.message
+      setError(message || 'Failed to create organization')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link to="/organizations" className="hover:text-foreground transition-colors">
+        <Link
+          to="/organizations"
+          className="hover:text-foreground transition-colors"
+        >
           {t('organization-detail.breadcrumb.organizations')}
         </Link>
         <span>/</span>
-        <span className="text-foreground font-medium">{t('create-organization.title')}</span>
+        <span className="text-foreground font-medium">
+          {t('create-organization.title')}
+        </span>
       </div>
 
       {/* Header */}
@@ -59,8 +70,12 @@ export default function CreateOrganization() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t('create-organization.title')}</h1>
-          <p className="text-muted-foreground">{t('create-organization.subtitle')}</p>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {t('create-organization.title')}
+          </h1>
+          <p className="text-muted-foreground">
+            {t('create-organization.subtitle')}
+          </p>
         </div>
       </div>
 
@@ -74,7 +89,9 @@ export default function CreateOrganization() {
             </div>
             <div>
               <CardTitle>{t('create-organization.details.title')}</CardTitle>
-              <CardDescription>{t('create-organization.details.description')}</CardDescription>
+              <CardDescription>
+                {t('create-organization.details.description')}
+              </CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -87,7 +104,9 @@ export default function CreateOrganization() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="name">{t('create-organization.name-label')}</Label>
+              <Label htmlFor="name">
+                {t('create-organization.name-label')}
+              </Label>
               <Input
                 id="name"
                 placeholder={t('create-organization.name-placeholder')}
@@ -104,22 +123,26 @@ export default function CreateOrganization() {
             {/* Preview */}
             {name && (
               <div className="p-4 rounded-lg bg-muted">
-                <p className="text-sm font-medium mb-2">{t('create-organization.preview.title')}</p>
+                <p className="text-sm font-medium mb-2">
+                  {t('create-organization.preview.title')}
+                </p>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-bold">
                     {name.charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <p className="font-medium">{name}</p>
-                    <p className="text-xs text-muted-foreground">Your new organization</p>
+                    <p className="text-xs text-muted-foreground">
+                      Your new organization
+                    </p>
                   </div>
                 </div>
               </div>
             )}
 
             <div className="flex items-center gap-4 pt-2">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="min-w-[140px]"
                 disabled={isLoading || !name}
               >
@@ -150,7 +173,9 @@ export default function CreateOrganization() {
             <div className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
               <div>
-                <p className="font-medium text-sm">{t('create-organization.tips.what-next.title')}</p>
+                <p className="font-medium text-sm">
+                  {t('create-organization.tips.what-next.title')}
+                </p>
                 <p className="text-sm text-muted-foreground mt-1">
                   {t('create-organization.tips.what-next.description')}
                 </p>
@@ -163,7 +188,9 @@ export default function CreateOrganization() {
             <div className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
               <div>
-                <p className="font-medium text-sm">{t('create-organization.tips.best-practices.title')}</p>
+                <p className="font-medium text-sm">
+                  {t('create-organization.tips.best-practices.title')}
+                </p>
                 <p className="text-sm text-muted-foreground mt-1">
                   {t('create-organization.tips.best-practices.description')}
                 </p>
@@ -173,5 +200,5 @@ export default function CreateOrganization() {
         </Card>
       </div>
     </div>
-  );
+  )
 }

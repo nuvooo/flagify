@@ -1,19 +1,19 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  FlagIcon,
-  Code2,
-  Server,
-  ChevronRight,
-  ChevronDown,
-  Play,
-  Copy,
+import {
   Check,
+  ChevronDown,
+  ChevronRight,
+  Code2,
+  Copy,
+  FlagIcon,
+  Play,
+  Server,
   Shield,
-  Users
-} from 'lucide-react';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { Button } from '@/components/ui/button';
+  Users,
+} from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ThemeToggle } from '@/components/ThemeToggle'
+import { Button } from '@/components/ui/button'
 
 const sidebarNavigation = [
   {
@@ -52,7 +52,7 @@ const sidebarNavigation = [
       { name: 'Coolify', href: '#coolify' },
     ],
   },
-];
+]
 
 const codeSnippets = {
   docker: `git clone https://github.com/nuvooo/togglely.git
@@ -239,17 +239,17 @@ SMTP_PASS=your-app-password
 SMTP_FROM=noreply@togglely.de
 
 # Frontend URL for invite links
-FRONTEND_URL=https://togglely.de`
-};
+FRONTEND_URL=https://togglely.de`,
+}
 
 function CodeBlock({ code, language }: { code: string; language: string }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState(false)
 
   const copyToClipboard = async () => {
-    await navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+    await navigator.clipboard.writeText(code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   return (
     <div className="relative group rounded-lg overflow-hidden bg-gray-950 border border-gray-800 my-4">
@@ -261,7 +261,11 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
           onClick={copyToClipboard}
           className="h-8 text-gray-400 hover:text-white"
         >
-          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          {copied ? (
+            <Check className="h-4 w-4" />
+          ) : (
+            <Copy className="h-4 w-4" />
+          )}
           <span className="ml-2 text-xs">{copied ? 'Copied!' : 'Copy'}</span>
         </Button>
       </div>
@@ -269,54 +273,54 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
         <code>{code}</code>
       </pre>
     </div>
-  );
+  )
 }
 
 export default function Docs() {
-  const [activeSection, setActiveSection] = useState('introduction');
-  const [expandedSections, setExpandedSections] = useState<string[]>(['Getting Started']);
-  const [, setMobileMenuOpen] = useState(false);
-  const observerRef = useRef<IntersectionObserver | null>(null);
+  const [activeSection, setActiveSection] = useState('introduction')
+  const [expandedSections, setExpandedSections] = useState<string[]>([
+    'Getting Started',
+  ])
+  const [, setMobileMenuOpen] = useState(false)
+  const observerRef = useRef<IntersectionObserver | null>(null)
 
   useEffect(() => {
-    const sectionIds = sidebarNavigation.flatMap(section => 
-      section.items.map(item => item.href.replace('#', ''))
-    );
+    const sectionIds = sidebarNavigation.flatMap((section) =>
+      section.items.map((item) => item.href.replace('#', ''))
+    )
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
+            setActiveSection(entry.target.id)
           }
-        });
+        })
       },
       { rootMargin: '-20% 0% -80% 0%' }
-    );
+    )
 
     sectionIds.forEach((id) => {
-      const element = document.getElementById(id);
-      if (element) observerRef.current?.observe(element);
-    });
+      const element = document.getElementById(id)
+      if (element) observerRef.current?.observe(element)
+    })
 
-    return () => observerRef.current?.disconnect();
-  }, []);
+    return () => observerRef.current?.disconnect()
+  }, [])
 
   const toggleSection = (title: string) => {
-    setExpandedSections(prev => 
-      prev.includes(title) 
-        ? prev.filter(t => t !== title)
-        : [...prev, title]
-    );
-  };
+    setExpandedSections((prev) =>
+      prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]
+    )
+  }
 
   const scrollToSection = (href: string) => {
-    const element = document.querySelector(href);
+    const element = document.querySelector(href)
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setMobileMenuOpen(false);
+      element.scrollIntoView({ behavior: 'smooth' })
+      setMobileMenuOpen(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -331,16 +335,21 @@ export default function Docs() {
               <span className="text-xl font-bold">Togglely</span>
             </Link>
             <span className="hidden sm:block text-muted-foreground">/</span>
-            <span className="hidden sm:block text-muted-foreground">Documentation</span>
+            <span className="hidden sm:block text-muted-foreground">
+              Documentation
+            </span>
           </div>
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <Link to="/login?demo=true" className="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+            <Link
+              to="/login?demo=true"
+              className="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
               <Play className="h-4 w-4" />
               Live Demo
             </Link>
-            <Link 
-              to="/register" 
+            <Link
+              to="/register"
               className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
             >
               Get Started
@@ -392,63 +401,90 @@ export default function Docs() {
           {/* Main Content */}
           <main className="flex-1 min-w-0 max-w-3xl">
             <div className="prose prose-gray dark:prose-invert max-w-none">
-              
               {/* Introduction */}
               <section id="introduction" className="mb-16">
-                <h1 className="text-4xl font-bold tracking-tight mb-4">Introduction</h1>
+                <h1 className="text-4xl font-bold tracking-tight mb-4">
+                  Introduction
+                </h1>
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  Togglely is an open-source feature flag management platform designed for modern development teams. 
-                  It allows you to deploy code more frequently and safely by decoupling feature releases from code deployments.
+                  Togglely is an open-source feature flag management platform
+                  designed for modern development teams. It allows you to deploy
+                  code more frequently and safely by decoupling feature releases
+                  from code deployments.
                 </p>
-                
+
                 <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 not-prose">
                   <div className="p-4 rounded-lg border border-border bg-card">
                     <Shield className="h-6 w-6 text-primary mb-2" />
                     <h3 className="font-semibold">Self-Hosted</h3>
-                    <p className="text-sm text-muted-foreground">Your data stays in your infrastructure</p>
+                    <p className="text-sm text-muted-foreground">
+                      Your data stays in your infrastructure
+                    </p>
                   </div>
                   <div className="p-4 rounded-lg border border-border bg-card">
                     <Code2 className="h-6 w-6 text-primary mb-2" />
                     <h3 className="font-semibold">Open Source</h3>
-                    <p className="text-sm text-muted-foreground">MIT Licensed, fully customizable</p>
+                    <p className="text-sm text-muted-foreground">
+                      MIT Licensed, fully customizable
+                    </p>
                   </div>
                   <div className="p-4 rounded-lg border border-border bg-card">
                     <Users className="h-6 w-6 text-primary mb-2" />
                     <h3 className="font-semibold">Multi-Tenant</h3>
-                    <p className="text-sm text-muted-foreground">Organizations & Brands support</p>
+                    <p className="text-sm text-muted-foreground">
+                      Organizations & Brands support
+                    </p>
                   </div>
                   <div className="p-4 rounded-lg border border-border bg-card">
                     <Server className="h-6 w-6 text-primary mb-2" />
                     <h3 className="font-semibold">Enterprise Ready</h3>
-                    <p className="text-sm text-muted-foreground">RBAC, audit logs, API keys</p>
+                    <p className="text-sm text-muted-foreground">
+                      RBAC, audit logs, API keys
+                    </p>
                   </div>
                 </div>
               </section>
 
               {/* Quick Start */}
               <section id="quickstart" className="mb-16">
-                <h2 className="text-3xl font-bold tracking-tight mb-4">Quick Start</h2>
+                <h2 className="text-3xl font-bold tracking-tight mb-4">
+                  Quick Start
+                </h2>
                 <p className="text-muted-foreground mb-6">
-                  Get Togglely running locally in under 5 minutes using Docker Compose.
+                  Get Togglely running locally in under 5 minutes using Docker
+                  Compose.
                 </p>
 
-                <h3 className="text-xl font-semibold mt-8 mb-4">1. Clone and Configure</h3>
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  1. Clone and Configure
+                </h3>
                 <CodeBlock code={codeSnippets.docker} language="bash" />
 
-                <h3 className="text-xl font-semibold mt-8 mb-4">2. Install SDK</h3>
-                <CodeBlock code={`npm install @togglely/sdk-core
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  2. Install SDK
+                </h3>
+                <CodeBlock
+                  code={`npm install @togglely/sdk-core
 # or
-yarn add @togglely/sdk-core`} language="bash" />
+yarn add @togglely/sdk-core`}
+                  language="bash"
+                />
 
-                <h3 className="text-xl font-semibold mt-8 mb-4">3. Use in Your App</h3>
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  3. Use in Your App
+                </h3>
                 <CodeBlock code={codeSnippets.js} language="typescript" />
               </section>
 
               {/* Installation */}
               <section id="installation" className="mb-16">
-                <h2 className="text-3xl font-bold tracking-tight mb-4">Installation</h2>
-                
-                <h3 className="text-xl font-semibold mt-8 mb-4">Prerequisites</h3>
+                <h2 className="text-3xl font-bold tracking-tight mb-4">
+                  Installation
+                </h2>
+
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  Prerequisites
+                </h3>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                   <li>Docker and Docker Compose</li>
                   <li>Node.js 18+ (for SDK development)</li>
@@ -456,7 +492,9 @@ yarn add @togglely/sdk-core`} language="bash" />
                   <li>Redis 6+ (optional, for caching)</li>
                 </ul>
 
-                <h3 className="text-xl font-semibold mt-8 mb-4">Configuration</h3>
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  Configuration
+                </h3>
                 <p className="text-muted-foreground mb-4">
                   Create a <code>.env</code> file with the following variables:
                 </p>
@@ -465,65 +503,102 @@ yarn add @togglely/sdk-core`} language="bash" />
 
               {/* Feature Flags */}
               <section id="flags" className="mb-16">
-                <h2 className="text-3xl font-bold tracking-tight mb-4">Feature Flags</h2>
+                <h2 className="text-3xl font-bold tracking-tight mb-4">
+                  Feature Flags
+                </h2>
                 <p className="text-muted-foreground mb-6">
-                  Feature flags (or feature toggles) allow you to enable or disable functionality without deploying new code.
+                  Feature flags (or feature toggles) allow you to enable or
+                  disable functionality without deploying new code.
                 </p>
 
                 <h3 className="text-xl font-semibold mt-8 mb-4">Flag Types</h3>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3">
-                    <span className="font-mono text-sm bg-primary/10 text-primary px-2 py-1 rounded">BOOLEAN</span>
-                    <span className="text-muted-foreground">Simple on/off toggle</span>
+                    <span className="font-mono text-sm bg-primary/10 text-primary px-2 py-1 rounded">
+                      BOOLEAN
+                    </span>
+                    <span className="text-muted-foreground">
+                      Simple on/off toggle
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <span className="font-mono text-sm bg-primary/10 text-primary px-2 py-1 rounded">STRING</span>
-                    <span className="text-muted-foreground">Text values like themes, configs</span>
+                    <span className="font-mono text-sm bg-primary/10 text-primary px-2 py-1 rounded">
+                      STRING
+                    </span>
+                    <span className="text-muted-foreground">
+                      Text values like themes, configs
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <span className="font-mono text-sm bg-primary/10 text-primary px-2 py-1 rounded">NUMBER</span>
-                    <span className="text-muted-foreground">Numeric values for limits, thresholds</span>
+                    <span className="font-mono text-sm bg-primary/10 text-primary px-2 py-1 rounded">
+                      NUMBER
+                    </span>
+                    <span className="text-muted-foreground">
+                      Numeric values for limits, thresholds
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <span className="font-mono text-sm bg-primary/10 text-primary px-2 py-1 rounded">JSON</span>
-                    <span className="text-muted-foreground">Complex configuration objects</span>
+                    <span className="font-mono text-sm bg-primary/10 text-primary px-2 py-1 rounded">
+                      JSON
+                    </span>
+                    <span className="text-muted-foreground">
+                      Complex configuration objects
+                    </span>
                   </li>
                 </ul>
               </section>
 
               {/* Environments */}
               <section id="environments" className="mb-16">
-                <h2 className="text-3xl font-bold tracking-tight mb-4">Environments</h2>
+                <h2 className="text-3xl font-bold tracking-tight mb-4">
+                  Environments
+                </h2>
                 <p className="text-muted-foreground mb-6">
-                  Environments allow you to manage flags separately for different stages of your deployment pipeline.
+                  Environments allow you to manage flags separately for
+                  different stages of your deployment pipeline.
                 </p>
 
-                <h3 className="text-xl font-semibold mt-8 mb-4">Default Environments</h3>
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  Default Environments
+                </h3>
                 <p className="text-muted-foreground">
                   Each project comes with three default environments:
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-4">
-                  <li><strong>Development</strong> - For local development and testing</li>
-                  <li><strong>Staging</strong> - For pre-production validation</li>
-                  <li><strong>Production</strong> - For live users</li>
+                  <li>
+                    <strong>Development</strong> - For local development and
+                    testing
+                  </li>
+                  <li>
+                    <strong>Staging</strong> - For pre-production validation
+                  </li>
+                  <li>
+                    <strong>Production</strong> - For live users
+                  </li>
                 </ul>
 
                 <div className="mt-6 p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900">
                   <p className="text-sm text-amber-800 dark:text-amber-400">
-                    <strong>Tip:</strong> Environment-specific values override the default flag value. 
-                    This lets you enable a feature in development while keeping it off in production.
+                    <strong>Tip:</strong> Environment-specific values override
+                    the default flag value. This lets you enable a feature in
+                    development while keeping it off in production.
                   </p>
                 </div>
               </section>
 
               {/* Organizations */}
               <section id="organizations" className="mb-16">
-                <h2 className="text-3xl font-bold tracking-tight mb-4">Organizations</h2>
+                <h2 className="text-3xl font-bold tracking-tight mb-4">
+                  Organizations
+                </h2>
                 <p className="text-muted-foreground mb-6">
-                  Organizations are the top-level container in Togglely. They contain projects, members, and API keys.
+                  Organizations are the top-level container in Togglely. They
+                  contain projects, members, and API keys.
                 </p>
 
-                <h3 className="text-xl font-semibold mt-8 mb-4">Creating an Organization</h3>
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  Creating an Organization
+                </h3>
                 <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
                   <li>Sign up or log in to Togglely</li>
                   <li>Click "New Organization" on the organizations page</li>
@@ -533,54 +608,74 @@ yarn add @togglely/sdk-core`} language="bash" />
 
                 <h3 className="text-xl font-semibold mt-8 mb-4">Projects</h3>
                 <p className="text-muted-foreground">
-                  Each organization can have multiple projects. Projects contain feature flags and environments.
-                  There are two project types:
+                  Each organization can have multiple projects. Projects contain
+                  feature flags and environments. There are two project types:
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-4">
-                  <li><strong>Single</strong> - Standard project with feature flags</li>
-                  <li><strong>Multi</strong> - Supports multiple brands/tenants with brand-specific flags</li>
+                  <li>
+                    <strong>Single</strong> - Standard project with feature
+                    flags
+                  </li>
+                  <li>
+                    <strong>Multi</strong> - Supports multiple brands/tenants
+                    with brand-specific flags
+                  </li>
                 </ul>
               </section>
 
               {/* Roles */}
               <section id="roles" className="mb-16">
-                <h2 className="text-3xl font-bold tracking-tight mb-4">Roles & Permissions</h2>
+                <h2 className="text-3xl font-bold tracking-tight mb-4">
+                  Roles & Permissions
+                </h2>
                 <p className="text-muted-foreground mb-6">
-                  Togglely uses role-based access control (RBAC) to manage permissions within organizations.
+                  Togglely uses role-based access control (RBAC) to manage
+                  permissions within organizations.
                 </p>
 
                 <div className="space-y-4">
                   <div className="p-4 rounded-lg border border-border">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="font-semibold">OWNER</span>
-                      <span className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300 px-2 py-0.5 rounded-full">Full Access</span>
+                      <span className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300 px-2 py-0.5 rounded-full">
+                        Full Access
+                      </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Can manage organization settings, delete organization, manage billing, and all other actions.
+                      Can manage organization settings, delete organization,
+                      manage billing, and all other actions.
                     </p>
                   </div>
                   <div className="p-4 rounded-lg border border-border">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="font-semibold">ADMIN</span>
-                      <span className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 px-2 py-0.5 rounded-full">Manager</span>
+                      <span className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 px-2 py-0.5 rounded-full">
+                        Manager
+                      </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Can create projects, manage members, manage API keys, and configure settings. Cannot delete organization.
+                      Can create projects, manage members, manage API keys, and
+                      configure settings. Cannot delete organization.
                     </p>
                   </div>
                   <div className="p-4 rounded-lg border border-border">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="font-semibold">MEMBER</span>
-                      <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 px-2 py-0.5 rounded-full">Developer</span>
+                      <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 px-2 py-0.5 rounded-full">
+                        Developer
+                      </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Can create and manage feature flags, toggle values. Cannot manage organization settings or members.
+                      Can create and manage feature flags, toggle values. Cannot
+                      manage organization settings or members.
                     </p>
                   </div>
                   <div className="p-4 rounded-lg border border-border">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="font-semibold">VIEWER</span>
-                      <span className="text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 px-2 py-0.5 rounded-full">Read Only</span>
+                      <span className="text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 px-2 py-0.5 rounded-full">
+                        Read Only
+                      </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Can view flags and their values. Cannot make any changes.
@@ -591,13 +686,22 @@ yarn add @togglely/sdk-core`} language="bash" />
 
               {/* SDK */}
               <section id="sdk-js" className="mb-16">
-                <h2 className="text-3xl font-bold tracking-tight mb-4">JavaScript/TypeScript SDK</h2>
+                <h2 className="text-3xl font-bold tracking-tight mb-4">
+                  JavaScript/TypeScript SDK
+                </h2>
                 <p className="text-muted-foreground mb-6">
-                  The official JavaScript SDK provides a simple interface for evaluating feature flags with built-in caching and offline support.
+                  The official JavaScript SDK provides a simple interface for
+                  evaluating feature flags with built-in caching and offline
+                  support.
                 </p>
 
-                <h3 className="text-xl font-semibold mt-8 mb-4">Installation</h3>
-                <CodeBlock code={`npm install @togglely/sdk-core`} language="bash" />
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  Installation
+                </h3>
+                <CodeBlock
+                  code={`npm install @togglely/sdk-core`}
+                  language="bash"
+                />
 
                 <h3 className="text-xl font-semibold mt-8 mb-4">Basic Usage</h3>
                 <CodeBlock code={codeSnippets.js} language="typescript" />
@@ -605,75 +709,115 @@ yarn add @togglely/sdk-core`} language="bash" />
 
               {/* React SDK */}
               <section id="sdk-react" className="mb-16">
-                <h2 className="text-3xl font-bold tracking-tight mb-4">React Integration</h2>
+                <h2 className="text-3xl font-bold tracking-tight mb-4">
+                  React Integration
+                </h2>
                 <p className="text-muted-foreground mb-6">
-                  Use Togglely with React using hooks and context for seamless feature flag management.
+                  Use Togglely with React using hooks and context for seamless
+                  feature flag management.
                 </p>
 
-                <h3 className="text-xl font-semibold mt-8 mb-4">Installation</h3>
-                <CodeBlock code={`npm install @togglely/sdk-core`} language="bash" />
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  Installation
+                </h3>
+                <CodeBlock
+                  code={`npm install @togglely/sdk-core`}
+                  language="bash"
+                />
 
-                <h3 className="text-xl font-semibold mt-8 mb-4">Usage with Hooks</h3>
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  Usage with Hooks
+                </h3>
                 <CodeBlock code={codeSnippets.react} language="tsx" />
 
                 <div className="mt-6 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900">
                   <p className="text-sm text-blue-800 dark:text-blue-400">
-                    <strong>Tip:</strong> Initialize the client outside your components to ensure a single instance across re-renders.
+                    <strong>Tip:</strong> Initialize the client outside your
+                    components to ensure a single instance across re-renders.
                   </p>
                 </div>
               </section>
 
               {/* Svelte SDK */}
               <section id="sdk-svelte" className="mb-16">
-                <h2 className="text-3xl font-bold tracking-tight mb-4">Svelte Integration</h2>
+                <h2 className="text-3xl font-bold tracking-tight mb-4">
+                  Svelte Integration
+                </h2>
                 <p className="text-muted-foreground mb-6">
-                  Integrate Togglely with Svelte using reactive statements and stores.
+                  Integrate Togglely with Svelte using reactive statements and
+                  stores.
                 </p>
 
-                <h3 className="text-xl font-semibold mt-8 mb-4">Installation</h3>
-                <CodeBlock code={`npm install @togglely/sdk-core`} language="bash" />
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  Installation
+                </h3>
+                <CodeBlock
+                  code={`npm install @togglely/sdk-core`}
+                  language="bash"
+                />
 
-                <h3 className="text-xl font-semibold mt-8 mb-4">Component Usage</h3>
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  Component Usage
+                </h3>
                 <CodeBlock code={codeSnippets.svelte} language="svelte" />
 
                 <div className="mt-6 p-4 rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900">
                   <p className="text-sm text-orange-800 dark:text-orange-400">
-                    <strong>Tip:</strong> Create a Svelte store wrapper for reactive flag updates across your app.
+                    <strong>Tip:</strong> Create a Svelte store wrapper for
+                    reactive flag updates across your app.
                   </p>
                 </div>
               </section>
 
               {/* Vue SDK */}
               <section id="sdk-vue" className="mb-16">
-                <h2 className="text-3xl font-bold tracking-tight mb-4">Vue.js Integration</h2>
+                <h2 className="text-3xl font-bold tracking-tight mb-4">
+                  Vue.js Integration
+                </h2>
                 <p className="text-muted-foreground mb-6">
-                  Use Togglely with Vue 3 using the Composition API and custom composables.
+                  Use Togglely with Vue 3 using the Composition API and custom
+                  composables.
                 </p>
 
-                <h3 className="text-xl font-semibold mt-8 mb-4">Installation</h3>
-                <CodeBlock code={`npm install @togglely/sdk-core`} language="bash" />
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  Installation
+                </h3>
+                <CodeBlock
+                  code={`npm install @togglely/sdk-core`}
+                  language="bash"
+                />
 
-                <h3 className="text-xl font-semibold mt-8 mb-4">Usage with Composition API</h3>
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  Usage with Composition API
+                </h3>
                 <CodeBlock code={codeSnippets.vue} language="vue" />
 
                 <div className="mt-6 p-4 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900">
                   <p className="text-sm text-green-800 dark:text-green-400">
-                    <strong>Tip:</strong> Create a reusable <code>useFeatureFlag</code> composable for cleaner component code.
+                    <strong>Tip:</strong> Create a reusable{' '}
+                    <code>useFeatureFlag</code> composable for cleaner component
+                    code.
                   </p>
                 </div>
               </section>
 
               {/* SDK Config */}
               <section id="sdk-config" className="mb-16">
-                <h2 className="text-3xl font-bold tracking-tight mb-4">SDK Configuration</h2>
-                
-                <h3 className="text-xl font-semibold mt-8 mb-4">Configuration Options</h3>
+                <h2 className="text-3xl font-bold tracking-tight mb-4">
+                  SDK Configuration
+                </h2>
+
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  Configuration Options
+                </h3>
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">
                       <th className="text-left py-2 font-semibold">Option</th>
                       <th className="text-left py-2 font-semibold">Type</th>
-                      <th className="text-left py-2 font-semibold">Description</th>
+                      <th className="text-left py-2 font-semibold">
+                        Description
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="text-muted-foreground">
@@ -690,17 +834,23 @@ yarn add @togglely/sdk-core`} language="bash" />
                     <tr className="border-b border-border/50">
                       <td className="py-2 font-mono">environment</td>
                       <td className="py-2">string</td>
-                      <td className="py-2">Environment name (dev, staging, prod)</td>
+                      <td className="py-2">
+                        Environment name (dev, staging, prod)
+                      </td>
                     </tr>
                     <tr className="border-b border-border/50">
                       <td className="py-2 font-mono">baseUrl</td>
                       <td className="py-2">string</td>
-                      <td className="py-2">Custom API base URL (for self-hosted)</td>
+                      <td className="py-2">
+                        Custom API base URL (for self-hosted)
+                      </td>
                     </tr>
                     <tr className="border-b border-border/50">
                       <td className="py-2 font-mono">refreshInterval</td>
                       <td className="py-2">number</td>
-                      <td className="py-2">Cache refresh interval in ms (default: 60000)</td>
+                      <td className="py-2">
+                        Cache refresh interval in ms (default: 60000)
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -708,16 +858,22 @@ yarn add @togglely/sdk-core`} language="bash" />
 
               {/* REST API */}
               <section id="sdk-rest" className="mb-16">
-                <h2 className="text-3xl font-bold tracking-tight mb-4">REST API</h2>
+                <h2 className="text-3xl font-bold tracking-tight mb-4">
+                  REST API
+                </h2>
                 <p className="text-muted-foreground mb-6">
-                  The REST API allows you to evaluate feature flags from any language or platform.
+                  The REST API allows you to evaluate feature flags from any
+                  language or platform.
                 </p>
 
-                <h3 className="text-xl font-semibold mt-8 mb-4">Evaluate Flags</h3>
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  Evaluate Flags
+                </h3>
                 <CodeBlock code={codeSnippets.rest} language="bash" />
 
                 <h3 className="text-xl font-semibold mt-8 mb-4">Response</h3>
-                <CodeBlock code={`{
+                <CodeBlock
+                  code={`{
   "flags": {
     "new-feature": {
       "key": "new-feature",
@@ -732,72 +888,107 @@ yarn add @togglely/sdk-core`} language="bash" />
       "type": "STRING"
     }
   }
-}`} language="json" />
+}`}
+                  language="json"
+                />
               </section>
 
               {/* Docker */}
               <section id="docker" className="mb-16">
-                <h2 className="text-3xl font-bold tracking-tight mb-4">Docker Compose</h2>
+                <h2 className="text-3xl font-bold tracking-tight mb-4">
+                  Docker Compose
+                </h2>
                 <p className="text-muted-foreground mb-6">
-                  The easiest way to run Togglely is with Docker Compose. This sets up the backend, frontend, MongoDB, and Redis.
+                  The easiest way to run Togglely is with Docker Compose. This
+                  sets up the backend, frontend, MongoDB, and Redis.
                 </p>
 
                 <CodeBlock code={codeSnippets.docker} language="bash" />
 
                 <h3 className="text-xl font-semibold mt-8 mb-4">Services</h3>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                  <li><strong>frontend</strong> - React app served via Nginx (port 80)</li>
-                  <li><strong>backend</strong> - NestJS API (port 4000)</li>
-                  <li><strong>mongodb</strong> - Database for storing flags and configs</li>
-                  <li><strong>redis</strong> - Caching layer (optional)</li>
+                  <li>
+                    <strong>frontend</strong> - React app served via Nginx (port
+                    80)
+                  </li>
+                  <li>
+                    <strong>backend</strong> - NestJS API (port 4000)
+                  </li>
+                  <li>
+                    <strong>mongodb</strong> - Database for storing flags and
+                    configs
+                  </li>
+                  <li>
+                    <strong>redis</strong> - Caching layer (optional)
+                  </li>
                 </ul>
               </section>
 
               {/* Environment Variables */}
               <section id="env" className="mb-16">
-                <h2 className="text-3xl font-bold tracking-tight mb-4">Environment Variables</h2>
+                <h2 className="text-3xl font-bold tracking-tight mb-4">
+                  Environment Variables
+                </h2>
                 <CodeBlock code={codeSnippets.env} language="env" />
 
-                <h3 className="text-xl font-semibold mt-8 mb-4">Required Variables</h3>
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  Required Variables
+                </h3>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                  <li><code className="bg-muted px-1 rounded">DATABASE_URL</code> - MongoDB connection string</li>
-                  <li><code className="bg-muted px-1 rounded">JWT_SECRET</code> - Secret for signing JWT tokens</li>
+                  <li>
+                    <code className="bg-muted px-1 rounded">DATABASE_URL</code>{' '}
+                    - MongoDB connection string
+                  </li>
+                  <li>
+                    <code className="bg-muted px-1 rounded">JWT_SECRET</code> -
+                    Secret for signing JWT tokens
+                  </li>
                 </ul>
 
-                <h3 className="text-xl font-semibold mt-8 mb-4">Email Configuration (Optional)</h3>
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  Email Configuration (Optional)
+                </h3>
                 <p className="text-muted-foreground">
-                  Configure SMTP settings to enable email notifications for invites and password resets.
+                  Configure SMTP settings to enable email notifications for
+                  invites and password resets.
                 </p>
               </section>
 
               {/* Coolify */}
               <section id="coolify" className="mb-16">
-                <h2 className="text-3xl font-bold tracking-tight mb-4">Deploying with Coolify</h2>
+                <h2 className="text-3xl font-bold tracking-tight mb-4">
+                  Deploying with Coolify
+                </h2>
                 <p className="text-muted-foreground mb-6">
-                  Coolify is an open-source alternative to Heroku/Netlify that makes self-hosting easy.
+                  Coolify is an open-source alternative to Heroku/Netlify that
+                  makes self-hosting easy.
                 </p>
 
-                <h3 className="text-xl font-semibold mt-8 mb-4">One-Click Deploy</h3>
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  One-Click Deploy
+                </h3>
                 <ol className="list-decimal list-inside space-y-3 text-muted-foreground">
                   <li>Install Coolify on your server</li>
                   <li>Create a new resource and select "Public Repository"</li>
-                  <li>Enter <code>https://github.com/nuvooo/togglely</code></li>
+                  <li>
+                    Enter <code>https://github.com/nuvooo/togglely</code>
+                  </li>
                   <li>Configure environment variables</li>
                   <li>Deploy!</li>
                 </ol>
 
                 <div className="mt-6 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900">
                   <p className="text-sm text-blue-800 dark:text-blue-400">
-                    <strong>Note:</strong> Make sure to set up MongoDB and Redis as separate services in Coolify, 
-                    or use managed services like MongoDB Atlas.
+                    <strong>Note:</strong> Make sure to set up MongoDB and Redis
+                    as separate services in Coolify, or use managed services
+                    like MongoDB Atlas.
                   </p>
                 </div>
               </section>
-
             </div>
           </main>
         </div>
       </div>
     </div>
-  );
+  )
 }

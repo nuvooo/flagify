@@ -1,88 +1,99 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { Switch } from '@headlessui/react'
 import {
-  FlagIcon,
   ArrowLeftIcon,
-  TrashIcon,
+  BeakerIcon,
   CheckCircleIcon,
-  XCircleIcon,
-  PlusIcon,
+  ClockIcon,
   CodeBracketIcon,
   DocumentDuplicateIcon,
-  ClockIcon,
-  BeakerIcon,
+  FlagIcon,
+  PlusIcon,
+  TrashIcon,
   UsersIcon,
-} from '@heroicons/react/24/outline';
-import { Switch } from '@headlessui/react';
-import api from '@/lib/api';
-import clsx from 'clsx';
+  XCircleIcon,
+} from '@heroicons/react/24/outline'
+import clsx from 'clsx'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import api from '@/lib/api'
 
 // Helper to validate MongoDB ObjectID format (24-char hex)
 const isValidObjectId = (id: string | undefined | null): id is string => {
-  if (!id || typeof id !== 'string') return false;
-  if (id === 'undefined' || id === 'null' || id === 'new') return false;
-  return /^[0-9a-fA-F]{24}$/.test(id);
-};
+  if (!id || typeof id !== 'string') return false
+  if (id === 'undefined' || id === 'null' || id === 'new') return false
+  return /^[0-9a-fA-F]{24}$/.test(id)
+}
 
 interface FeatureFlag {
-  id: string;
-  name: string;
-  key: string;
-  description: string | null;
-  type: 'BOOLEAN' | 'STRING' | 'NUMBER' | 'JSON';
-  projectId: string;
-  projectName: string;
-  createdAt: string;
-  updatedAt: string;
+  id: string
+  name: string
+  key: string
+  description: string | null
+  type: 'BOOLEAN' | 'STRING' | 'NUMBER' | 'JSON'
+  projectId: string
+  projectName: string
+  createdAt: string
+  updatedAt: string
 }
 
 interface EnvironmentState {
-  id: string;
-  name: string;
-  isEnabled: boolean;
-  defaultValue: boolean | string | number | object;
+  id: string
+  name: string
+  isEnabled: boolean
+  defaultValue: boolean | string | number | object
 }
 
 interface TargetingRule {
-  id: string;
-  name: string;
-  operator: 'EQUALS' | 'NOT_EQUALS' | 'CONTAINS' | 'IN' | 'NOT_IN' | 'GREATER_THAN' | 'LESS_THAN';
-  attribute: string;
-  value: string;
-  isEnabled: boolean;
+  id: string
+  name: string
+  operator:
+    | 'EQUALS'
+    | 'NOT_EQUALS'
+    | 'CONTAINS'
+    | 'IN'
+    | 'NOT_IN'
+    | 'GREATER_THAN'
+    | 'LESS_THAN'
+  attribute: string
+  value: string
+  isEnabled: boolean
 }
 
 export default function FeatureFlagDetail() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
 
   // Validate flagId early
-  const flagId = isValidObjectId(id) ? id : null;
+  const flagId = isValidObjectId(id) ? id : null
 
-  const [flag, setFlag] = useState<FeatureFlag | null>(null);
-  const [environmentStates, setEnvironmentStates] = useState<EnvironmentState[]>([]);
-  const [targetingRules, setTargetingRules] = useState<TargetingRule[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'targeting' | 'history'>('overview');
-  const [showNewRuleForm, setShowNewRuleForm] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editName, setEditName] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [editDefaultValue, setEditDefaultValue] = useState<string>('');
-  const [editEnvironmentId, setEditEnvironmentId] = useState<string>('');
+  const [flag, setFlag] = useState<FeatureFlag | null>(null)
+  const [environmentStates, setEnvironmentStates] = useState<
+    EnvironmentState[]
+  >([])
+  const [targetingRules, setTargetingRules] = useState<TargetingRule[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState<
+    'overview' | 'targeting' | 'history'
+  >('overview')
+  const [showNewRuleForm, setShowNewRuleForm] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editDescription, setEditDescription] = useState('')
+  const [editDefaultValue, setEditDefaultValue] = useState<string>('')
+  const [editEnvironmentId, setEditEnvironmentId] = useState<string>('')
   const [newRule, setNewRule] = useState({
     name: '',
     attribute: '',
     operator: 'EQUALS' as TargetingRule['operator'],
     value: '',
-  });
+  })
 
   useEffect(() => {
     // Skip fetch if flagId is invalid
     if (!flagId) {
-      setIsLoading(false);
-      return;
+      setIsLoading(false)
+      return
     }
 
     const fetchData = async () => {
@@ -91,12 +102,12 @@ export default function FeatureFlagDetail() {
           api.get(`/feature-flags/${flagId}`),
           api.get(`/feature-flags/${flagId}/environments`),
           api.get(`/feature-flags/${flagId}/targeting-rules`),
-        ]);
-        setFlag(flagRes.data.featureFlag);
-        setEnvironmentStates(envStatesRes.data.environments);
-        setTargetingRules(rulesRes.data.rules);
+        ])
+        setFlag(flagRes.data.featureFlag)
+        setEnvironmentStates(envStatesRes.data.environments)
+        setTargetingRules(rulesRes.data.rules)
       } catch (error) {
-        console.error('Failed to fetch feature flag data:', error);
+        console.error('Failed to fetch feature flag data:', error)
         // Mock data for development
         setFlag({
           id: flagId,
@@ -108,7 +119,7 @@ export default function FeatureFlagDetail() {
           projectName: 'Web Application',
           createdAt: '2024-01-05T00:00:00Z',
           updatedAt: '2024-01-15T10:30:00Z',
-        });
+        })
         setEnvironmentStates([
           {
             id: '1',
@@ -128,7 +139,7 @@ export default function FeatureFlagDetail() {
             isEnabled: false,
             defaultValue: false,
           },
-        ]);
+        ])
         setTargetingRules([
           {
             id: '1',
@@ -146,42 +157,45 @@ export default function FeatureFlagDetail() {
             value: '@company.com',
             isEnabled: true,
           },
-        ]);
+        ])
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
-
-    fetchData();
-  }, [flagId]);
-
-  const handleToggleEnvironment = async (envId: string, currentValue: boolean) => {
-    if (!flagId || !isValidObjectId(envId)) {
-      console.error('Invalid flagId or envId:', flagId, envId);
-      return;
     }
-    const newEnabled = !currentValue;
+
+    fetchData()
+  }, [flagId])
+
+  const handleToggleEnvironment = async (
+    envId: string,
+    currentValue: boolean
+  ) => {
+    if (!flagId || !isValidObjectId(envId)) {
+      console.error('Invalid flagId or envId:', flagId, envId)
+      return
+    }
+    const newEnabled = !currentValue
     try {
       await api.patch(`/feature-flags/${flagId}/environments/${envId}`, {
         isEnabled: newEnabled,
-      });
+      })
       setEnvironmentStates((prev) =>
         prev.map((env) => {
           if (env.id === envId) {
             // For BOOLEAN flags, sync defaultValue with enabled state
-            const updates: Partial<EnvironmentState> = { isEnabled: newEnabled };
+            const updates: Partial<EnvironmentState> = { isEnabled: newEnabled }
             if (flag?.type === 'BOOLEAN') {
-              updates.defaultValue = newEnabled;
+              updates.defaultValue = newEnabled
             }
-            return { ...env, ...updates };
+            return { ...env, ...updates }
           }
-          return env;
+          return env
         })
-      );
+      )
     } catch (error) {
-      console.error('Failed to toggle environment:', error);
+      console.error('Failed to toggle environment:', error)
     }
-  };
+  }
 
   // const handleDefaultValueChange = async (
   //   envId: string,
@@ -202,27 +216,30 @@ export default function FeatureFlagDetail() {
   // };
 
   const handleDelete = async () => {
-    if (!flagId) return;
-    if (!confirm('Are you sure you want to delete this feature flag?')) return;
+    if (!flagId) return
+    if (!confirm('Are you sure you want to delete this feature flag?')) return
     try {
-      await api.delete(`/feature-flags/${flagId}`);
-      navigate('/feature-flags');
+      await api.delete(`/feature-flags/${flagId}`)
+      navigate('/feature-flags')
     } catch (error) {
-      console.error('Failed to delete feature flag:', error);
+      console.error('Failed to delete feature flag:', error)
     }
-  };
+  }
 
   const handleAddRule = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!flagId) return;
-    setIsSaving(true);
+    e.preventDefault()
+    if (!flagId) return
+    setIsSaving(true)
     try {
-      const response = await api.post(`/feature-flags/${flagId}/targeting-rules`, newRule);
-      setTargetingRules([...targetingRules, response.data.rule]);
-      setNewRule({ name: '', attribute: '', operator: 'EQUALS', value: '' });
-      setShowNewRuleForm(false);
+      const response = await api.post(
+        `/feature-flags/${flagId}/targeting-rules`,
+        newRule
+      )
+      setTargetingRules([...targetingRules, response.data.rule])
+      setNewRule({ name: '', attribute: '', operator: 'EQUALS', value: '' })
+      setShowNewRuleForm(false)
     } catch (error) {
-      console.error('Failed to add targeting rule:', error);
+      console.error('Failed to add targeting rule:', error)
       // Mock: Add to local state
       setTargetingRules([
         ...targetingRules,
@@ -231,67 +248,67 @@ export default function FeatureFlagDetail() {
           ...newRule,
           isEnabled: true,
         },
-      ]);
-      setNewRule({ name: '', attribute: '', operator: 'EQUALS', value: '' });
-      setShowNewRuleForm(false);
+      ])
+      setNewRule({ name: '', attribute: '', operator: 'EQUALS', value: '' })
+      setShowNewRuleForm(false)
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
-  };
+  }
 
   const handleDeleteRule = async (ruleId: string) => {
     if (!flagId || !isValidObjectId(ruleId)) {
-      console.error('Invalid flagId or ruleId:', flagId, ruleId);
-      return;
+      console.error('Invalid flagId or ruleId:', flagId, ruleId)
+      return
     }
-    if (!confirm('Are you sure you want to delete this rule?')) return;
+    if (!confirm('Are you sure you want to delete this rule?')) return
     try {
-      await api.delete(`/feature-flags/${flagId}/targeting-rules/${ruleId}`);
-      setTargetingRules(targetingRules.filter((r) => r.id !== ruleId));
+      await api.delete(`/feature-flags/${flagId}/targeting-rules/${ruleId}`)
+      setTargetingRules(targetingRules.filter((r) => r.id !== ruleId))
     } catch (error) {
-      console.error('Failed to delete targeting rule:', error);
+      console.error('Failed to delete targeting rule:', error)
     }
-  };
+  }
 
   const handleToggleRule = async (ruleId: string, currentValue: boolean) => {
     if (!flagId || !isValidObjectId(ruleId)) {
-      console.error('Invalid flagId or ruleId:', flagId, ruleId);
-      return;
+      console.error('Invalid flagId or ruleId:', flagId, ruleId)
+      return
     }
     try {
       await api.patch(`/feature-flags/${flagId}/targeting-rules/${ruleId}`, {
         isEnabled: !currentValue,
-      });
+      })
       setTargetingRules((prev) =>
         prev.map((rule) =>
           rule.id === ruleId ? { ...rule, isEnabled: !currentValue } : rule
         )
-      );
+      )
     } catch (error) {
-      console.error('Failed to toggle rule:', error);
+      console.error('Failed to toggle rule:', error)
     }
-  };
+  }
 
   const copyKeyToClipboard = () => {
     if (flag?.key) {
-      navigator.clipboard.writeText(flag.key);
+      navigator.clipboard.writeText(flag.key)
     }
-  };
+  }
 
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'BOOLEAN':
-        return 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-400 ring-1 ring-inset ring-blue-700/10 dark:ring-blue-400/20';
+        return 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-400 ring-1 ring-inset ring-blue-700/10 dark:ring-blue-400/20'
       case 'STRING':
-        return 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400 ring-1 ring-inset ring-green-600/20 dark:ring-green-400/20';
+        return 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400 ring-1 ring-inset ring-green-600/20 dark:ring-green-400/20'
       case 'NUMBER':
-        return 'bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-400 ring-1 ring-inset ring-purple-700/10 dark:ring-purple-400/20';
+        return 'bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-400 ring-1 ring-inset ring-purple-700/10 dark:ring-purple-400/20'
       case 'JSON':
-        return 'bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-400 ring-1 ring-inset ring-orange-700/10 dark:ring-orange-400/20';
+        return 'bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-400 ring-1 ring-inset ring-orange-700/10 dark:ring-orange-400/20'
       default:
-        return 'bg-muted text-foreground ring-1 ring-inset ring-border';
+        return 'bg-muted text-foreground ring-1 ring-inset ring-border'
     }
-  };
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -300,8 +317,8 @@ export default function FeatureFlagDetail() {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    });
-  };
+    })
+  }
 
   if (isLoading) {
     return (
@@ -317,7 +334,7 @@ export default function FeatureFlagDetail() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   if (!flag) {
@@ -337,7 +354,7 @@ export default function FeatureFlagDetail() {
           </Link>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -403,11 +420,13 @@ export default function FeatureFlagDetail() {
             </button>
             <button
               onClick={() => {
-                setEditName(flag?.name || '');
-                setEditDescription(flag?.description || '');
-                setEditEnvironmentId(environmentStates[0]?.id || '');
-                setEditDefaultValue(String(environmentStates[0]?.defaultValue || ''));
-                setIsEditing(true);
+                setEditName(flag?.name || '')
+                setEditDescription(flag?.description || '')
+                setEditEnvironmentId(environmentStates[0]?.id || '')
+                setEditDefaultValue(
+                  String(environmentStates[0]?.defaultValue || '')
+                )
+                setIsEditing(true)
               }}
               className="inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
             >
@@ -416,15 +435,19 @@ export default function FeatureFlagDetail() {
           </div>
         </div>
         {flag.description && !isEditing && (
-          <p className="mt-4 text-sm text-muted-foreground max-w-3xl">{flag.description}</p>
+          <p className="mt-4 text-sm text-muted-foreground max-w-3xl">
+            {flag.description}
+          </p>
         )}
-        
+
         {/* Edit Form */}
         {isEditing && flag && (
           <div className="mt-4 bg-muted p-4 rounded-lg border border-border">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-foreground">Flag Name</label>
+                <label className="block text-sm font-medium text-foreground">
+                  Flag Name
+                </label>
                 <input
                   type="text"
                   value={editName}
@@ -433,7 +456,9 @@ export default function FeatureFlagDetail() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground">Description</label>
+                <label className="block text-sm font-medium text-foreground">
+                  Description
+                </label>
                 <textarea
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
@@ -441,20 +466,26 @@ export default function FeatureFlagDetail() {
                   className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                 />
               </div>
-              
+
               {/* Edit Default Value per Environment */}
               <div className="border-t border-border pt-4">
-                <h4 className="text-sm font-medium text-foreground mb-3">Edit Default Value</h4>
+                <h4 className="text-sm font-medium text-foreground mb-3">
+                  Edit Default Value
+                </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-muted-foreground">Environment</label>
+                    <label className="block text-sm text-muted-foreground">
+                      Environment
+                    </label>
                     <select
                       value={editEnvironmentId}
                       onChange={(e) => {
-                        const envId = e.target.value;
-                        setEditEnvironmentId(envId);
-                        const env = environmentStates.find(es => es.id === envId);
-                        setEditDefaultValue(String(env?.defaultValue || ''));
+                        const envId = e.target.value
+                        setEditEnvironmentId(envId)
+                        const env = environmentStates.find(
+                          (es) => es.id === envId
+                        )
+                        setEditDefaultValue(String(env?.defaultValue || ''))
                       }}
                       className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     >
@@ -490,7 +521,11 @@ export default function FeatureFlagDetail() {
                         type="text"
                         value={editDefaultValue}
                         onChange={(e) => setEditDefaultValue(e.target.value)}
-                        placeholder={flag.type === 'JSON' ? '{"key": "value"}' : 'Enter value'}
+                        placeholder={
+                          flag.type === 'JSON'
+                            ? '{"key": "value"}'
+                            : 'Enter value'
+                        }
                         className="mt-1 block w-full rounded-md border border-input bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                       />
                     )}
@@ -507,34 +542,37 @@ export default function FeatureFlagDetail() {
                 </button>
                 <button
                   onClick={async () => {
-                    if (!flagId) return;
-                    setIsSaving(true);
+                    if (!flagId) return
+                    setIsSaving(true)
                     try {
                       // Update flag name/description
                       await api.patch(`/feature-flags/${flagId}`, {
                         name: editName,
                         description: editDescription,
-                      });
-                      
+                      })
+
                       // Update default value for selected environment
                       if (editEnvironmentId) {
-                        await api.patch(`/feature-flags/${flagId}/environments/${editEnvironmentId}`, {
-                          defaultValue: editDefaultValue,
-                        });
+                        await api.patch(
+                          `/feature-flags/${flagId}/environments/${editEnvironmentId}`,
+                          {
+                            defaultValue: editDefaultValue,
+                          }
+                        )
                       }
-                      
+
                       // Refresh data
                       const [flagRes, envStatesRes] = await Promise.all([
                         api.get(`/feature-flags/${flagId}`),
                         api.get(`/feature-flags/${flagId}/environments`),
-                      ]);
-                      setFlag(flagRes.data.featureFlag);
-                      setEnvironmentStates(envStatesRes.data.environments);
-                      setIsEditing(false);
+                      ])
+                      setFlag(flagRes.data.featureFlag)
+                      setEnvironmentStates(envStatesRes.data.environments)
+                      setIsEditing(false)
                     } catch (error) {
-                      console.error('Failed to update flag:', error);
+                      console.error('Failed to update flag:', error)
                     } finally {
-                      setIsSaving(false);
+                      setIsSaving(false)
                     }
                   }}
                   disabled={isSaving || !editName}
@@ -714,7 +752,9 @@ if (isEnabled) {
             <div className="px-4 py-4 sm:px-6">
               <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
                 <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Created</dt>
+                  <dt className="text-sm font-medium text-muted-foreground">
+                    Created
+                  </dt>
                   <dd className="mt-1 text-sm text-foreground">
                     {formatDate(flag.createdAt)}
                   </dd>
@@ -728,13 +768,17 @@ if (isEnabled) {
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Flag ID</dt>
+                  <dt className="text-sm font-medium text-muted-foreground">
+                    Flag ID
+                  </dt>
                   <dd className="mt-1 text-sm text-foreground font-mono">
                     {flag.id}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Type</dt>
+                  <dt className="text-sm font-medium text-muted-foreground">
+                    Type
+                  </dt>
                   <dd className="mt-1 text-sm text-foreground">{flag.type}</dd>
                 </div>
               </dl>
@@ -989,7 +1033,9 @@ if (isEnabled) {
                         <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
                           <div>
                             <p className="text-sm text-foreground">
-                              <span className="font-medium">{event.action}</span>{' '}
+                              <span className="font-medium">
+                                {event.action}
+                              </span>{' '}
                               - {event.description}
                             </p>
                             <p className="text-xs text-muted-foreground">
@@ -1010,5 +1056,5 @@ if (isEnabled) {
         </div>
       )}
     </div>
-  );
+  )
 }

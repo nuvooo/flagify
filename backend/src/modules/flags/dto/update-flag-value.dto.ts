@@ -1,15 +1,15 @@
-import { IsBoolean, IsString, IsOptional, IsUUID } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, IsUUID } from 'class-validator'
 
 export class UpdateFlagValueDto {
   @IsBoolean()
   @IsOptional()
-  enabled?: boolean;
+  enabled?: boolean
 
   @IsString()
   @IsOptional()
-  value?: string;
+  value?: string
 
   @IsUUID()
   @IsOptional()
-  brandId?: string | null;
+  brandId?: string | null
 }

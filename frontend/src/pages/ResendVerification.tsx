@@ -1,33 +1,41 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Mail, CheckCircle } from 'lucide-react';
-import api from '@/lib/axios';
+import { CheckCircle, Loader2, Mail } from 'lucide-react'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import api from '@/lib/axios'
 
 export default function ResendVerification() {
-  const [email, setEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
+    e.preventDefault()
+    setIsSubmitting(true)
+    setError(null)
 
     try {
-      await api.post('/auth/resend-verification', { email });
-      setSuccess(true);
+      await api.post('/auth/resend-verification', { email })
+      setSuccess(true)
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to send verification email');
+      setError(
+        err.response?.data?.message || 'Failed to send verification email'
+      )
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   if (success) {
     return (
@@ -35,9 +43,12 @@ export default function ResendVerification() {
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
             <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Verification Email Sent!</h2>
+            <h2 className="text-2xl font-bold mb-2">
+              Verification Email Sent!
+            </h2>
             <p className="text-muted-foreground mb-4">
-              Please check your email <strong>{email}</strong> for the verification link.
+              Please check your email <strong>{email}</strong> for the
+              verification link.
             </p>
             <Button asChild variant="outline" className="w-full">
               <Link to="/login">Back to Login</Link>
@@ -45,7 +56,7 @@ export default function ResendVerification() {
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   return (
@@ -101,5 +112,5 @@ export default function ResendVerification() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

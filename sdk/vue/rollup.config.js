@@ -1,4 +1,4 @@
-import typescript from '@rollup/plugin-typescript';
+import typescript from '@rollup/plugin-typescript'
 
 export default [
   {
@@ -7,15 +7,15 @@ export default [
       {
         file: 'dist/index.esm.js',
         format: 'esm',
-        sourcemap: true
+        sourcemap: true,
       },
       {
         file: 'dist/index.js',
         format: 'cjs',
-        sourcemap: true
-      }
+        sourcemap: true,
+      },
     ],
     plugins: [typescript({ tsconfig: './tsconfig.json' })],
-    external: ['vue', '@togglely/sdk-core']
-  }
-];
+    external: ['vue', '@togglely/sdk-core'],
+  },
+]

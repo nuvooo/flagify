@@ -1,21 +1,21 @@
-import { useThemeStore } from '@/store/themeStore';
-import { Button } from '@/components/ui/button';
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { Monitor, Moon, Sun } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu'
+import { useThemeStore } from '@/store/themeStore'
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useThemeStore();
+  const { theme, setTheme } = useThemeStore()
 
   const icons = {
     light: <Sun className="h-4 w-4" />,
     dark: <Moon className="h-4 w-4" />,
     system: <Monitor className="h-4 w-4" />,
-  };
+  }
 
   return (
     <DropdownMenu>
@@ -40,5 +40,5 @@ export function ThemeToggle() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }

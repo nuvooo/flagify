@@ -1,26 +1,31 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import api from '@/lib/axios';
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import api from '@/lib/axios'
 
 export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
+  id: string
+  email: string
+  name: string
+  role: string
 }
 
 interface AuthState {
-  token: string | null;
-  user: User | null;
-  isLoading: boolean;
-  error: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (firstName: string, lastName: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
-  setToken: (token: string | null) => void;
-  setUser: (user: User | null) => void;
-  updateUser: (user: Partial<User>) => void;
-  clearError: () => void;
+  token: string | null
+  user: User | null
+  isLoading: boolean
+  error: string | null
+  login: (email: string, password: string) => Promise<void>
+  register: (
+    firstName: string,
+    lastName: string,
+    email: string,
+    password: string
+  ) => Promise<void>
+  logout: () => void
+  setToken: (token: string | null) => void
+  setUser: (user: User | null) => void
+  updateUser: (user: Partial<User>) => void
+  clearError: () => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -32,68 +37,73 @@ export const useAuthStore = create<AuthState>()(
       error: null,
 
       login: async (email: string, password: string) => {
-        set({ isLoading: true, error: null });
+        set({ isLoading: true, error: null })
         try {
-          const response = await api.post('/auth/login', { email, password });
-          const { token, user } = response.data;
-          set({ token, user, isLoading: false });
-          localStorage.setItem('token', token);
+          const response = await api.post('/auth/login', { email, password })
+          const { token, user } = response.data
+          set({ token, user, isLoading: false })
+          localStorage.setItem('token', token)
         } catch (error: any) {
           set({
             error: error.response?.data?.error || 'Login failed',
             isLoading: false,
-          });
-          throw error;
+          })
+          throw error
         }
       },
 
-      register: async (firstName: string, lastName: string, email: string, password: string) => {
-        set({ isLoading: true, error: null });
+      register: async (
+        firstName: string,
+        lastName: string,
+        email: string,
+        password: string
+      ) => {
+        set({ isLoading: true, error: null })
         try {
-          const response = await api.post('/auth/register', { 
-            firstName, 
-            lastName, 
-            email, 
-            password
-          });
-          const { token, user } = response.data;
-          set({ token, user, isLoading: false });
-          localStorage.setItem('token', token);
+          const response = await api.post('/auth/register', {
+            firstName,
+            lastName,
+            email,
+            password,
+          })
+          const { token, user } = response.data
+          set({ token, user, isLoading: false })
+          localStorage.setItem('token', token)
         } catch (error: any) {
           set({
             error: error.response?.data?.error || 'Registration failed',
             isLoading: false,
-          });
-          throw error;
+          })
+          throw error
         }
       },
 
       logout: () => {
-        set({ token: null, user: null, error: null });
-        localStorage.removeItem('token');
+        set({ token: null, user: null, error: null })
+        localStorage.removeItem('token')
       },
 
       setToken: (token) => {
-        set({ token });
+        set({ token })
         if (token) {
-          localStorage.setItem('token', token);
+          localStorage.setItem('token', token)
         } else {
-          localStorage.removeItem('token');
+          localStorage.removeItem('token')
         }
       },
 
       setUser: (user) => {
-        set({ user });
+        set({ user })
       },
 
       updateUser: (userData) => {
         set((state) => ({
           user: state.user ? { ...state.user, ...userData } : null,
-        }));
+        }))
       },
 
       clearError: () => {
-        set({ error: null });
+        set({ error: null })
       },
     }),
     {
@@ -101,4 +111,4 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({ token: state.token, user: state.user }),
     }
   )
-);
+)

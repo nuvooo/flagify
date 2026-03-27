@@ -1,73 +1,73 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { Tab } from '@headlessui/react'
 import {
-  BuildingOfficeIcon,
-  UsersIcon,
-  FolderIcon,
   ArrowLeftIcon,
-  PlusIcon,
+  BuildingOfficeIcon,
   EnvelopeIcon,
-  TrashIcon,
+  FolderIcon,
+  PlusIcon,
   ShieldCheckIcon,
+  TrashIcon,
   UserIcon,
-} from '@heroicons/react/24/outline';
-import { Tab } from '@headlessui/react';
-import api from '@/lib/api';
-import clsx from 'clsx';
+  UsersIcon,
+} from '@heroicons/react/24/outline'
+import clsx from 'clsx'
+import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import api from '@/lib/api'
 
 // Helper to validate MongoDB ObjectID format (24-char hex)
 const isValidObjectId = (id: string | undefined | null): id is string => {
-  if (!id || typeof id !== 'string') return false;
-  if (id === 'undefined' || id === 'null' || id === 'new') return false;
-  return /^[0-9a-fA-F]{24}$/.test(id);
-};
+  if (!id || typeof id !== 'string') return false
+  if (id === 'undefined' || id === 'null' || id === 'new') return false
+  return /^[0-9a-fA-F]{24}$/.test(id)
+}
 
 interface Organization {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  createdAt: string;
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  createdAt: string
 }
 
 interface Member {
-  id: string;
-  userId: string;
-  name: string;
-  email: string;
-  role: 'OWNER' | 'ADMIN' | 'MEMBER';
-  joinedAt: string;
+  id: string
+  userId: string
+  name: string
+  email: string
+  role: 'OWNER' | 'ADMIN' | 'MEMBER'
+  joinedAt: string
 }
 
 interface Project {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  featureFlagCount: number;
-  environmentCount: number;
-  createdAt: string;
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  featureFlagCount: number
+  environmentCount: number
+  createdAt: string
 }
 
 export default function OrganizationDetail() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>()
 
   // Validate orgId early
-  const orgId = isValidObjectId(id) ? id : null;
+  const orgId = isValidObjectId(id) ? id : null
 
-  const [organization, setOrganization] = useState<Organization | null>(null);
-  const [members, setMembers] = useState<Member[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<'ADMIN' | 'MEMBER'>('MEMBER');
-  const [isInviting, setIsInviting] = useState(false);
+  const [organization, setOrganization] = useState<Organization | null>(null)
+  const [members, setMembers] = useState<Member[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState<'ADMIN' | 'MEMBER'>('MEMBER')
+  const [isInviting, setIsInviting] = useState(false)
 
   useEffect(() => {
     // Skip fetch if orgId is invalid
     if (!orgId) {
-      setIsLoading(false);
-      return;
+      setIsLoading(false)
+      return
     }
 
     const fetchData = async () => {
@@ -76,12 +76,12 @@ export default function OrganizationDetail() {
           api.get(`/organizations/${orgId}`),
           api.get(`/organizations/${orgId}/members`),
           api.get(`/organizations/${orgId}/projects`),
-        ]);
-        setOrganization(orgRes.data.organization);
-        setMembers(membersRes.data.members);
-        setProjects(projectsRes.data.projects);
+        ])
+        setOrganization(orgRes.data.organization)
+        setMembers(membersRes.data.members)
+        setProjects(projectsRes.data.projects)
       } catch (error) {
-        console.error('Failed to fetch organization data:', error);
+        console.error('Failed to fetch organization data:', error)
         // Mock data for development
         setOrganization({
           id: orgId,
@@ -89,7 +89,7 @@ export default function OrganizationDetail() {
           slug: 'acme-corp',
           description: 'Main company organization for all Acme projects',
           createdAt: '2024-01-01T00:00:00Z',
-        });
+        })
         setMembers([
           {
             id: '1',
@@ -115,7 +115,7 @@ export default function OrganizationDetail() {
             role: 'MEMBER',
             joinedAt: '2024-01-10T00:00:00Z',
           },
-        ]);
+        ])
         setProjects([
           {
             id: '1',
@@ -144,69 +144,69 @@ export default function OrganizationDetail() {
             environmentCount: 4,
             createdAt: '2024-01-10T00:00:00Z',
           },
-        ]);
+        ])
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchData();
-  }, [orgId]);
+    fetchData()
+  }, [orgId])
 
   const handleInvite = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!orgId) return;
-    setIsInviting(true);
+    e.preventDefault()
+    if (!orgId) return
+    setIsInviting(true)
     try {
       await api.post(`/organizations/${orgId}/invitations`, {
         email: inviteEmail,
         role: inviteRole,
-      });
-      setInviteEmail('');
+      })
+      setInviteEmail('')
       // Refresh members list
-      const response = await api.get(`/organizations/${orgId}/members`);
-      setMembers(response.data.members);
+      const response = await api.get(`/organizations/${orgId}/members`)
+      setMembers(response.data.members)
     } catch (error) {
-      console.error('Failed to send invitation:', error);
+      console.error('Failed to send invitation:', error)
     } finally {
-      setIsInviting(false);
+      setIsInviting(false)
     }
-  };
+  }
 
   const handleRemoveMember = async (memberId: string) => {
     if (!orgId || !isValidObjectId(memberId)) {
-      console.error('Invalid orgId or memberId:', orgId, memberId);
-      return;
+      console.error('Invalid orgId or memberId:', orgId, memberId)
+      return
     }
-    if (!confirm('Are you sure you want to remove this member?')) return;
+    if (!confirm('Are you sure you want to remove this member?')) return
     try {
-      await api.delete(`/organizations/${orgId}/members/${memberId}`);
-      setMembers(members.filter((m) => m.id !== memberId));
+      await api.delete(`/organizations/${orgId}/members/${memberId}`)
+      setMembers(members.filter((m) => m.id !== memberId))
     } catch (error) {
-      console.error('Failed to remove member:', error);
+      console.error('Failed to remove member:', error)
     }
-  };
+  }
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'OWNER':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-purple-100 text-purple-800'
       case 'ADMIN':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-blue-800'
       case 'MEMBER':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800'
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800'
     }
-  };
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    });
-  };
+    })
+  }
 
   if (isLoading) {
     return (
@@ -222,7 +222,7 @@ export default function OrganizationDetail() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   if (!organization) {
@@ -245,7 +245,7 @@ export default function OrganizationDetail() {
           </Link>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -433,8 +433,10 @@ export default function OrganizationDetail() {
                   </h3>
                   <button
                     onClick={() => {
-                      const membersTab = document.querySelector('[data-tab="members"]');
-                      if (membersTab) (membersTab as HTMLElement).click();
+                      const membersTab = document.querySelector(
+                        '[data-tab="members"]'
+                      )
+                      if (membersTab) (membersTab as HTMLElement).click()
                     }}
                     className="text-sm text-primary-600 hover:text-primary-500"
                   >
@@ -490,7 +492,10 @@ export default function OrganizationDetail() {
                 <p className="mt-1 text-sm text-gray-500">
                   Send an invitation to join this organization.
                 </p>
-                <form onSubmit={handleInvite} className="mt-5 sm:flex sm:items-center">
+                <form
+                  onSubmit={handleInvite}
+                  className="mt-5 sm:flex sm:items-center"
+                >
                   <div className="w-full sm:max-w-xs">
                     <label htmlFor="email" className="sr-only">
                       Email
@@ -556,7 +561,8 @@ export default function OrganizationDetail() {
                             {member.name}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {member.email} • Joined {formatDate(member.joinedAt)}
+                            {member.email} • Joined{' '}
+                            {formatDate(member.joinedAt)}
                           </p>
                         </div>
                       </div>
@@ -657,5 +663,5 @@ export default function OrganizationDetail() {
         </Tab.Panels>
       </Tab.Group>
     </div>
-  );
+  )
 }

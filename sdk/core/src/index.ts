@@ -10,83 +10,95 @@
  */
 
 export interface TogglelyConfig {
-  apiKey: string;
-  project: string;
-  environment: string;
-  baseUrl: string;
-  timeout?: number;
-  offlineFallback?: boolean;
-  offlineJsonPath?: string;
-  offlineToggles?: Record<string, ToggleValue>;
-  envPrefix?: string;
-  autoFetch?: boolean;
-  brandKey?: string;
-  tenantId?: string;
-  context?: ToggleContext;
-  refreshStrategy?: 'manual' | 'interval' | 'stale-while-revalidate';
-  refreshIntervalMs?: number;
-  minRefreshIntervalMs?: number;
+  apiKey: string
+  project: string
+  environment: string
+  baseUrl: string
+  timeout?: number
+  offlineFallback?: boolean
+  offlineJsonPath?: string
+  offlineToggles?: Record<string, ToggleValue>
+  envPrefix?: string
+  autoFetch?: boolean
+  brandKey?: string
+  tenantId?: string
+  context?: ToggleContext
+  refreshStrategy?: 'manual' | 'interval' | 'stale-while-revalidate'
+  refreshIntervalMs?: number
+  minRefreshIntervalMs?: number
 }
 
 export interface ToggleContext {
-  userId?: string;
-  email?: string;
-  country?: string;
-  region?: string;
-  [key: string]: any;
+  userId?: string
+  email?: string
+  country?: string
+  region?: string
+  [key: string]: any
 }
 
 export interface ToggleValue {
-  value: any;
-  enabled: boolean;
-  flagType?: 'BOOLEAN' | 'STRING' | 'NUMBER' | 'JSON';
+  value: any
+  enabled: boolean
+  flagType?: 'BOOLEAN' | 'STRING' | 'NUMBER' | 'JSON'
 }
 
 export interface AllTogglesResponse {
-  [key: string]: ToggleValue;
+  [key: string]: ToggleValue
 }
 
 export interface TogglelyState {
-  isReady: boolean;
-  isOffline: boolean;
-  lastError: Error | null;
-  lastFetch: Date | null;
+  isReady: boolean
+  isOffline: boolean
+  lastError: Error | null
+  lastFetch: Date | null
 }
 
-export type TogglelyEventType = 'ready' | 'update' | 'error' | 'offline' | 'online';
-export type TogglelyEventHandler = (state: TogglelyState) => void;
+export type TogglelyEventType =
+  | 'ready'
+  | 'update'
+  | 'error'
+  | 'offline'
+  | 'online'
+export type TogglelyEventHandler = (state: TogglelyState) => void
 
 export class TogglelyClient {
   private config: TogglelyConfig & {
-    timeout: number;
-    offlineFallback: boolean;
-    envPrefix: string;
-    autoFetch: boolean;
-    offlineJsonPath: string | undefined;
-    refreshStrategy: 'manual' | 'interval' | 'stale-while-revalidate';
-    refreshIntervalMs: number;
-    minRefreshIntervalMs: number;
-  };
+    timeout: number
+    offlineFallback: boolean
+    envPrefix: string
+    autoFetch: boolean
+    offlineJsonPath: string | undefined
+    refreshStrategy: 'manual' | 'interval' | 'stale-while-revalidate'
+    refreshIntervalMs: number
+    minRefreshIntervalMs: number
+  }
 
-  private toggles: Map<string, ToggleValue> = new Map();
-  private context: ToggleContext = {};
+  private toggles: Map<string, ToggleValue> = new Map()
+  private context: ToggleContext = {}
   private state: TogglelyState = {
     isReady: false,
     isOffline: false,
     lastError: null,
-    lastFetch: null
-  };
-  private eventHandlers: Map<TogglelyEventType, Set<TogglelyEventHandler>> = new Map();
-  private offlineTogglesLoaded = false;
+    lastFetch: null,
+  }
+  private eventHandlers: Map<TogglelyEventType, Set<TogglelyEventHandler>> =
+    new Map()
+  private offlineTogglesLoaded = false
 
-  private pendingKeys: Set<string> = new Set();
-  private pendingPromises: Map<string, Array<{ resolve: (value: ToggleValue | null) => void; reject: (error: any) => void }>> = new Map();
-  private batchTimeout: ReturnType<typeof setTimeout> | null = null;
-  private refreshTimeout: ReturnType<typeof setTimeout> | null = null;
-  private intervalHandle: ReturnType<typeof setInterval> | null = null;
-  private inFlightRefresh: Promise<void> | null = null;
-  private lastRefreshTime = 0;
-  private readonly BATCH_DELAY = 10;
+  private pendingKeys: Set<string> = new Set()
+  private pendingPromises: Map<
+    string,
+    Array<{
+      resolve: (value: ToggleValue | null) => void
+      reject: (error: any) => void
+    }>
+  > = new Map()
+  private batchTimeout: ReturnType<typeof setTimeout> | null = null
+  private refreshTimeout: ReturnType<typeof setTimeout> | null = null
+  private intervalHandle: ReturnType<typeof setInterval> | null = null
+  private inFlightRefresh: Promise<void> | null = null
+  private lastRefreshTime = 0
+  private readonly BATCH_DELAY = 10
 
   constructor(config: TogglelyConfig) {
     this.config = {
@@ -98,444 +110,475 @@ export class TogglelyClient {
       refreshStrategy: 'manual',
       refreshIntervalMs: 30000,
       minRefreshIntervalMs: 5000,
-      ...config
-    };
+      ...config,
+    }
 
-    this.eventHandlers.set('ready', new Set());
-    this.eventHandlers.set('update', new Set());
-    this.eventHandlers.set('error', new Set());
-    this.eventHandlers.set('offline', new Set());
-    this.eventHandlers.set('online', new Set());
+    this.eventHandlers.set('ready', new Set())
+    this.eventHandlers.set('update', new Set())
+    this.eventHandlers.set('error', new Set())
+    this.eventHandlers.set('offline', new Set())
+    this.eventHandlers.set('online', new Set())
 
-    const initialContext: ToggleContext = { ...config.context };
-    if (config.brandKey) initialContext.brandKey = config.brandKey;
-    if (config.tenantId) initialContext.tenantId = config.tenantId;
-    this.context = initialContext;
+    const initialContext: ToggleContext = { ...config.context }
+    if (config.brandKey) initialContext.brandKey = config.brandKey
+    if (config.tenantId) initialContext.tenantId = config.tenantId
+    this.context = initialContext
 
     if (this.config.offlineFallback) {
-      this.loadOfflineToggles();
+      this.loadOfflineToggles()
     }
 
     if (this.config.autoFetch) {
-      this.refresh().catch(() => {});
+      this.refresh().catch(() => {})
     }
 
-    this.setupRefreshStrategy();
+    this.setupRefreshStrategy()
   }
 
   on(event: TogglelyEventType, handler: TogglelyEventHandler): () => void {
-    const handlers = this.eventHandlers.get(event);
+    const handlers = this.eventHandlers.get(event)
     if (handlers) {
-      handlers.add(handler);
+      handlers.add(handler)
     }
-    return () => this.off(event, handler);
+    return () => this.off(event, handler)
   }
 
   off(event: TogglelyEventType, handler: TogglelyEventHandler): void {
-    const handlers = this.eventHandlers.get(event);
+    const handlers = this.eventHandlers.get(event)
     if (handlers) {
-      handlers.delete(handler);
+      handlers.delete(handler)
     }
   }
 
   private emit(event: TogglelyEventType): void {
-    const handlers = this.eventHandlers.get(event);
+    const handlers = this.eventHandlers.get(event)
     if (handlers) {
-      handlers.forEach((handler) => handler({ ...this.state }));
+      handlers.forEach((handler) => handler({ ...this.state }))
     }
   }
 
   setContext(context: ToggleContext): void {
-    this.context = { ...this.context, ...context };
+    this.context = { ...this.context, ...context }
   }
 
   getContext(): ToggleContext {
-    return { ...this.context };
+    return { ...this.context }
   }
 
   clearContext(): void {
-    this.context = {};
+    this.context = {}
   }
 
   getState(): TogglelyState {
-    return { ...this.state };
+    return { ...this.state }
   }
 
   isReady(): boolean {
-    return this.state.isReady;
+    return this.state.isReady
   }
 
   isOffline(): boolean {
-    return this.state.isOffline;
+    return this.state.isOffline
   }
 
-  async isEnabled(key: string, defaultValue: boolean = false): Promise<boolean> {
-    const value = await this.getValue(key);
-    if (value === null) return defaultValue;
+  async isEnabled(
+    key: string,
+    defaultValue: boolean = false
+  ): Promise<boolean> {
+    const value = await this.getValue(key)
+    if (value === null) return defaultValue
     if (typeof value.value === 'boolean') {
-      return value.enabled && value.value;
+      return value.enabled && value.value
     }
-    return value.enabled;
+    return value.enabled
   }
 
   async getString(key: string, defaultValue: string = ''): Promise<string> {
-    const value = await this.getValue(key);
-    if (value === null || !value.enabled) return defaultValue;
-    return String(value.value);
+    const value = await this.getValue(key)
+    if (value === null || !value.enabled) return defaultValue
+    return String(value.value)
   }
 
   async getNumber(key: string, defaultValue: number = 0): Promise<number> {
-    const value = await this.getValue(key);
-    if (value === null || !value.enabled) return defaultValue;
-    return Number(value.value);
+    const value = await this.getValue(key)
+    if (value === null || !value.enabled) return defaultValue
+    return Number(value.value)
   }
 
   async getJSON<T = any>(key: string, defaultValue: T = {} as T): Promise<T> {
-    const value = await this.getValue(key);
-    if (value === null || !value.enabled) return defaultValue;
+    const value = await this.getValue(key)
+    if (value === null || !value.enabled) return defaultValue
     if (typeof value.value === 'string') {
       try {
-        return JSON.parse(value.value) as T;
+        return JSON.parse(value.value) as T
       } catch {
-        return defaultValue;
+        return defaultValue
       }
     }
-    return value.value as T;
+    return value.value as T
   }
 
   async getValue(key: string): Promise<ToggleValue | null> {
-    const cachedValue = this.toggles.get(key);
+    const cachedValue = this.toggles.get(key)
     if (cachedValue !== undefined) {
       if (this.config.refreshStrategy === 'stale-while-revalidate') {
-        this.scheduleBackgroundRefresh();
+        this.scheduleBackgroundRefresh()
       }
-      return cachedValue;
+      return cachedValue
     }
 
-    const existingPromise = this.pendingPromises.get(key);
+    const existingPromise = this.pendingPromises.get(key)
     if (existingPromise) {
       return new Promise((resolve, reject) => {
-        existingPromise.push({ resolve, reject });
-      });
+        existingPromise.push({ resolve, reject })
+      })
     }
 
-    this.pendingKeys.add(key);
+    this.pendingKeys.add(key)
 
     return new Promise((resolve, reject) => {
-      const promises = this.pendingPromises.get(key) || [];
-      promises.push({ resolve, reject });
-      this.pendingPromises.set(key, promises);
-      this.scheduleBatchExecution();
-    });
+      const promises = this.pendingPromises.get(key) || []
+      promises.push({ resolve, reject })
+      this.pendingPromises.set(key, promises)
+      this.scheduleBatchExecution()
+    })
   }
 
   private setupRefreshStrategy(): void {
     if (this.config.refreshStrategy !== 'interval') {
-      return;
+      return
     }
 
     this.intervalHandle = setInterval(() => {
-      this.refresh().catch(() => {});
-    }, this.config.refreshIntervalMs);
+      this.refresh().catch(() => {})
+    }, this.config.refreshIntervalMs)
   }
 
   private shouldRefreshNow(): boolean {
-    return Date.now() - this.lastRefreshTime >= this.config.minRefreshIntervalMs;
+    return Date.now() - this.lastRefreshTime >= this.config.minRefreshIntervalMs
   }
 
   private scheduleBackgroundRefresh(): void {
     if (this.refreshTimeout || !this.shouldRefreshNow()) {
-      return;
+      return
     }
 
     this.refreshTimeout = setTimeout(() => {
-      this.refreshTimeout = null;
-      this.refresh().catch(() => {});
-    }, this.BATCH_DELAY);
+      this.refreshTimeout = null
+      this.refresh().catch(() => {})
+    }, this.BATCH_DELAY)
   }
 
   private scheduleBatchExecution(): void {
     if (this.batchTimeout) {
-      return;
+      return
     }
 
     this.batchTimeout = setTimeout(() => {
-      this.executeBatch();
-    }, this.BATCH_DELAY);
+      this.executeBatch()
+    }, this.BATCH_DELAY)
   }
 
   private async executeBatch(): Promise<void> {
-    this.batchTimeout = null;
+    this.batchTimeout = null
 
-    const keys = Array.from(this.pendingKeys);
-    const promises = new Map(this.pendingPromises);
+    const keys = Array.from(this.pendingKeys)
+    const promises = new Map(this.pendingPromises)
 
-    this.pendingKeys.clear();
-    this.pendingPromises.clear();
+    this.pendingKeys.clear()
+    this.pendingPromises.clear()
 
     if (keys.length === 0) {
-      return;
+      return
     }
 
     try {
-      await this.refresh();
+      await this.refresh()
 
       for (const key of keys) {
-        const keyPromises = promises.get(key) || [];
-        const value = this.toggles.get(key) || null;
+        const keyPromises = promises.get(key) || []
+        const value = this.toggles.get(key) || null
         for (const { resolve } of keyPromises) {
-          resolve(value);
+          resolve(value)
         }
       }
     } catch (error) {
       for (const key of keys) {
-        const keyPromises = promises.get(key) || [];
+        const keyPromises = promises.get(key) || []
         for (const { reject } of keyPromises) {
-          reject(error);
+          reject(error)
         }
       }
     }
   }
 
   getAllToggles(): Record<string, ToggleValue> {
-    const result: Record<string, ToggleValue> = {};
+    const result: Record<string, ToggleValue> = {}
     this.toggles.forEach((value, key) => {
-      result[key] = value;
-    });
-    return result;
+      result[key] = value
+    })
+    return result
   }
 
   private loadOfflineToggles(): void {
     try {
-      if (this.config.offlineToggles && Object.keys(this.config.offlineToggles).length > 0) {
+      if (
+        this.config.offlineToggles &&
+        Object.keys(this.config.offlineToggles).length > 0
+      ) {
         for (const [key, value] of Object.entries(this.config.offlineToggles)) {
-          this.toggles.set(key, value);
+          this.toggles.set(key, value)
         }
-        this.offlineTogglesLoaded = true;
-        console.log('[Togglely] Loaded offline toggles from config');
-        return;
+        this.offlineTogglesLoaded = true
+        console.log('[Togglely] Loaded offline toggles from config')
+        return
       }
 
       if (this.config.offlineJsonPath && typeof window !== 'undefined') {
-        this.loadOfflineJsonFile(this.config.offlineJsonPath);
+        this.loadOfflineJsonFile(this.config.offlineJsonPath)
       }
 
       if (typeof window !== 'undefined' && (window as any).__TOGGLELY_TOGGLES) {
-        const offlineToggles = (window as any).__TOGGLELY_TOGGLES;
+        const offlineToggles = (window as any).__TOGGLELY_TOGGLES
         for (const [key, value] of Object.entries(offlineToggles)) {
-          this.toggles.set(key, this.parseOfflineValue(value));
+          this.toggles.set(key, this.parseOfflineValue(value))
         }
-        this.offlineTogglesLoaded = true;
-        console.log('[Togglely] Loaded offline toggles from window.__TOGGLELY_TOGGLES');
-        return;
+        this.offlineTogglesLoaded = true
+        console.log(
+          '[Togglely] Loaded offline toggles from window.__TOGGLELY_TOGGLES'
+        )
+        return
       }
 
       if (typeof process !== 'undefined' && process.env) {
-        const prefix = this.config.envPrefix;
+        const prefix = this.config.envPrefix
         for (const [envKey, envValue] of Object.entries(process.env)) {
           if (envKey?.startsWith(prefix) && envValue !== undefined) {
-            const toggleKey = envKey.slice(prefix.length).toLowerCase().replace(/_/g, '-');
-            this.toggles.set(toggleKey, this.parseOfflineValue(envValue));
+            const toggleKey = envKey
+              .slice(prefix.length)
+              .toLowerCase()
+              .replace(/_/g, '-')
+            this.toggles.set(toggleKey, this.parseOfflineValue(envValue))
           }
         }
-        this.offlineTogglesLoaded = true;
-        console.log('[Togglely] Loaded offline toggles from environment variables');
+        this.offlineTogglesLoaded = true
+        console.log(
+          '[Togglely] Loaded offline toggles from environment variables'
+        )
       }
     } catch (error) {
-      console.warn('[Togglely] Failed to load offline toggles:', error);
+      console.warn('[Togglely] Failed to load offline toggles:', error)
     }
   }
 
   private async loadOfflineJsonFile(path: string): Promise<void> {
     try {
       if (typeof window !== 'undefined') {
-        const response = await fetch(path);
+        const response = await fetch(path)
         if (response.ok) {
-          const data = await response.json();
+          const data = await response.json()
           for (const [key, value] of Object.entries(data)) {
-            this.toggles.set(key, this.parseOfflineValue(value));
+            this.toggles.set(key, this.parseOfflineValue(value))
           }
-          this.offlineTogglesLoaded = true;
-          console.log('[Togglely] Loaded offline toggles from JSON file:', path);
+          this.offlineTogglesLoaded = true
+          console.log('[Togglely] Loaded offline toggles from JSON file:', path)
         }
       } else if (typeof require !== 'undefined') {
-        const fs = require('fs');
-        const pathModule = require('path');
-        const fullPath = pathModule.resolve(path);
+        const fs = require('fs')
+        const pathModule = require('path')
+        const fullPath = pathModule.resolve(path)
         if (fs.existsSync(fullPath)) {
-          const data = JSON.parse(fs.readFileSync(fullPath, 'utf-8'));
+          const data = JSON.parse(fs.readFileSync(fullPath, 'utf-8'))
           for (const [key, value] of Object.entries(data)) {
-            this.toggles.set(key, this.parseOfflineValue(value));
+            this.toggles.set(key, this.parseOfflineValue(value))
           }
-          this.offlineTogglesLoaded = true;
-          console.log('[Togglely] Loaded offline toggles from JSON file:', fullPath);
+          this.offlineTogglesLoaded = true
+          console.log(
+            '[Togglely] Loaded offline toggles from JSON file:',
+            fullPath
+          )
         }
       }
     } catch (error) {
-      console.warn('[Togglely] Failed to load offline JSON file:', error);
+      console.warn('[Togglely] Failed to load offline JSON file:', error)
     }
   }
 
   private parseOfflineValue(value: any): ToggleValue {
     if (typeof value === 'string') {
-      const lower = value.toLowerCase();
-      if (lower === 'true') return { value: true, enabled: true };
-      if (lower === 'false') return { value: false, enabled: true };
+      const lower = value.toLowerCase()
+      if (lower === 'true') return { value: true, enabled: true }
+      if (lower === 'false') return { value: false, enabled: true }
       if (!isNaN(Number(value))) {
-        return { value: Number(value), enabled: true };
+        return { value: Number(value), enabled: true }
       }
       try {
-        const parsed = JSON.parse(value);
-        return { value: parsed, enabled: true };
+        const parsed = JSON.parse(value)
+        return { value: parsed, enabled: true }
       } catch {
-        return { value, enabled: true };
+        return { value, enabled: true }
       }
     }
-    return { value, enabled: true };
+    return { value, enabled: true }
   }
 
   async refresh(): Promise<void> {
     if (this.inFlightRefresh) {
-      return this.inFlightRefresh;
+      return this.inFlightRefresh
     }
 
     this.inFlightRefresh = this.performRefresh().finally(() => {
-      this.inFlightRefresh = null;
-    });
+      this.inFlightRefresh = null
+    })
 
-    return this.inFlightRefresh;
+    return this.inFlightRefresh
   }
 
   private async performRefresh(): Promise<void> {
     try {
-      const params = new URLSearchParams();
-      if (this.context.brandKey) params.set('brandKey', String(this.context.brandKey));
-      if (this.context.tenantId) params.set('tenantId', String(this.context.tenantId));
+      const params = new URLSearchParams()
+      if (this.context.brandKey)
+        params.set('brandKey', String(this.context.brandKey))
+      if (this.context.tenantId)
+        params.set('tenantId', String(this.context.tenantId))
       if (Object.keys(this.context).length > 0) {
-        params.set('context', JSON.stringify(this.context));
+        params.set('context', JSON.stringify(this.context))
       }
 
       const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
+        'Content-Type': 'application/json',
+      }
       if (this.config.apiKey) {
-        headers['Authorization'] = `Bearer ${this.config.apiKey}`;
+        headers['Authorization'] = `Bearer ${this.config.apiKey}`
       }
 
       const response = await this.fetchWithTimeout(
         `${this.config.baseUrl}/sdk/flags/${encodeURIComponent(this.config.project)}/${encodeURIComponent(this.config.environment)}?${params.toString()}`,
         { headers }
-      );
+      )
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        throw new Error(`HTTP ${response.status}`)
       }
 
-      const data: AllTogglesResponse = await response.json();
-      const changed = this.replaceTogglesIfChanged(data);
+      const data: AllTogglesResponse = await response.json()
+      const changed = this.replaceTogglesIfChanged(data)
 
-      this.state.lastFetch = new Date();
-      this.state.lastError = null;
-      this.lastRefreshTime = Date.now();
+      this.state.lastFetch = new Date()
+      this.state.lastError = null
+      this.lastRefreshTime = Date.now()
 
       if (!this.state.isReady) {
-        this.state.isReady = true;
-        this.emit('ready');
+        this.state.isReady = true
+        this.emit('ready')
       }
 
       if (this.state.isOffline) {
-        this.state.isOffline = false;
-        this.emit('online');
+        this.state.isOffline = false
+        this.emit('online')
       }
 
       if (changed) {
-        this.emit('update');
+        this.emit('update')
       }
     } catch (error) {
-      this.state.lastError = error as Error;
+      this.state.lastError = error as Error
 
-      if (this.config.offlineFallback && this.offlineTogglesLoaded && !this.state.isOffline) {
-        this.state.isOffline = true;
-        this.emit('offline');
+      if (
+        this.config.offlineFallback &&
+        this.offlineTogglesLoaded &&
+        !this.state.isOffline
+      ) {
+        this.state.isOffline = true
+        this.emit('offline')
       }
 
-      this.emit('error');
-      console.error('[Togglely] Failed to refresh toggles:', error);
-      throw error;
+      this.emit('error')
+      console.error('[Togglely] Failed to refresh toggles:', error)
+      throw error
     }
   }
 
   private replaceTogglesIfChanged(next: AllTogglesResponse): boolean {
-    const current = this.getAllToggles();
-    const currentSerialized = JSON.stringify(current, Object.keys(current).sort());
-    const nextSerialized = JSON.stringify(next, Object.keys(next).sort());
+    const current = this.getAllToggles()
+    const currentSerialized = JSON.stringify(
+      current,
+      Object.keys(current).sort()
+    )
+    const nextSerialized = JSON.stringify(next, Object.keys(next).sort())
 
     if (currentSerialized === nextSerialized) {
-      return false;
+      return false
     }
 
-    this.toggles.clear();
+    this.toggles.clear()
     for (const [key, value] of Object.entries(next)) {
-      this.toggles.set(key, value);
+      this.toggles.set(key, value)
     }
-    return true;
+    return true
   }
 
   forceOfflineMode(): void {
-    this.state.isOffline = true;
-    this.emit('offline');
+    this.state.isOffline = true
+    this.emit('offline')
   }
 
   forceOnlineMode(): void {
-    this.state.isOffline = false;
-    this.refresh().catch(() => {});
-    this.emit('online');
+    this.state.isOffline = false
+    this.refresh().catch(() => {})
+    this.emit('online')
   }
 
   destroy(): void {
-    this.toggles.clear();
-    this.eventHandlers.forEach((handlers) => handlers.clear());
-    if (this.batchTimeout) clearTimeout(this.batchTimeout);
-    if (this.refreshTimeout) clearTimeout(this.refreshTimeout);
-    if (this.intervalHandle) clearInterval(this.intervalHandle);
-    this.batchTimeout = null;
-    this.refreshTimeout = null;
-    this.intervalHandle = null;
+    this.toggles.clear()
+    this.eventHandlers.forEach((handlers) => handlers.clear())
+    if (this.batchTimeout) clearTimeout(this.batchTimeout)
+    if (this.refreshTimeout) clearTimeout(this.refreshTimeout)
+    if (this.intervalHandle) clearInterval(this.intervalHandle)
+    this.batchTimeout = null
+    this.refreshTimeout = null
+    this.intervalHandle = null
   }
 
-  private fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
+  private fetchWithTimeout(
+    url: string,
+    options: RequestInit
+  ): Promise<Response> {
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
-        reject(new Error('Request timeout'));
-      }, this.config.timeout);
+        reject(new Error('Request timeout'))
+      }, this.config.timeout)
 
       fetch(url, options)
         .then((response) => {
-          clearTimeout(timeoutId);
-          resolve(response);
+          clearTimeout(timeoutId)
+          resolve(response)
         })
         .catch((error) => {
-          clearTimeout(timeoutId);
-          reject(error);
-        });
-    });
+          clearTimeout(timeoutId)
+          reject(error)
+        })
+    })
   }
 }
 
-export function createOfflineTogglesScript(toggles: Record<string, any>): string {
-  return `<script>window.__TOGGLELY_TOGGLES = ${JSON.stringify(toggles)};</script>`;
+export function createOfflineTogglesScript(
+  toggles: Record<string, any>
+): string {
+  return `<script>window.__TOGGLELY_TOGGLES = ${JSON.stringify(toggles)};</script>`
 }
 
 export function togglesToEnvVars(
   toggles: Record<string, any>,
   prefix: string = 'TOGGLELY_'
 ): Record<string, string> {
-  const envVars: Record<string, string> = {};
+  const envVars: Record<string, string> = {}
   for (const [key, value] of Object.entries(toggles)) {
-    const envKey = prefix + key.toUpperCase().replace(/-/g, '_');
-    envVars[envKey] = typeof value === 'object' ? JSON.stringify(value) : String(value);
+    const envKey = prefix + key.toUpperCase().replace(/-/g, '_')
+    envVars[envKey] =
+      typeof value === 'object' ? JSON.stringify(value) : String(value)
   }
-  return envVars;
+  return envVars
 }
 
-export default TogglelyClient;
+export default TogglelyClient

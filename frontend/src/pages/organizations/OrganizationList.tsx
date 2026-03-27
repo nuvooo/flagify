@@ -1,43 +1,52 @@
-import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useOrganizationStore } from '@/store/organizationStore';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { 
-  Building2, 
-  Plus, 
-  ArrowRight, 
-  Search,
+import {
+  ArrowRight,
+  Building2,
   FolderKanban,
-  Users,
-  Settings,
   Loader2,
-  MoreHorizontal
-} from 'lucide-react';
+  MoreHorizontal,
+  Plus,
+  Search,
+  Settings,
+  Users,
+} from 'lucide-react'
+import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { useOrganizationStore } from '@/store/organizationStore'
 
 export default function OrganizationList() {
-  const { t } = useTranslation();
-  const { organizations, fetchOrganizations, isLoading } = useOrganizationStore();
+  const { t } = useTranslation()
+  const { organizations, fetchOrganizations, isLoading } =
+    useOrganizationStore()
 
   useEffect(() => {
-    fetchOrganizations();
-  }, [fetchOrganizations]);
+    fetchOrganizations()
+  }, [fetchOrganizations])
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('organizations.title')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {t('organizations.title')}
+          </h1>
           <p className="text-muted-foreground mt-1">
             {t('organizations.subtitle')}
           </p>
@@ -70,7 +79,9 @@ export default function OrganizationList() {
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <Building2 className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">{t('organizations.no-organizations')}</h3>
+            <h3 className="text-xl font-semibold mb-2">
+              {t('organizations.no-organizations')}
+            </h3>
             <p className="text-sm text-muted-foreground text-center max-w-sm mb-6">
               {t('organizations.no-organizations-description')}
             </p>
@@ -96,11 +107,16 @@ export default function OrganizationList() {
                       <CardTitle className="text-lg truncate group-hover:text-primary transition-colors">
                         {org.name}
                       </CardTitle>
-                      <CardDescription className="text-xs">{org.slug}</CardDescription>
+                      <CardDescription className="text-xs">
+                        {org.slug}
+                      </CardDescription>
                     </div>
                   </div>
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenuTrigger
+                      asChild
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Button variant="ghost" size="icon" className="h-8 w-8">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
@@ -130,11 +146,19 @@ export default function OrganizationList() {
                 <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                   <div className="flex items-center gap-1.5">
                     <FolderKanban className="w-4 h-4" />
-                    <span>{t('organizations.card.projects', { count: (org as any).projectCount ?? 0 })}</span>
+                    <span>
+                      {t('organizations.card.projects', {
+                        count: (org as any).projectCount ?? 0,
+                      })}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Users className="w-4 h-4" />
-                    <span>{t('organizations.card.members', { count: (org as any).memberCount ?? 1 })}</span>
+                    <span>
+                      {t('organizations.card.members', {
+                        count: (org as any).memberCount ?? 1,
+                      })}
+                    </span>
                   </div>
                 </div>
                 <Button variant="secondary" className="w-full" asChild>
@@ -149,5 +173,5 @@ export default function OrganizationList() {
         </div>
       )}
     </div>
-  );
+  )
 }

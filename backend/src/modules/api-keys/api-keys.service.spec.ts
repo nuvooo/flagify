@@ -1,5 +1,5 @@
-import { BadRequestException } from '@nestjs/common';
-import { ApiKeysService } from './api-keys.service';
+import { BadRequestException } from '@nestjs/common'
+import { ApiKeysService } from './api-keys.service'
 
 describe('ApiKeysService', () => {
   it('rejects unsupported api key types', async () => {
@@ -7,15 +7,15 @@ describe('ApiKeysService', () => {
       apiKey: {
         create: jest.fn(),
       },
-    } as any;
+    } as any
 
-    const service = new ApiKeysService(prisma);
+    const service = new ApiKeysService(prisma)
 
     await expect(
       service.create('org-1', 'user-1', {
         name: 'Invalid key',
         type: 'ROOT',
-      }),
-    ).rejects.toBeInstanceOf(BadRequestException);
-  });
-});
+      })
+    ).rejects.toBeInstanceOf(BadRequestException)
+  })
+})
