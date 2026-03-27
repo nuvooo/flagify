@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common'
 import * as bcrypt from 'bcryptjs'
-import type { PrismaService } from '../../shared/prisma.service'
+import { PrismaService } from '../../shared/prisma.service'
 
 @Controller('setup')
 export class SetupController {

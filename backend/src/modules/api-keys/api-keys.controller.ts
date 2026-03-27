@@ -9,8 +9,8 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { AuthGuard } from '../../shared/auth.guard'
-import type { CreateApiKeyDto } from './dto/create-api-key.dto'
-import type { ApiKeysService } from './api-keys.service'
+import { CreateApiKeyDto } from './dto/create-api-key.dto'
+import { ApiKeysService } from './api-keys.service'
 
 @Controller('api-keys')
 @UseGuards(AuthGuard)

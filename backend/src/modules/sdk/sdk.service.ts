@@ -5,7 +5,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
-import type { PrismaService } from '../../shared/prisma.service'
+import { PrismaService } from '../../shared/prisma.service'
 import {
   getDefaultFlagValue,
   isOriginAllowed,

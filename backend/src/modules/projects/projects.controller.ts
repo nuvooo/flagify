@@ -10,10 +10,10 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common'
-import type { Response } from 'express'
+import { Response } from 'express'
 import { AuthGuard } from '../../shared/auth.guard'
-import type { CreateProjectDto } from './dto/create-project.dto'
-import type { ProjectsService } from './projects.service'
+import { CreateProjectDto } from './dto/create-project.dto'
+import { ProjectsService } from './projects.service'
 
 @Controller('projects')
 @UseGuards(AuthGuard)

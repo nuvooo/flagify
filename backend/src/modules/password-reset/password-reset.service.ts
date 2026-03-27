@@ -1,9 +1,9 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
-import type { ConfigService } from '@nestjs/config'
+import { ConfigService } from '@nestjs/config'
 import * as bcrypt from 'bcryptjs'
 import * as crypto from 'crypto'
-import type { PrismaService } from '../../shared/prisma.service'
-import type { MailService } from '../mail/mail.service'
+import { PrismaService } from '../../shared/prisma.service'
+import { MailService } from '../mail/mail.service'
 
 @Injectable()
 export class PasswordResetService {

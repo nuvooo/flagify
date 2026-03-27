@@ -1,6 +1,6 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '../../shared/auth.guard'
-import type { AuditLogsService } from './audit-logs.service'
+import { AuditLogsService } from './audit-logs.service'
 
 @Controller('audit-logs')
 @UseGuards(AuthGuard)

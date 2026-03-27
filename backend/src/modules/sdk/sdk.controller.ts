@@ -1,5 +1,5 @@
 import { Controller, Get, Headers, Param, Query } from '@nestjs/common'
-import type { SdkService } from './sdk.service'
+import { SdkService } from './sdk.service'
 
 @Controller('sdk')
 export class SdkController {

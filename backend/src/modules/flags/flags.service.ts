@@ -6,12 +6,12 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import { Flag } from '../../domain/flag.entity'
-import type { PrismaService } from '../../shared/prisma.service'
+import { PrismaService } from '../../shared/prisma.service'
 import { isPrismaUniqueConstraintError } from '../../shared/prisma-errors'
-import type { AuditLogsService } from '../audit-logs/audit-logs.service'
+import { AuditLogsService } from '../audit-logs/audit-logs.service'
 import { getDefaultFlagValue } from '../sdk/sdk.helpers'
-import type { CreateFlagDto } from './dto/create-flag.dto'
-import type { UpdateFlagValueDto } from './dto/update-flag-value.dto'
+import { CreateFlagDto } from './dto/create-flag.dto'
+import { UpdateFlagValueDto } from './dto/update-flag-value.dto'
 
 @Injectable()
 export class FlagsService {

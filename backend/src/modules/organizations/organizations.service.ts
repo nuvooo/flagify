@@ -4,9 +4,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import type { OrganizationRole } from '@prisma/client'
+import { OrganizationRole } from '@prisma/client'
 import { randomUUID } from 'crypto'
-import type { PrismaService } from '../../shared/prisma.service'
+import { PrismaService } from '../../shared/prisma.service'
 
 @Injectable()
 export class OrganizationsService {

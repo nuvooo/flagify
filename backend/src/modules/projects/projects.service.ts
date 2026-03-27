@@ -5,10 +5,10 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import { Project } from '../../domain/project.entity'
-import type { PrismaService } from '../../shared/prisma.service'
+import { PrismaService } from '../../shared/prisma.service'
 import { isPrismaUniqueConstraintError } from '../../shared/prisma-errors'
 import { getDefaultFlagValue } from '../sdk/sdk.helpers'
-import type { CreateProjectDto } from './dto/create-project.dto'
+import { CreateProjectDto } from './dto/create-project.dto'
 
 @Injectable()
 export class ProjectsService {

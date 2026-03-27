@@ -1,6 +1,6 @@
 import { Controller, Get, HttpStatus, Res } from '@nestjs/common'
-import type { Response } from 'express'
-import type { PrismaService } from '../../shared/prisma.service'
+import { Response } from 'express'
+import { PrismaService } from '../../shared/prisma.service'
 
 @Controller('health')
 export class HealthController {

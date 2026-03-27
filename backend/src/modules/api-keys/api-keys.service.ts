@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
-import type { ApiKeyType } from '@prisma/client'
+import { ApiKeyType } from '@prisma/client'
 import * as crypto from 'crypto'
-import type { PrismaService } from '../../shared/prisma.service'
+import { PrismaService } from '../../shared/prisma.service'
 
 @Injectable()
 export class ApiKeysService {

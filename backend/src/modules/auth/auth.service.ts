@@ -4,11 +4,11 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common'
-import type { ConfigService } from '@nestjs/config'
+import { ConfigService } from '@nestjs/config'
 import * as bcrypt from 'bcryptjs'
 import { randomUUID } from 'crypto'
 import * as jwt from 'jsonwebtoken'
-import type { PrismaService } from '../../shared/prisma.service'
+import { PrismaService } from '../../shared/prisma.service'
 
 @Injectable()
 export class AuthService {

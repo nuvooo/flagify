@@ -9,9 +9,9 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { AuthGuard } from '../../shared/auth.guard'
-import type { CreateBrandDto } from './dto/create-brand.dto'
-import type { UpdateBrandDto } from './dto/update-brand.dto'
-import type { BrandsService } from './brands.service'
+import { CreateBrandDto } from './dto/create-brand.dto'
+import { UpdateBrandDto } from './dto/update-brand.dto'
+import { BrandsService } from './brands.service'
 
 @Controller('brands')
 @UseGuards(AuthGuard)

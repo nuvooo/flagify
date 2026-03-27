@@ -11,12 +11,12 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { AuthGuard } from '../../shared/auth.guard'
-import type { CreateFlagDto } from './dto/create-flag.dto'
-import type { ToggleFlagDto } from './dto/toggle-flag.dto'
-import type { UpdateFlagDto } from './dto/update-flag.dto'
-import type { UpdateFlagEnvironmentDto } from './dto/update-flag-environment.dto'
-import type { UpdateFlagValueDto } from './dto/update-flag-value.dto'
-import type { FlagsService } from './flags.service'
+import { CreateFlagDto } from './dto/create-flag.dto'
+import { ToggleFlagDto } from './dto/toggle-flag.dto'
+import { UpdateFlagDto } from './dto/update-flag.dto'
+import { UpdateFlagEnvironmentDto } from './dto/update-flag-environment.dto'
+import { UpdateFlagValueDto } from './dto/update-flag-value.dto'
+import { FlagsService } from './flags.service'
 
 @Controller('feature-flags')
 @UseGuards(AuthGuard)

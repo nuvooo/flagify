@@ -9,9 +9,9 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { AuthGuard } from '../../shared/auth.guard'
-import type { CreateEnvironmentDto } from './dto/create-environment.dto'
-import type { UpdateEnvironmentDto } from './dto/update-environment.dto'
-import type { EnvironmentsService } from './environments.service'
+import { CreateEnvironmentDto } from './dto/create-environment.dto'
+import { UpdateEnvironmentDto } from './dto/update-environment.dto'
+import { EnvironmentsService } from './environments.service'
 
 @Controller('environments')
 @UseGuards(AuthGuard)

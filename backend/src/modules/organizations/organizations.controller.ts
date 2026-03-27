@@ -11,13 +11,13 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common'
-import type { ConfigService } from '@nestjs/config'
+import { ConfigService } from '@nestjs/config'
 import * as bcrypt from 'bcryptjs'
 import { randomUUID } from 'crypto'
 import { AuthGuard } from '../../shared/auth.guard'
-import type { MailService } from '../../shared/mail.service'
-import type { PrismaService } from '../../shared/prisma.service'
-import type { OrganizationsService } from './organizations.service'
+import { MailService } from '../../shared/mail.service'
+import { PrismaService } from '../../shared/prisma.service'
+import { OrganizationsService } from './organizations.service'
 
 @Controller('organizations')
 @UseGuards(AuthGuard)
