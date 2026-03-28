@@ -22,7 +22,7 @@ export default function Login() {
   const [searchParams] = useSearchParams()
   const isDemo = searchParams.get('demo') === 'true'
   const [email, setEmail] = useState(isDemo ? 'demo@togglely.io' : '')
-  const [password, setPassword] = useState(isDemo ? 'demo1234' : '')
+  const [password, setPassword] = useState(isDemo ? 'demo123!' : '')
   const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -80,7 +80,7 @@ export default function Login() {
                 <p>
                   Password:{' '}
                   <code className="font-mono bg-amber-100 dark:bg-amber-950 px-1 rounded">
-                    demo1234
+                    demo123!
                   </code>
                 </p>
               </div>

@@ -279,7 +279,7 @@ Public SDK endpoints are available at /sdk/flags/ without authentication`)
               type: 'object',
               properties: {
                 email: { type: 'string', example: 'demo@togglely.io' },
-                password: { type: 'string', example: 'demo1234!' },
+                password: { type: 'string', example: 'demo123!' },
               },
             },
           },
