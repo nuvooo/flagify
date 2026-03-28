@@ -1,14 +1,6 @@
 # Togglely Svelte SDK
 
-Svelte stores and actions for [Togglely](https://togglely.io) feature flag management.
-
-## Features
-
-- 🎣 **Svelte Stores** - `toggle`, `stringToggle`, `numberToggle`, `jsonToggle`
-- 🎯 **Actions** - `use:featureToggle` for declarative UI
-- 💾 **Offline Support** - Built-in offline fallback
-- 🔒 **TypeScript** - Full type safety
-- ⚡ **Reactive** - Automatic updates with Svelte's reactivity
+Svelte stores, actions, and Svelte 5 runes support for [Togglely](https://togglely.io) feature flag management.
 
 ## Installation
 
@@ -16,22 +8,22 @@ Svelte stores and actions for [Togglely](https://togglely.io) feature flag manag
 npm install @togglely/sdk-svelte
 ```
 
+`@togglely/sdk-core` is included as a dependency -- you do not need to install it separately.
+
 ## Quick Start
 
 ```svelte
 <!-- App.svelte -->
 <script>
   import { initTogglely, toggle } from '@togglely/sdk-svelte';
-  
-  // Initialize once (usually in your root layout)
+
   initTogglely({
     apiKey: 'your-api-key',
     project: 'my-project',
     environment: 'production',
     baseUrl: 'https://togglely.io',
   });
-  
-  // Use the store
+
   const isEnabled = toggle('new-feature', false);
 </script>
 
@@ -44,31 +36,49 @@ npm install @togglely/sdk-svelte
 
 ## Initialization
 
-```typescript
-import { initTogglely, getTogglelyClient, destroyTogglely } from '@togglely/sdk-svelte';
+### `initTogglely(config: TogglelyConfig): TogglelyClient`
 
-// Initialize
+Initialize the global Togglely client. Call this once in your root layout or entry point. If called again, it destroys the previous instance and creates a new one.
+
+```typescript
+import { initTogglely } from '@togglely/sdk-svelte';
+
 initTogglely({
   apiKey: 'your-api-key',
   project: 'my-project',
   environment: 'production',
   baseUrl: 'https://togglely.io',
-  tenantId: 'brand-a',              // For multi-brand projects
-  offlineJsonPath: '/toggles.json', // Offline fallback
+  tenantId: 'brand-a',              // optional
+  offlineJsonPath: '/toggles.json', // optional
+  refreshStrategy: 'manual',        // optional
 });
+```
 
-// Access client directly
+### `getTogglelyClient(): TogglelyClient`
+
+Access the global client instance. Throws if `initTogglely` has not been called.
+
+```typescript
 const client = getTogglelyClient();
+await client.refresh();
+```
 
-// Cleanup on app destroy
+### `destroyTogglely(): void`
+
+Destroy the global client and clean up timers/handlers.
+
+```typescript
+import { destroyTogglely } from '@togglely/sdk-svelte';
 destroyTogglely();
 ```
 
-## Stores
+## Stores API Reference
 
-### toggle
+All stores are Svelte `Readable` stores. Use the `$` prefix in templates and reactive statements.
 
-Boolean toggle store:
+### `toggle(key: string, defaultValue?: boolean): Readable<boolean>`
+
+Reactive boolean toggle store.
 
 ```svelte
 <script>
@@ -81,9 +91,9 @@ Boolean toggle store:
 {/if}
 ```
 
-### stringToggle
+### `stringToggle(key: string, defaultValue?: string): Readable<string>`
 
-String toggle store:
+Reactive string toggle store.
 
 ```svelte
 <script>
@@ -94,9 +104,9 @@ String toggle store:
 <h1>{$message}</h1>
 ```
 
-### numberToggle
+### `numberToggle(key: string, defaultValue?: number): Readable<number>`
 
-Number toggle store:
+Reactive number toggle store.
 
 ```svelte
 <script>
@@ -107,9 +117,9 @@ Number toggle store:
 <p>Max items: {$limit}</p>
 ```
 
-### jsonToggle
+### `jsonToggle<T>(key: string, defaultValue?: T): Readable<T>`
 
-JSON toggle store:
+Reactive JSON toggle store.
 
 ```svelte
 <script>
@@ -117,14 +127,12 @@ JSON toggle store:
   const config = jsonToggle('app-config', { theme: 'dark' });
 </script>
 
-<div data-theme={$config.theme}>
-  Content
-</div>
+<div data-theme={$config.theme}>Content</div>
 ```
 
-### toggles
+### `toggles(): Readable<Record<string, ToggleValue>>`
 
-All toggles store:
+All cached toggles as a reactive store.
 
 ```svelte
 <script>
@@ -132,14 +140,14 @@ All toggles store:
   const all = toggles();
 </script>
 
-{#each Object.entries($all) as [key, toggle]}
-  <p>{key}: {toggle.enabled ? 'ON' : 'OFF'}</p>
+{#each Object.entries($all) as [key, t]}
+  <p>{key}: {t.enabled ? 'ON' : 'OFF'} = {t.value}</p>
 {/each}
 ```
 
-### togglelyState
+### `togglelyState(): Readable<TogglelyState>`
 
-SDK state store:
+Reactive SDK state store. Updates on all events (ready, update, error, offline, online).
 
 ```svelte
 <script>
@@ -154,9 +162,19 @@ SDK state store:
 {/if}
 ```
 
+### `togglelyReady(): Readable<boolean>`
+
+Derived store that is `true` when toggles are ready.
+
+### `togglelyOffline(): Readable<boolean>`
+
+Derived store that is `true` when in offline mode.
+
 ## Actions
 
-### featureToggle
+### `featureToggle(node: HTMLElement, key: string): { destroy(): void }`
+
+Svelte action that shows/hides an element based on a toggle. Sets `display: none` when disabled.
 
 ```svelte
 <script>
@@ -164,47 +182,68 @@ SDK state store:
 </script>
 
 <div use:featureToggle={'new-feature'}>
-  Only visible when enabled
+  Only visible when 'new-feature' is enabled
 </div>
 ```
 
-## Context
+## Context Management
+
+### `setTogglelyContext(context: ToggleContext): void`
+
+Merge new attributes into the targeting context.
 
 ```typescript
-import { setTogglelyContext, getTogglelyContext, clearTogglelyContext } from '@togglely/sdk-svelte';
-
-// Set targeting context
+import { setTogglelyContext } from '@togglely/sdk-svelte';
 setTogglelyContext({ userId: '123', country: 'DE' });
-
-// Get current context
-const context = getTogglelyContext();
-
-// Clear context
-clearTogglelyContext();
 ```
 
-## SSR (SvelteKit)
+### `getTogglelyContext(): ToggleContext`
 
-```typescript
-// src/lib/togglely.ts
-import { initTogglely } from '@togglely/sdk-svelte';
+Return a copy of the current context.
 
-export function loadTogglely() {
-  initTogglely({
-    apiKey: import.meta.env.VITE_TOGGLELY_APIKEY,
-    project: 'my-project',
-    environment: 'production',
-    baseUrl: 'https://togglely.io',
-  });
-}
+### `clearTogglelyContext(): void`
+
+Reset the context to an empty object.
+
+## Svelte 5 Runes Support
+
+### `createToggle(key: string, defaultValue?: boolean): { value: boolean }`
+
+For Svelte 5 users, `createToggle` returns a reactive object compatible with runes.
+
+```svelte
+<script>
+  import { createToggle } from '@togglely/sdk-svelte';
+
+  const feature = createToggle('new-feature', false);
+</script>
+
+{#if feature.value}
+  <NewFeature />
+{/if}
 ```
+
+Note: The returned object has a getter-based `.value` property. In Svelte 5 you can use it with `$state`:
+
+```svelte
+<script>
+  import { createToggle } from '@togglely/sdk-svelte';
+  let feature = $state(createToggle('new-feature', false));
+</script>
+```
+
+## SSR Integration (SvelteKit)
+
+### Client-Only Initialization
+
+The simplest approach -- initialize only in the browser:
 
 ```svelte
 <!-- src/routes/+layout.svelte -->
 <script>
   import { browser } from '$app/environment';
   import { initTogglely } from '@togglely/sdk-svelte';
-  
+
   if (browser) {
     initTogglely({
       apiKey: import.meta.env.VITE_TOGGLELY_APIKEY,
@@ -218,6 +257,81 @@ export function loadTogglely() {
 <slot />
 ```
 
+### Server-Side Pre-Fetching
+
+Fetch toggles in a `+layout.server.ts` load function and pass them to the client:
+
+```typescript
+// src/routes/+layout.server.ts
+import type { LayoutServerLoad } from './$types';
+
+export const load: LayoutServerLoad = async ({ fetch }) => {
+  const response = await fetch(
+    `${process.env.TOGGLELY_BASE_URL}/sdk/flags/${process.env.TOGGLELY_PROJECT}/${process.env.TOGGLELY_ENV}`,
+    { headers: { Authorization: `Bearer ${process.env.TOGGLELY_APIKEY}` } }
+  );
+  const toggles = await response.json();
+  return { toggles };
+};
+```
+
+```svelte
+<!-- src/routes/+layout.svelte -->
+<script>
+  import { browser } from '$app/environment';
+  import { initTogglely } from '@togglely/sdk-svelte';
+
+  export let data;
+
+  if (browser) {
+    // Inject server-fetched toggles as offline fallback
+    window.__TOGGLELY_TOGGLES = data.toggles;
+
+    initTogglely({
+      apiKey: import.meta.env.VITE_TOGGLELY_APIKEY,
+      project: 'my-project',
+      environment: 'production',
+      baseUrl: 'https://togglely.io',
+    });
+  }
+</script>
+
+<slot />
+```
+
+## FeatureToggle Component (Recipe)
+
+Create a reusable wrapper component:
+
+```svelte
+<!-- FeatureToggle.svelte -->
+<script>
+  import { toggle } from '@togglely/sdk-svelte';
+
+  export let name;
+  export let defaultValue = false;
+
+  const isEnabled = toggle(name, defaultValue);
+</script>
+
+{#if $isEnabled}
+  <slot />
+{:else}
+  <slot name="fallback" />
+{/if}
+```
+
+Usage:
+
+```svelte
+<FeatureToggle name="new-feature">
+  <NewVersion />
+  <svelte:fragment slot="fallback">
+    <OldVersion />
+  </svelte:fragment>
+</FeatureToggle>
+```
+
 ## Build-Time JSON Generation
 
 ```json
@@ -229,47 +343,20 @@ export function loadTogglely() {
 ```
 
 ```typescript
-// app.ts
 initTogglely({
-  apiKey: 'your-api-key',
-  project: 'my-project',
-  environment: 'production',
-  baseUrl: 'https://togglely.io',
+  ...config,
   offlineJsonPath: '/toggles.json',
 });
 ```
 
-## FeatureToggle Component Example
+## Re-exports
 
-Create your own wrapper component:
+The Svelte SDK re-exports from `@togglely/sdk-core`:
 
-```svelte
-<!-- FeatureToggle.svelte -->
-<script>
-  import { toggle } from '@togglely/sdk-svelte';
-  
-  export let name;
-  export let defaultValue = false;
-  
-  const isEnabled = toggle(name, defaultValue);
-</script>
-
-{#if $isEnabled}
-  <slot />
-{:else}
-  <slot name="fallback" />
-{/if}
-```
-
-```svelte
-<!-- Usage -->
-<FeatureToggle name="new-feature">
-  <NewVersion />
-  <svelte:fragment slot="fallback">
-    <OldVersion />
-  </svelte:fragment>
-</FeatureToggle>
-```
+- `TogglelyClient`
+- `createOfflineTogglesScript`
+- `togglesToEnvVars`
+- Types: `ToggleContext`, `TogglelyConfig`, `TogglelyState`
 
 ## License
 
