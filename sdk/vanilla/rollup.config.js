@@ -25,7 +25,7 @@ export default [
     plugins: [resolve(), typescript({ tsconfig: './tsconfig.json' })],
     external: ['@togglely/sdk-core'],
   },
-  // UMD build (for CDN)
+  // UMD build (for CDN) - self-contained, bundles @togglely/sdk-core
   {
     input: 'src/index.ts',
     output: {
@@ -33,20 +33,27 @@ export default [
       format: 'umd',
       name: 'Togglely',
       sourcemap: true,
-      globals: {},
     },
-    plugins: [resolve(), typescript({ tsconfig: './tsconfig.json' })],
+    plugins: [
+      resolve({ browser: true, preferBuiltins: false }),
+      typescript({ tsconfig: './tsconfig.json' }),
+    ],
+    // No external - everything is bundled for CDN usage
   },
-  // UMD minified build
+  // UMD minified build (for CDN) - self-contained, bundles @togglely/sdk-core
   {
     input: 'src/index.ts',
     output: {
       file: 'dist/index.umd.min.js',
       format: 'umd',
-      name: 'Flagify',
+      name: 'Togglely',
       sourcemap: true,
-      globals: {},
     },
-    plugins: [resolve(), typescript({ tsconfig: './tsconfig.json' }), terser()],
+    plugins: [
+      resolve({ browser: true, preferBuiltins: false }),
+      typescript({ tsconfig: './tsconfig.json' }),
+      terser(),
+    ],
+    // No external - everything is bundled for CDN usage
   },
 ]
