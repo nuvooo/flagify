@@ -1,16 +1,26 @@
 # Togglely SDKs
 
-Official JavaScript/TypeScript SDKs for [Togglely](https://togglely.io) feature flag management platform.
+Official JavaScript/TypeScript SDKs for [Togglely](https://togglely.io) -- a self-hosted, multi-tenant feature toggle management platform.
 
 ## Packages
 
-| Package | Description | Framework |
-|---------|-------------|-----------|
-| [`@togglely/sdk-core`](./core) | Core SDK | Framework-agnostic |
-| [`@togglely/sdk`](./vanilla) | Vanilla JS SDK | Browser / Node.js |
-| [`@togglely/sdk-react`](./react) | React SDK | React |
-| [`@togglely/sdk-vue`](./vue) | Vue SDK | Vue 3 |
-| [`@togglely/sdk-svelte`](./svelte) | Svelte SDK | Svelte |
+| Package | npm | Use Case | Framework |
+|---------|-----|----------|-----------|
+| [`@togglely/sdk-core`](./core) | `npm i @togglely/sdk-core` | Shared engine, server-side, custom integrations | Framework-agnostic |
+| [`@togglely/sdk-react`](./react) | `npm i @togglely/sdk-react` | React apps, Next.js (SSR/SSG) | React 18+ |
+| [`@togglely/sdk-vue`](./vue) | `npm i @togglely/sdk-vue` | Vue apps, Nuxt (SSR) | Vue 3 |
+| [`@togglely/sdk-svelte`](./svelte) | `npm i @togglely/sdk-svelte` | Svelte apps, SvelteKit (SSR) | Svelte 4/5 |
+| [`@togglely/sdk`](./vanilla) | `npm i @togglely/sdk` | Vanilla JS, CDN script tag, Node.js scripts | Browser / Node.js |
+
+### Which package should I use?
+
+- **React / Next.js** -- `@togglely/sdk-react` (includes hooks, components, SSR helper)
+- **Vue / Nuxt** -- `@togglely/sdk-vue` (includes composables, directives, plugin)
+- **Svelte / SvelteKit** -- `@togglely/sdk-svelte` (includes stores, actions, runes support)
+- **Plain HTML / jQuery / Node.js** -- `@togglely/sdk` (global helpers, DOM helpers, CDN)
+- **Custom framework or server-side only** -- `@togglely/sdk-core` (direct client API)
+
+All framework SDKs depend on `@togglely/sdk-core` internally; you never need to install it separately.
 
 ## Quick Start
 
@@ -25,7 +35,7 @@ import { TogglelyProvider, useToggle } from '@togglely/sdk-react';
 
 function App() {
   return (
-    <TogglelyProvider 
+    <TogglelyProvider
       apiKey="your-api-key"
       project="my-project"
       environment="production"
@@ -82,14 +92,14 @@ npm install @togglely/sdk-svelte
 ```svelte
 <script>
   import { initTogglely, toggle } from '@togglely/sdk-svelte';
-  
+
   initTogglely({
     apiKey: 'your-api-key',
     project: 'my-project',
     environment: 'production',
     baseUrl: 'https://togglely.io',
   });
-  
+
   const isEnabled = toggle('new-feature', false);
 </script>
 
@@ -124,39 +134,45 @@ Or via CDN:
 ```html
 <script src="https://unpkg.com/@togglely/sdk/dist/index.umd.min.js"></script>
 <script>
-  Togglely.initTogglely({ apiKey: 'your-api-key', ... });
+  Togglely.initTogglely({ apiKey: 'your-api-key', project: 'my-project', environment: 'production', baseUrl: 'https://togglely.io' });
+  Togglely.isEnabled('new-feature').then(function(enabled) { /* ... */ });
 </script>
 ```
 
 ## Key Features
 
-### 🏢 Multi-Brand / Multi-Tenant Support
+### Multi-Brand / Multi-Tenant Support
 
-For projects with multiple brands or tenants:
+All SDKs support `tenantId` (or `brandKey`) for multi-tenant projects:
 
 ```typescript
 // React
-<TogglelyProvider tenantId="brand-a" ...>
+<TogglelyProvider tenantId="brand-a" ... />
 
 // Vue
 app.use(createTogglely({ tenantId: 'brand-a', ... }));
+
+// Svelte
+initTogglely({ tenantId: 'brand-a', ... });
 
 // Core
 const client = new TogglelyClient({ tenantId: 'brand-a', ... });
 ```
 
-### 💾 Offline Fallback
+### Offline Fallback
 
-All SDKs support multiple offline fallback methods:
+All SDKs support four offline fallback methods (in priority order):
 
-1. **Inline Toggles** - Pass toggles directly in config
-2. **JSON File** - Load from a JSON file path
-3. **Environment Variables** - Node.js (`TOGGLELY_*`)
-4. **Window Object** - Browser (`window.__TOGGLELY_TOGGLES`)
+1. **Inline toggles** -- pass toggle values directly in config
+2. **JSON file** -- load from a static JSON file (generated at build time)
+3. **Environment variables** -- Node.js (`TOGGLELY_*` prefix)
+4. **Window object** -- Browser (`window.__TOGGLELY_TOGGLES`)
 
-### 🔧 Build-Time JSON Generation
+See [Core SDK: Offline Fallback](./core/README.md#offline-fallback-configuration) for details.
 
-Generate offline JSON during build:
+### Build-Time JSON Generation
+
+Pull toggles at build time for offline/static deployments:
 
 ```bash
 npx @togglely/sdk-core togglely-pull \
@@ -166,19 +182,9 @@ npx @togglely/sdk-core togglely-pull \
   --output=./toggles.json
 ```
 
-Or add to your build script:
+### Targeting Context
 
-```json
-{
-  "scripts": {
-    "build": "togglely-pull && vite build"
-  }
-}
-```
-
-### 🎯 Targeting Context
-
-Set user context for advanced targeting:
+Set user attributes for server-side targeting rules:
 
 ```typescript
 // React
@@ -193,13 +199,23 @@ setContext({ userId: '123', country: 'DE' });
 client.setContext({ userId: '123', country: 'DE' });
 ```
 
+### Refresh Strategies
+
+Three built-in strategies control how toggles stay up to date:
+
+| Strategy | Description | Best for |
+|----------|-------------|----------|
+| `manual` (default) | Cached reads are side-effect free; call `refresh()` explicitly | Frontend apps |
+| `interval` | Background refresh on a fixed interval | Dashboards, internal tools |
+| `stale-while-revalidate` | Cached reads may trigger a throttled background refresh | Interactive apps |
+
 ## Documentation
 
-- [Core SDK Documentation](./core/README.md)
-- [React SDK Documentation](./react/README.md)
-- [Vue SDK Documentation](./vue/README.md)
-- [Svelte SDK Documentation](./svelte/README.md)
-- [Vanilla JS SDK Documentation](./vanilla/README.md)
+- [Core SDK -- Full API Reference](./core/README.md)
+- [React SDK -- Hooks, Components, SSR](./react/README.md)
+- [Vue SDK -- Composables, Directives, SSR](./vue/README.md)
+- [Svelte SDK -- Stores, Actions, SSR](./svelte/README.md)
+- [Vanilla JS SDK -- CDN, DOM Helpers, Node.js](./vanilla/README.md)
 
 ## License
 

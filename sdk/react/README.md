@@ -1,20 +1,14 @@
 # Togglely React SDK
 
-React hooks and components for [Togglely](https://togglely.io) feature flag management.
-
-## Features
-
-- 🎣 **React Hooks** - `useToggle`, `useStringToggle`, `useNumberToggle`, `useJSONToggle`
-- 🏗️ **Components** - `FeatureToggle`, `FeatureToggleSwitch` for declarative UI
-- ⚡ **SSR Support** - Works with Next.js, Remix, and other SSR frameworks
-- 💾 **Offline Support** - Built-in offline fallback
-- 🔒 **TypeScript** - Full type safety
+React hooks, components, and SSR helpers for [Togglely](https://togglely.io) feature flag management.
 
 ## Installation
 
 ```bash
 npm install @togglely/sdk-react
 ```
+
+`@togglely/sdk-core` is included as a dependency -- you do not need to install it separately.
 
 ## Quick Start
 
@@ -23,7 +17,7 @@ import { TogglelyProvider, useToggle, FeatureToggle } from '@togglely/sdk-react'
 
 function App() {
   return (
-    <TogglelyProvider 
+    <TogglelyProvider
       apiKey="your-api-key"
       project="my-project"
       environment="production"
@@ -35,14 +29,12 @@ function App() {
 }
 
 function MyComponent() {
-  // Using hook
   const isEnabled = useToggle('new-feature', false);
-  
+
   return (
     <div>
       {isEnabled && <NewFeature />}
-      
-      {/* Or using component */}
+
       <FeatureToggle toggle="premium-feature" fallback={<FreeVersion />}>
         <PremiumVersion />
       </FeatureToggle>
@@ -51,104 +43,227 @@ function MyComponent() {
 }
 ```
 
-## Provider Configuration
+## Provider
+
+### `<TogglelyProvider>`
+
+Wrap your app (or a subtree) with the provider. It creates a `TogglelyClient` instance and makes it available to all hooks and components below it.
 
 ```tsx
-<TogglelyProvider 
+interface TogglelyProviderProps {
+  // --- Required (passed to TogglelyClient) ---
+  apiKey: string;
+  project: string;
+  environment: string;
+  baseUrl: string;
+
+  // --- Optional ---
+  children: ReactNode;
+  initialToggles?: Record<string, any>;    // Pre-fetched toggles for SSR
+  initialContext?: ToggleContext;           // Initial targeting context
+  offlineFallback?: boolean;               // Enable offline fallback (default: true)
+  tenantId?: string;                       // Multi-tenant support
+  brandKey?: string;                       // Alias for tenantId
+  timeout?: number;                        // Request timeout in ms
+  offlineJsonPath?: string;                // Path to offline JSON file
+  offlineToggles?: Record<string, ToggleValue>; // Inline offline toggles
+  refreshStrategy?: 'manual' | 'interval' | 'stale-while-revalidate';
+  refreshIntervalMs?: number;
+  minRefreshIntervalMs?: number;
+}
+```
+
+```tsx
+<TogglelyProvider
   apiKey="your-api-key"
   project="my-project"
   environment="production"
   baseUrl="https://togglely.io"
-  tenantId="brand-a"              // For multi-brand projects
-  offlineJsonPath="/toggles.json" // Offline fallback
+  tenantId="brand-a"
+  offlineJsonPath="/toggles.json"
   initialContext={{ userId: '123' }}
 >
   {children}
 </TogglelyProvider>
 ```
 
-## Hooks
+## Hooks API Reference
 
-### useToggle
+### `useToggle(key: string, defaultValue?: boolean): boolean`
 
-Check if a boolean feature is enabled:
+Returns `true` when the boolean toggle is enabled **and** its value is `true`.
 
 ```tsx
-const isEnabled = useToggle('new-feature', false);
+const showBeta = useToggle('beta-feature', false);
 ```
 
-### useStringToggle
+### `useEnabled(key: string, defaultValue?: boolean): boolean`
 
-Get a string value:
+Returns `true` when the toggle's `enabled` field is `true`, regardless of its value. Use this for non-boolean flags where you only care whether the flag is active.
+
+```tsx
+const isActive = useEnabled('welcome-banner', false);
+```
+
+### `useStringToggle(key: string, defaultValue?: string): string`
+
+Returns the string value of a toggle, or `defaultValue` if not found/disabled.
 
 ```tsx
 const message = useStringToggle('welcome-message', 'Hello!');
 ```
 
-### useNumberToggle
+### `useNumberToggle(key: string, defaultValue?: number): number`
 
-Get a number value:
-
-```tsx
-const timeout = useNumberToggle('api-timeout', 5000);
-```
-
-### useJSONToggle
-
-Get a JSON value:
+Returns the numeric value of a toggle.
 
 ```tsx
-const config = useJSONToggle('app-config', { theme: 'dark' });
+const maxItems = useNumberToggle('max-items', 10);
 ```
 
-### useTogglelyClient
+### `useJSONToggle<T>(key: string, defaultValue?: T): T`
 
-Access the client directly:
+Returns a parsed JSON object from a toggle.
+
+```tsx
+interface ThemeConfig { primary: string; mode: 'light' | 'dark' }
+const theme = useJSONToggle<ThemeConfig>('theme-config', { primary: '#000', mode: 'light' });
+```
+
+### `useToggles(): Record<string, ToggleValue>`
+
+Returns all cached toggles. Updates automatically when toggles change.
+
+```tsx
+const allToggles = useToggles();
+```
+
+### `useTogglelyClient(): TogglelyClient`
+
+Access the underlying `TogglelyClient` instance for direct API calls.
 
 ```tsx
 const client = useTogglelyClient();
 client.setContext({ userId: '123' });
+await client.refresh();
 ```
 
-### useTogglelyState
+### `useTogglelyState(): TogglelyState`
 
-Get the current state:
+Returns the current SDK state (`isReady`, `isOffline`, `lastError`, `lastFetch`). Updates reactively on every event.
 
 ```tsx
 const { isReady, isOffline, lastError } = useTogglelyState();
+
+if (!isReady) return <Loading />;
+if (lastError) return <ErrorBanner error={lastError} />;
+```
+
+### `useTogglelyReady(): boolean`
+
+Shorthand for `useTogglelyState().isReady`.
+
+### `useTogglelyOffline(): boolean`
+
+Shorthand for `useTogglelyState().isOffline`.
+
+### `useTogglelyContext(): { setContext, clearContext, context }`
+
+Manage the targeting context reactively.
+
+```tsx
+const { setContext, clearContext, context } = useTogglelyContext();
+
+useEffect(() => {
+  setContext({ userId: user.id, country: user.country });
+}, [user]);
+```
+
+### `useTogglelySuspense(): TogglelyClient`
+
+Suspends rendering until toggles are ready. Use with `<React.Suspense>`.
+
+```tsx
+function App() {
+  return (
+    <React.Suspense fallback={<Loading />}>
+      <TogglelyProvider {...config}>
+        <Content />
+      </TogglelyProvider>
+    </React.Suspense>
+  );
+}
+
+function Content() {
+  const client = useTogglelySuspense(); // suspends until ready
+  return <MainApp />;
+}
 ```
 
 ## Components
 
-### FeatureToggle
+### `<FeatureToggle>`
+
+Conditionally render content based on a boolean toggle.
 
 ```tsx
-<FeatureToggle 
-  toggle="new-feature"
-  fallback={<OldVersion />}
-  defaultValue={false}
->
-  <NewVersion />
+interface FeatureToggleProps {
+  toggle: string;           // Toggle key
+  children: ReactNode;      // Rendered when enabled
+  fallback?: ReactNode;     // Rendered when disabled (default: null)
+  defaultValue?: boolean;   // Default if toggle not found (default: false)
+}
+```
+
+```tsx
+<FeatureToggle toggle="new-dashboard" fallback={<OldDashboard />}>
+  <NewDashboard />
 </FeatureToggle>
 ```
 
-### FeatureToggleSwitch
+### `<FeatureToggleSwitch>` + `<FeatureToggleCase>`
+
+Render different content based on the toggle's boolean state.
 
 ```tsx
-<FeatureToggleSwitch toggle="plan-type" defaultValue="free">
-  <FeatureToggleCase when="premium">
-    <PremiumFeatures />
+<FeatureToggleSwitch toggle="new-feature" defaultValue={false}>
+  <FeatureToggleCase when={true}>
+    <NewVersion />
   </FeatureToggleCase>
-  <FeatureToggleCase when="pro">
-    <ProFeatures />
+  <FeatureToggleCase when={false}>
+    <OldVersion />
   </FeatureToggleCase>
   <FeatureToggleCase>
-    <FreeFeatures />
+    {/* Default case (when `when` is omitted) */}
+    <FallbackVersion />
   </FeatureToggleCase>
 </FeatureToggleSwitch>
 ```
 
-## Server-Side Rendering (SSR)
+## Higher-Order Component
+
+### `withFeatureToggle(Component, options)`
+
+Wrap a component so it only renders when a toggle is enabled.
+
+```tsx
+interface WithFeatureToggleOptions {
+  toggle: string;
+  defaultValue?: boolean;
+  fallback?: React.ComponentType<any>;
+}
+
+const ProtectedFeature = withFeatureToggle(MyFeature, {
+  toggle: 'premium-feature',
+  defaultValue: false,
+  fallback: UpgradeBanner,
+});
+
+// Usage
+<ProtectedFeature someProp="value" />
+```
+
+## SSR Integration
 
 ### Next.js App Router
 
@@ -156,21 +271,21 @@ const { isReady, isOffline, lastError } = useTogglelyState();
 // app/layout.tsx
 import { TogglelyProvider } from '@togglely/sdk-react';
 
-export default async function RootLayout({ children }) {
-  // Fetch toggles on server
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const response = await fetch(
-    `https://togglely.io/sdk/flags/my-project/production?apiKey=${process.env.TOGGLELY_APIKEY}`
+    `${process.env.TOGGLELY_BASE_URL}/sdk/flags/${process.env.TOGGLELY_PROJECT}/${process.env.TOGGLELY_ENV}`,
+    { headers: { Authorization: `Bearer ${process.env.TOGGLELY_APIKEY}` } }
   );
   const initialToggles = await response.json();
-  
+
   return (
     <html>
       <body>
-        <TogglelyProvider 
+        <TogglelyProvider
           apiKey={process.env.TOGGLELY_APIKEY!}
-          project="my-project"
-          environment="production"
-          baseUrl="https://togglely.io"
+          project={process.env.TOGGLELY_PROJECT!}
+          environment={process.env.TOGGLELY_ENV!}
+          baseUrl={process.env.TOGGLELY_BASE_URL!}
           initialToggles={initialToggles}
         >
           {children}
@@ -183,8 +298,9 @@ export default async function RootLayout({ children }) {
 
 ### Next.js Pages Router
 
+Use the `getTogglelyState()` helper to fetch toggles server-side:
+
 ```tsx
-// pages/index.tsx
 import { TogglelyProvider, getTogglelyState } from '@togglely/sdk-react';
 
 export async function getServerSideProps() {
@@ -194,14 +310,14 @@ export async function getServerSideProps() {
     environment: 'production',
     baseUrl: 'https://togglely.io',
   });
-  
+
   return { props: { initialToggles } };
 }
 
-export default function Page({ initialToggles }) {
+export default function Page({ initialToggles }: { initialToggles: Record<string, any> }) {
   return (
-    <TogglelyProvider 
-      apiKey={process.env.TOGGLELY_APIKEY!}
+    <TogglelyProvider
+      apiKey={process.env.NEXT_PUBLIC_TOGGLELY_APIKEY!}
       project="my-project"
       environment="production"
       baseUrl="https://togglely.io"
@@ -213,9 +329,25 @@ export default function Page({ initialToggles }) {
 }
 ```
 
+### `getTogglelyState(config, context?): Promise<Record<string, any>>`
+
+Server-side helper that creates a temporary client, fetches all toggles, and returns them. The client is created with `autoFetch: false` and `offlineFallback: false`.
+
+```typescript
+const toggles = await getTogglelyState(
+  {
+    apiKey: 'tk_xxx',
+    project: 'my-project',
+    environment: 'production',
+    baseUrl: 'https://togglely.io',
+  },
+  { userId: 'user-123', country: 'DE' }  // optional context
+);
+```
+
 ## Build-Time JSON Generation
 
-Generate offline JSON during build:
+Generate offline JSON during your build:
 
 ```json
 {
@@ -225,10 +357,10 @@ Generate offline JSON during build:
 }
 ```
 
-Then use in your app:
+Then reference it in your provider:
 
 ```tsx
-<TogglelyProvider 
+<TogglelyProvider
   apiKey="your-api-key"
   project="my-project"
   environment="production"
@@ -236,6 +368,15 @@ Then use in your app:
   offlineJsonPath="/toggles.json"
 >
 ```
+
+## Re-exports
+
+The React SDK re-exports these from `@togglely/sdk-core` for convenience:
+
+- `TogglelyClient`
+- `createOfflineTogglesScript`
+- `togglesToEnvVars`
+- Types: `ToggleContext`, `TogglelyConfig`, `TogglelyEventType`, `TogglelyState`
 
 ## License
 
