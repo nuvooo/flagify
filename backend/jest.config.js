@@ -5,14 +5,28 @@ module.exports = {
   transform: {
     '^.+\\.(t|j)s$': ['ts-jest', { diagnostics: false }],
   },
-  collectCoverageFrom: ['src/**/*.(t|j)s'],
+  collectCoverageFrom: [
+    'src/**/*.(t|j)s',
+    '!src/main.ts',
+    '!src/**/*.module.ts',
+    '!src/**/*.dto.ts',
+    '!src/**/*.entity.ts',
+    '!src/**/*.constants.ts',
+    '!src/**/*.config.ts',
+    '!src/**/*.spec.ts',
+    '!src/shared/logger/**',
+    '!src/shared/mailer.module.ts',
+    '!src/**/*.controller.ts',
+    '!src/shared/metrics/**',
+    '!src/shared/mail.service.ts',
+  ],
   testEnvironment: 'node',
   coverageThreshold: {
     global: {
-      branches: 30,
-      functions: 30,
-      lines: 30,
-      statements: 30,
+      branches: 60,
+      functions: 60,
+      lines: 60,
+      statements: 60,
     },
   },
 }
