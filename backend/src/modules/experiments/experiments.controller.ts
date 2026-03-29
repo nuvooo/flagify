@@ -13,13 +13,17 @@ import {
 import { ExperimentStatus } from '@prisma/client'
 import { AuthGuard } from '../../shared/auth.guard'
 import { ExperimentsService } from './experiments.service'
+import { ExperimentResultsService } from './experiment-results.service'
 import { CreateExperimentDto, CreateVariantDto } from './dto/create-experiment.dto'
 import { UpdateExperimentDto } from './dto/update-experiment.dto'
 
 @Controller('api/experiments')
 @UseGuards(AuthGuard)
 export class ExperimentsController {
-  constructor(private readonly experimentsService: ExperimentsService) {}
+  constructor(
+    private readonly experimentsService: ExperimentsService,
+    private readonly resultsService: ExperimentResultsService,
+  ) {}
 
   @Post()
   async create(@Req() req: any, @Body() dto: CreateExperimentDto) {
@@ -37,6 +41,11 @@ export class ExperimentsController {
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.experimentsService.findOne(id)
+  }
+
+  @Get(':id/results')
+  async getResults(@Param('id') id: string) {
+    return this.resultsService.getResults(id)
   }
 
   @Patch(':id')
