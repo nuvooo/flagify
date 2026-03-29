@@ -108,7 +108,7 @@ export default function CreateExperiment() {
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
-      const res = await api.post('/api/experiments', {
+      const res = await api.post('/experiments', {
         name,
         key,
         hypothesis: hypothesis || undefined,

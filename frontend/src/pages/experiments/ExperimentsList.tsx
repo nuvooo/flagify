@@ -45,7 +45,7 @@ export default function ExperimentsList() {
 
   // Load projects
   useEffect(() => {
-    api.get('/api/projects')
+    api.get('/projects')
       .then((res) => {
         const list = Array.isArray(res.data) ? res.data : res.data.projects || []
         setProjects(list)
@@ -64,7 +64,7 @@ export default function ExperimentsList() {
     const params: Record<string, string> = { projectId }
     if (statusFilter) params.status = statusFilter
 
-    api.get('/api/experiments', { params })
+    api.get('/experiments', { params })
       .then((res) => setExperiments(res.data))
       .catch(() => {})
       .finally(() => setIsLoading(false))

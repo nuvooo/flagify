@@ -76,7 +76,7 @@ export default function ExperimentDetail() {
 
   const loadExperiment = () => {
     if (!id) return
-    api.get(`/api/experiments/${id}`)
+    api.get(`/experiments/${id}`)
       .then((res) => setExperiment(res.data))
       .catch(() => toast.error('Failed to load experiment'))
       .finally(() => setIsLoading(false))
@@ -84,7 +84,7 @@ export default function ExperimentDetail() {
 
   const loadResults = () => {
     if (!id) return
-    api.get(`/api/experiments/${id}/results`)
+    api.get(`/experiments/${id}/results`)
       .then((res) => setResults(res.data))
       .catch(() => {})
   }
@@ -98,7 +98,7 @@ export default function ExperimentDetail() {
     if (!id) return
     setIsActing(true)
     try {
-      await api.post(`/api/experiments/${id}/${action}`)
+      await api.post(`/experiments/${id}/${action}`)
       toast.success(`Experiment ${action}ed`)
       loadExperiment()
       if (action === 'complete') loadResults()
@@ -112,7 +112,7 @@ export default function ExperimentDetail() {
   const handleDelete = async () => {
     if (!id || !confirm('Delete this experiment?')) return
     try {
-      await api.delete(`/api/experiments/${id}`)
+      await api.delete(`/experiments/${id}`)
       toast.success('Experiment deleted')
       navigate(-1)
     } catch (err: any) {
