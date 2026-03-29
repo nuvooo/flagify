@@ -47,10 +47,11 @@ export default function ExperimentsList() {
   useEffect(() => {
     api.get('/api/projects')
       .then((res) => {
-        setProjects(res.data)
+        const list = Array.isArray(res.data) ? res.data : res.data.projects || []
+        setProjects(list)
         // Auto-select first project if none selected
-        if (!projectId && res.data.length > 0) {
-          setSearchParams({ projectId: res.data[0].id })
+        if (!projectId && list.length > 0) {
+          setSearchParams({ projectId: list[0].id })
         }
       })
       .catch(() => {})

@@ -52,8 +52,14 @@ export default function CreateExperiment() {
 
   useEffect(() => {
     if (!projectId) return
-    api.get(`/api/feature-flags/project/${projectId}`).then((res) => setFlags(res.data)).catch(() => {})
-    api.get(`/api/environments/${projectId}`).then((res) => setEnvironments(res.data)).catch(() => {})
+    api.get(`/api/feature-flags/project/${projectId}`).then((res) => {
+      const list = Array.isArray(res.data) ? res.data : res.data.featureFlags || res.data.flags || []
+      setFlags(list)
+    }).catch(() => {})
+    api.get(`/api/environments/project/${projectId}`).then((res) => {
+      const list = Array.isArray(res.data) ? res.data : res.data.environments || []
+      setEnvironments(list)
+    }).catch(() => {})
   }, [projectId])
 
   // Auto-generate key from name
