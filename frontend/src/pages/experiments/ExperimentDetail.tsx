@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  BeakerIcon,
-  PlayIcon,
-  PauseIcon,
-  CheckIcon,
-  ArrowLeftIcon,
-} from '@heroicons/react/24/outline'
+  ArrowLeft,
+  Check,
+  FlaskConical,
+  Pause,
+  Play,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import api from '@/lib/api'
@@ -138,9 +138,9 @@ export default function ExperimentDetail() {
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-            <ArrowLeftIcon className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5" />
           </button>
-          <BeakerIcon className="h-7 w-7 text-primary" />
+          <FlaskConical className="h-7 w-7 text-primary" />
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{experiment.name}</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 font-mono">{experiment.key}</p>
@@ -154,7 +154,7 @@ export default function ExperimentDetail() {
           {experiment.status === 'DRAFT' && (
             <>
               <button onClick={() => handleAction('start')} disabled={isActing} className="inline-flex items-center gap-1 rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">
-                <PlayIcon className="h-4 w-4" /> {t('experiments.start', 'Start')}
+                <Play className="h-4 w-4" /> {t('experiments.start', 'Start')}
               </button>
               <button onClick={handleDelete} className="rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/20">
                 {t('common.delete', 'Delete')}
@@ -164,20 +164,20 @@ export default function ExperimentDetail() {
           {experiment.status === 'RUNNING' && (
             <>
               <button onClick={() => handleAction('pause')} disabled={isActing} className="inline-flex items-center gap-1 rounded-lg bg-yellow-500 px-3 py-2 text-sm font-medium text-white hover:bg-yellow-600 disabled:opacity-50">
-                <PauseIcon className="h-4 w-4" /> {t('experiments.pause', 'Pause')}
+                <Pause className="h-4 w-4" /> {t('experiments.pause', 'Pause')}
               </button>
               <button onClick={() => handleAction('complete')} disabled={isActing} className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
-                <CheckIcon className="h-4 w-4" /> {t('experiments.complete', 'Complete')}
+                <Check className="h-4 w-4" /> {t('experiments.complete', 'Complete')}
               </button>
             </>
           )}
           {experiment.status === 'PAUSED' && (
             <>
               <button onClick={() => handleAction('start')} disabled={isActing} className="inline-flex items-center gap-1 rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">
-                <PlayIcon className="h-4 w-4" /> {t('experiments.resume', 'Resume')}
+                <Play className="h-4 w-4" /> {t('experiments.resume', 'Resume')}
               </button>
               <button onClick={() => handleAction('complete')} disabled={isActing} className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
-                <CheckIcon className="h-4 w-4" /> {t('experiments.complete', 'Complete')}
+                <Check className="h-4 w-4" /> {t('experiments.complete', 'Complete')}
               </button>
             </>
           )}
@@ -293,7 +293,7 @@ export default function ExperimentDetail() {
             </>
           ) : (
             <div className="text-center py-12">
-              <BeakerIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <FlaskConical className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
                 {t('experiments.noResults', 'No results yet')}
               </h3>

@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { BeakerIcon, PlusIcon } from '@heroicons/react/24/outline'
+import { FlaskConical, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import api from '@/lib/api'
+
+interface Project {
+  id: string
+  name: string
+  key: string
+}
 
 interface Experiment {
   id: string
@@ -21,26 +27,38 @@ interface Experiment {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  DRAFT: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
-  RUNNING: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-  PAUSED: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
-  COMPLETED: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  ARCHIVED: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500',
+  DRAFT: 'bg-muted text-muted-foreground',
+  RUNNING: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  PAUSED: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  COMPLETED: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  ARCHIVED: 'bg-muted text-muted-foreground opacity-60',
 }
 
 export default function ExperimentsList() {
   const { t } = useTranslation()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const projectId = searchParams.get('projectId') || ''
+  const [projects, setProjects] = useState<Project[]>([])
   const [experiments, setExperiments] = useState<Experiment[]>([])
   const [statusFilter, setStatusFilter] = useState<string>('')
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
 
+  // Load projects
   useEffect(() => {
-    if (!projectId) {
-      setIsLoading(false)
-      return
-    }
+    api.get('/api/projects')
+      .then((res) => {
+        setProjects(res.data)
+        // Auto-select first project if none selected
+        if (!projectId && res.data.length > 0) {
+          setSearchParams({ projectId: res.data[0].id })
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  // Load experiments when project changes
+  useEffect(() => {
+    if (!projectId) return
     setIsLoading(true)
     const params: Record<string, string> = { projectId }
     if (statusFilter) params.status = statusFilter
@@ -51,50 +69,67 @@ export default function ExperimentsList() {
       .finally(() => setIsLoading(false))
   }, [projectId, statusFilter])
 
-  if (!projectId) {
-    return (
-      <div className="p-6">
-        <p className="text-gray-500 dark:text-gray-400">
-          Please select a project to view experiments.
-        </p>
-      </div>
-    )
-  }
-
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <BeakerIcon className="h-7 w-7 text-primary" />
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {t('experiments.title', 'A/B Experiments')}
-          </h1>
+          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+            <FlaskConical className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">
+              {t('experiments.title', 'A/B Experiments')}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {t('experiments.subtitle', 'Run experiments to optimize your product')}
+            </p>
+          </div>
         </div>
-        <Link
-          to={`/experiments/new?projectId=${projectId}`}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
-        >
-          <PlusIcon className="h-4 w-4" />
-          {t('experiments.create', 'New Experiment')}
-        </Link>
+        {projectId && (
+          <Link
+            to={`/experiments/new?projectId=${projectId}`}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+          >
+            <Plus className="h-4 w-4" />
+            {t('experiments.create', 'New Experiment')}
+          </Link>
+        )}
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2">
-        {['', 'DRAFT', 'RUNNING', 'PAUSED', 'COMPLETED'].map((status) => (
-          <button
-            key={status}
-            onClick={() => setStatusFilter(status)}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-              statusFilter === status
-                ? 'bg-primary text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-            }`}
+      {/* Project selector + Status filters */}
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-muted-foreground">
+            {t('experiments.project', 'Project')}:
+          </label>
+          <select
+            value={projectId}
+            onChange={(e) => setSearchParams({ projectId: e.target.value })}
+            className="rounded-lg border border-input bg-background px-3 py-1.5 text-sm"
           >
-            {status || t('experiments.allStatuses', 'All')}
-          </button>
-        ))}
+            {projects.length === 0 && <option value="">Loading...</option>}
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex gap-1">
+          {['', 'DRAFT', 'RUNNING', 'PAUSED', 'COMPLETED'].map((status) => (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(status)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                statusFilter === status
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              {status || t('experiments.allStatuses', 'All')}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* List */}
@@ -103,43 +138,52 @@ export default function ExperimentsList() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </div>
       ) : experiments.length === 0 ? (
-        <div className="text-center py-12">
-          <BeakerIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+        <div className="text-center py-16 rounded-lg border border-dashed border-border">
+          <FlaskConical className="mx-auto h-12 w-12 text-muted-foreground/50" />
+          <h3 className="mt-4 text-base font-semibold">
             {t('experiments.empty', 'No experiments yet')}
           </h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm text-muted-foreground">
             {t('experiments.emptyDescription', 'Create your first A/B experiment to start testing.')}
           </p>
+          {projectId && (
+            <Link
+              to={`/experiments/new?projectId=${projectId}`}
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+              {t('experiments.create', 'New Experiment')}
+            </Link>
+          )}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-800">
+        <div className="overflow-hidden rounded-lg border border-border">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-muted/50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   {t('experiments.name', 'Name')}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   {t('experiments.status', 'Status')}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   {t('experiments.flag', 'Flag')}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   {t('experiments.variants', 'Variants')}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   {t('experiments.traffic', 'Traffic')}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   {t('experiments.events', 'Events')}
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
+            <tbody className="divide-y divide-border bg-background">
               {experiments.map((exp) => (
-                <tr key={exp.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <tr key={exp.id} className="hover:bg-muted/50 transition-colors">
                   <td className="px-4 py-3">
                     <Link
                       to={`/experiments/${exp.id}`}
@@ -147,23 +191,23 @@ export default function ExperimentsList() {
                     >
                       {exp.name}
                     </Link>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">{exp.key}</p>
+                    <p className="text-xs text-muted-foreground font-mono">{exp.key}</p>
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[exp.status]}`}>
                       {exp.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                  <td className="px-4 py-3 text-sm">
                     {exp.flag.name}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                  <td className="px-4 py-3 text-sm">
                     {exp.variants.length}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                  <td className="px-4 py-3 text-sm">
                     {exp.trafficPercent}%
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                  <td className="px-4 py-3 text-sm">
                     {exp._count.events}
                   </td>
                 </tr>

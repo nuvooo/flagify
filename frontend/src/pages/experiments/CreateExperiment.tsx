@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { BeakerIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { FlaskConical, Plus, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import api from '@/lib/api'
@@ -124,7 +124,7 @@ export default function CreateExperiment() {
     <div className="p-6 max-w-3xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <BeakerIcon className="h-7 w-7 text-primary" />
+        <FlaskConical className="h-7 w-7 text-primary" />
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           {t('experiments.createTitle', 'Create Experiment')}
         </h1>
@@ -248,7 +248,7 @@ export default function CreateExperiment() {
                 {t('experiments.distributeEvenly', 'Distribute evenly')}
               </button>
               <button onClick={addVariant} className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
-                <PlusIcon className="h-4 w-4" /> {t('experiments.addVariant', 'Add Variant')}
+                <Plus className="h-4 w-4" /> {t('experiments.addVariant', 'Add Variant')}
               </button>
             </div>
           </div>
@@ -313,7 +313,7 @@ export default function CreateExperiment() {
                   </label>
                   {variants.length > 2 && (
                     <button onClick={() => removeVariant(i)} className="text-red-500 hover:text-red-700 p-1">
-                      <TrashIcon className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   )}
                 </div>
