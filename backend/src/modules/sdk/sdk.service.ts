@@ -452,8 +452,8 @@ export class SdkService {
     // Track exposure asynchronously (fire-and-forget)
     this.prisma.experimentEvent.create({
       data: {
-        experimentId: experiment.id,
-        variantId: variant.id,
+        experiment: { connect: { id: experiment.id } },
+        variant: { connect: { id: variant.id } },
         type: 'EXPOSURE',
         userId,
       },

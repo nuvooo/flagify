@@ -61,8 +61,8 @@ export class EventsService {
 
         await this.prisma.experimentEvent.create({
           data: {
-            experimentId: experiment.id,
-            variantId,
+            experiment: { connect: { id: experiment.id } },
+            variant: variantId ? { connect: { id: variantId } } : undefined,
             type: eventType,
             userId: event.userId,
             metadata: (event.metadata as any) ?? undefined,

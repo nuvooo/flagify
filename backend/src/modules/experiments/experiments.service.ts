@@ -53,12 +53,12 @@ export class ExperimentsService {
         key: dto.key.trim().toLowerCase(),
         description: dto.description,
         hypothesis: dto.hypothesis,
-        flagId: dto.flagId,
-        environmentId: dto.environmentId,
+        flag: { connect: { id: dto.flagId } },
+        environment: { connect: { id: dto.environmentId } },
         trafficPercent: dto.trafficPercent ?? 100,
-        createdById: userId,
-        projectId: flag.projectId,
-        organizationId: flag.organizationId,
+        createdBy: { connect: { id: userId } },
+        project: { connect: { id: flag.projectId } },
+        organization: { connect: { id: flag.organizationId } },
       },
       include: { variants: true },
     })
@@ -68,7 +68,7 @@ export class ExperimentsService {
       for (const v of dto.variants) {
         await this.prisma.experimentVariant.create({
           data: {
-            experimentId: experiment.id,
+            experiment: { connect: { id: experiment.id } },
             key: v.key,
             name: v.name,
             description: v.description,
@@ -312,7 +312,7 @@ export class ExperimentsService {
 
     return this.prisma.experimentVariant.create({
       data: {
-        experimentId,
+        experiment: { connect: { id: experimentId } },
         key: dto.key,
         name: dto.name,
         description: dto.description,
